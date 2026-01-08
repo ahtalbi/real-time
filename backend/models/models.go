@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-type UserHome struct {
+type UserInfos struct {
 	LoggedIn   bool
 	User       string
 	Posts      []Post

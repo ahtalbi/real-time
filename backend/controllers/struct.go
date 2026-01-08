@@ -1,3 +1,7 @@
 package controllers
 
-type Controller struct{}
+import "rtf/db"
+
+type Controller struct{
+	DB *db.Repo
+}

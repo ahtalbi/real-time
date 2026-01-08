@@ -5,8 +5,9 @@ import (
 	"log"
 	"net/http"
 
-	"rtf/config"
+	"rtf/controllers"
 	"rtf/db"
+	"rtf/models"
 	"rtf/routes"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -18,15 +19,18 @@ func main() {
 		log.Fatal(er)
 	}
 
+	r := &db.Repo{Db: database}
 	handler := &routes.Handler{
-		Repo: &db.Repo{Db: database},
+		Repo:          r,
+		Cntrlrs:       &controllers.Controller{DB: r},
+		StatusAndData: &models.UserInfos{LoggedIn: false, User: "", Posts: []models.Post{}, Categories: []string{}},
 	}
 
 	mux := http.NewServeMux()
 	routes.Routes(mux, handler)
 
 	server := http.Server{
-		Addr:    config.Port,
+		Addr:    ":3000",
 		Handler: mux,
 	}
 

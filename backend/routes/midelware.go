@@ -1,9 +1,21 @@
 package routes
 
-import "net/http"
+import (
+	"context"
+	"net/http"
+)
 
-func Midelware(next http.HandlerFunc) http.HandlerFunc {
+func (h *Handler) Middleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		next(w, r)
+		// check rate limit
+
+		// check session existance
+		userID, er := h.Repo.CheckSessionExistance(r)
+		if er != nil {
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), "userID", userID)
+		next(w, r.WithContext(ctx))
 	}
 }

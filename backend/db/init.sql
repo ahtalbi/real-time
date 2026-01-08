@@ -11,8 +11,8 @@ CREATE TABLE IF NOT EXISTS users (
     email TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
     session_id TEXT UNIQUE,
-    session_created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    session_expired_at DATETIME DEFAULT (DATETIME(CURRENT_TIMESTAMP, '+24 hours'))
+    session_created_at DATETIME DEFAULT NULL,
+    session_expired_at DATETIME DEFAULT NULL
 );
 
 -- posts
