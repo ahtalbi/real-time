@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
+	"time"
 
 	"rtf/models"
 )
@@ -23,14 +23,25 @@ func (c *Controller) Register(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid user infos", http.StatusBadRequest)
 		return
 	}
-	er := c.DB.InsertUserDB(w, user)
-	if er != nil {
+
+	err = c.DB.InsertUserDB(user)
+	if err != nil {
+		switch err.Error() {
+		case "USER ALREADY EXIST":
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			break
+		case "INCORRECT INFOS":
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			break
+		default:
+			http.Error(w, "DB ERROR", http.StatusInternalServerError)
+		}
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"result": "registred successffully"}`))
+	w.Write([]byte(`{"result": "registered successfully"}`))
 }
 
 // login handler
@@ -49,16 +60,31 @@ func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, er := c.DB.IsUserExist(w, &user)
+	userID, er := c.DB.IsUserExist(&user)
 	if er != nil {
+		switch er.Error() {
+		case "USER NOT EXIST", "PASSWORD INCORRECT":
+			http.Error(w, "user not exists or incorrect password", http.StatusBadRequest)
+			break
+		default:
+			http.Error(w, "DB ERROR", http.StatusInternalServerError)
+		}
 		return
 	}
 
 	a, er := c.DB.SetUserSession(w, userID)
-	fmt.Println(a)
 	if er != nil {
+		http.Error(w, "DB ERROR", http.StatusInternalServerError)
 		return
 	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_id",
+		Value:    a[0].(string),
+		Path:     "/",
+		HttpOnly: true,
+		Expires:  a[1].(time.Time),
+	})
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -86,7 +112,7 @@ func (c *Controller) Logout(w http.ResponseWriter, r *http.Request) {
 
 	err := c.DB.DisconnectUser(userID)
 	if err != nil {
-		http.Error(w, "DB error", http.StatusInternalServerError)
+		http.Error(w, "DB ERROR", http.StatusInternalServerError)
 		return
 	}
 

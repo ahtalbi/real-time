@@ -30,18 +30,12 @@ type Post struct {
 	ID            int
 	UserID        int
 	Content       string
-	CategoryType  []Category
+	CategoryType  []string
 	CreatedAt     time.Time
 	NbrOfComments int
 	NbrOfLikes    int
 	NbrOfDislikes int
 	Comments      []Comment
-}
-
-// categorie
-type Category struct {
-	ID   int
-	Name string
 }
 
 // comments

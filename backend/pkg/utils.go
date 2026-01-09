@@ -1,7 +1,6 @@
 package pkg
 
 import (
-	"net/http"
 	"regexp"
 
 	"rtf/models"
@@ -10,7 +9,7 @@ import (
 )
 
 // this funcion check if the informations mutch the expected , any error found will be returned
-func AreUserInfoCorret(w http.ResponseWriter, user models.User) (bool, error) {
+func AreUserInfosCorret(user models.User) (bool, error) {
 	if len(user.Nickname) > 30 || len(user.Firstname) > 30 || len(user.Lastname) > 30 ||
 		// user.Gender != "Male" && user.Gender != "Female" && user.Gender != "Other" ||
 		len(user.Email) > 60 || len(user.Password) > 60 {
@@ -35,3 +34,4 @@ func HashPassword(password string) (string, error) {
 	}
 	return string(hashed), nil
 }
+

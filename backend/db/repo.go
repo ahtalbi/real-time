@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
-	"strconv"
 	"time"
 
 	"rtf/models"
@@ -19,34 +18,37 @@ type Repo struct {
 }
 
 // try to insert the user into the data base, any invalid input will return an error with a specific message
-func (r *Repo) InsertUserDB(w http.ResponseWriter, user models.User) error {
+func (r *Repo) InsertUserDB(user models.User) error {
+	// check the user existance in DB
 	var exist int
-	er := r.Db.QueryRow("SELECT 1 FROM users WHERE nickname=? OR email=?", user.Nickname, user.Email).Scan(&exist)
-	if er != nil && er != sql.ErrNoRows {
-		http.Error(w, "DB error", http.StatusInternalServerError)
-		return er
+	err := r.Db.QueryRow("SELECT 1 FROM users WHERE nickname=? OR email=?", user.Nickname, user.Email).Scan(&exist)
+	if err != nil && err != sql.ErrNoRows {
+		return err
 	}
-
 	if exist > 0 {
-		http.Error(w, "nickname or e-mail already exist", http.StatusBadRequest)
-		return errors.New("user exists")
+		return errors.New("USER ALREADY EXIST")
 	}
 
-	iscorrect, er := pkg.AreUserInfoCorret(w, user)
-	if er != nil {
-		return er
-	} else if !iscorrect {
-		return errors.New("incorrect infos")
+	// check the user infos if correct
+	isCorrect, err := pkg.AreUserInfosCorret(user)
+	if err != nil {
+		return err
+	} else if !isCorrect {
+		return errors.New("INCORRECT INFOS")
 	}
 
-	hashed, er := pkg.HashPassword(user.Password)
-	if er != nil {
-		http.Error(w, "hash password error", http.StatusInternalServerError)
+	//
+	hashed, err := pkg.HashPassword(user.Password)
+	if err != nil {
+		return err
 	}
 
-	if _, err := r.Db.Exec("INSERT INTO users(nickname, birthday, gender, firstname, lastname, email, password) VALUES (?, ?, ?, ?, ?, ?, ?)",
-		user.Nickname, user.Birthday, user.Gender, user.Firstname, user.Lastname, user.Email, hashed); err != nil {
-		http.Error(w, "failed to insert user", http.StatusInternalServerError)
+	//
+	_, err = r.Db.Exec(
+		"INSERT INTO users(nickname, birthday, gender, firstname, lastname, email, password) VALUES (?, ?, ?, ?, ?, ?, ?)",
+		user.Nickname, user.Birthday, user.Gender, user.Firstname, user.Lastname, user.Email, hashed,
+	)
+	if err != nil {
 		return err
 	}
 
@@ -54,24 +56,24 @@ func (r *Repo) InsertUserDB(w http.ResponseWriter, user models.User) error {
 }
 
 // check existance of the user in the DB
-func (r *Repo) IsUserExist(w http.ResponseWriter, user *models.User) (int, error) {
-	var userID, hashedPassword string
-	err := r.Db.QueryRow("SELECT id, password FROM users WHERE nickname=?", user.Nickname).Scan(&userID, &hashedPassword)
-	if err != nil {
-		http.Error(w, "DB error", http.StatusInternalServerError)
-		return -1, err
+func (r *Repo) IsUserExist(user *models.User) (int, error) {
+	var id int
+	var hashedPassword string
+
+	err := r.Db.QueryRow("SELECT id, password FROM users WHERE nickname=?", user.Nickname).Scan(&id, &hashedPassword)
+
+	if err == sql.ErrNoRows {
+		return -1, errors.New("USER NOT EXIST")
 	}
 
 	if bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(user.Password)) != nil {
-		http.Error(w, "password incorrect", http.StatusBadRequest)
-		return -1, errors.New("password incorrect")
+		return -1, errors.New("PASSWORD INCORRECT")
 	}
 
-	id, err := strconv.Atoi(userID)
 	if err != nil {
-		http.Error(w, "atoi error", http.StatusInternalServerError)
 		return -1, err
 	}
+
 	return id, nil
 }
 
@@ -85,16 +87,7 @@ func (r *Repo) SetUserSession(w http.ResponseWriter, userID int) ([]interface{},
 	if err != nil {
 		return nil, err
 	}
-
-	http.SetCookie(w, &http.Cookie{
-		Name:     "session_id",
-		Value:    sessionId,
-		Path:     "/",
-		HttpOnly: true,
-		Expires:  expired,
-	})
-	i := []interface{}{sessionId, expired}
-	return i, nil
+	return []interface{}{sessionId, expired}, nil
 }
 
 // delete the session from the DB in case of logout
@@ -105,9 +98,53 @@ func (r *Repo) DisconnectUser(userID int) error {
 
 // this check session sended by the browser if it is included in the DB
 func (r *Repo) CheckSessionExistance(req *http.Request) (int, error) {
-	cookie, er := req.Cookie("session_id")
-	if er != nil || cookie.Value == "" {
-		return 0, er
+	// check in the browser
+	cookie, err := req.Cookie("session_id")
+	if err != nil || cookie.Value == "" {
+		return 0, err
 	}
-	return 0, nil
+
+	// check in DB
+	var userID int
+	err = r.Db.QueryRow("SELECT id FROM users WHERE session_id = ?", cookie.Value).Scan(&userID)
+	if err != nil {
+		return 0, err
+	}
+
+	return userID, nil
+}
+
+func (r *Repo) InsertPostDB(userID int, post models.Post, ids []int) error {
+	// Insert post
+	res, err := r.Db.Exec("INSERT INTO posts(user_id, content, created_at) VALUES (?, ?, ?)", userID, post.Content, time.Now())
+	if err != nil {
+		return err
+	}
+	// get the last inserted id
+	postID, err := res.LastInsertId()
+	if err != nil {
+		return err
+	}
+	// Insert categories (many to many)
+	for _, catID := range ids {
+		_, err := r.Db.Exec("INSERT INTO posts_categories(post_id, category_id) VALUES (?, ?)", postID, catID)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// this check if the categories exists in DB,  it return the categories id & bool, bool type is false in case of an element not exist, true otherwise
+func (r *Repo) AreCategoriesCorrect(categories []string) ([]int, error) {
+	ids := []int{}
+	for _, cat := range categories {
+		var id int
+		err := r.Db.QueryRow("SELECT id FROM categories WHERE category_name = ?", cat).Scan(&id)
+		if err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+	return ids, nil
 }

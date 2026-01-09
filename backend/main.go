@@ -24,6 +24,7 @@ func main() {
 		Repo:          r,
 		Cntrlrs:       &controllers.Controller{DB: r},
 		StatusAndData: &models.UserInfos{LoggedIn: false, User: "", Posts: []models.Post{}, Categories: []string{}},
+		LastRL:        make(map[string]*routes.RateLimiter),
 	}
 
 	mux := http.NewServeMux()
