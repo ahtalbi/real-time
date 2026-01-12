@@ -32,7 +32,6 @@ type Post struct {
 	Content       string
 	CategoryType  []string
 	CreatedAt     time.Time
-	NbrOfComments int
 	NbrOfLikes    int
 	NbrOfDislikes int
 	Comments      []Comment
@@ -54,4 +53,13 @@ type Message struct {
 	ReceiverID int
 	Content    string
 	CreatedAt  time.Time
+}
+
+// include (psot or comment ID), (PostOrComment: "POST" or "COMMENT"), (type : 0 = dislike, 1 = like) ...etc
+type Reaction struct {
+	PostorcommentID int    `json:"id"`
+	PostOrComment   string `json:"postOrComment"`
+	Type            int    `json:"type"`
+	UserID          int
+	CreatedAt       time.Time
 }

@@ -35,3 +35,12 @@ func HashPassword(password string) (string, error) {
 	return string(hashed), nil
 }
 
+// check if the post content is valid
+func ArePostInfosCorrect(post models.Post) bool {
+	return len(post.CategoryType) != 0 && len(post.Content) != 0 && len(post.Content) < 500
+}
+
+// check if the comment data is correct
+func IsvalidComment(comment models.Comment) bool {
+	return len(comment.Content) != 0 && len(comment.Content) < 500
+}

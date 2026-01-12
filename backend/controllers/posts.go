@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"rtf/models"
+	"rtf/pkg"
 )
 
 // handle create post
@@ -13,6 +14,7 @@ func (c *Controller) CreatePost(w http.ResponseWriter, r *http.Request) {
 	// get the user ID
 	userID, ok := r.Context().Value("userID").(int)
 	if !ok {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -24,10 +26,10 @@ func (c *Controller) CreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// check if the categories exists in the DB
+	// check if the post content is correct and the categories exists in the DB
 	ids, er := c.DB.AreCategoriesCorrect(post.CategoryType)
-	if er != nil {
-		http.Error(w, "incorrect categories", http.StatusBadRequest)
+	if er != nil || !pkg.ArePostInfosCorrect(post) {
+		http.Error(w, "incorrect post content", http.StatusBadRequest)
 		return
 	}
 

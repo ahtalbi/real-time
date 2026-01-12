@@ -100,7 +100,7 @@ func (c *Controller) Logout(w http.ResponseWriter, r *http.Request) {
 
 	userID, ok := r.Context().Value("userID").(int)
 	if !ok || userID == 0 {
-		http.Error(w, "session not exist error", http.StatusBadRequest)
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
 

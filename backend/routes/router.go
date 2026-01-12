@@ -7,8 +7,9 @@ import (
 func Routes(mux *http.ServeMux, handler *Handler) {
 	//
 	routes := map[string]http.HandlerFunc{
-		"/logout": handler.Cntrlrs.Logout,
-		"/createpost": handler.Cntrlrs.CreatePost,
+		"/logout":        handler.Cntrlrs.Logout,
+		"/createpost":    handler.Cntrlrs.CreatePost,
+		"/createcomment": handler.Cntrlrs.CreateComment,
 	}
 	for path, h := range routes {
 		mux.HandleFunc(path, handler.RateLimit(handler.Middleware(h)))
@@ -19,6 +20,7 @@ func Routes(mux *http.ServeMux, handler *Handler) {
 		"/":         handler.Cntrlrs.Home,
 		"/login":    handler.Cntrlrs.Login,
 		"/register": handler.Cntrlrs.Register,
+		"/getposts": handler.Cntrlrs.GetPosts,
 	}
 	for path, h := range LRroutes {
 		mux.HandleFunc(path, handler.RateLimit(h))

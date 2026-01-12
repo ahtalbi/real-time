@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -137,8 +138,18 @@ func (r *Repo) InsertPostDB(userID int, post models.Post, ids []int) error {
 
 // this check if the categories exists in DB,  it return the categories id & bool, bool type is false in case of an element not exist, true otherwise
 func (r *Repo) AreCategoriesCorrect(categories []string) ([]int, error) {
+	if len(categories) == 0 {
+		return []int{}, nil
+	}
+	seen := make(map[string]bool)
 	ids := []int{}
 	for _, cat := range categories {
+		// check duplication
+		if seen[cat] {
+			return nil, errors.New("duplicated category")
+		}
+		seen[cat] = true
+
 		var id int
 		err := r.Db.QueryRow("SELECT id FROM categories WHERE category_name = ?", cat).Scan(&id)
 		if err != nil {
@@ -147,4 +158,157 @@ func (r *Repo) AreCategoriesCorrect(categories []string) ([]int, error) {
 		ids = append(ids, id)
 	}
 	return ids, nil
+}
+
+// insert comment into the DB
+func (r *Repo) InsertCommentDB(comment models.Comment) error {
+	_, err := r.Db.Exec(
+		"INSERT INTO comments (content, user_id, post_id, created_at) VALUES (?, ?, ?, ?)", comment.Content, comment.UserID, comment.PostID, time.Now(),
+	)
+	return err
+}
+
+// to insert a comment to the DB need to check if this post already exist in the DB
+func (r *Repo) PostExists(postID int) (bool, error) {
+	var id int
+	err := r.Db.QueryRow("SELECT id FROM posts WHERE id = ?", postID).Scan(&id)
+	if err != nil {
+		fmt.Println("db error", postID)
+		return false, err
+	}
+	return true, nil
+}
+
+// to insert a reaction (like/dislike) to the DB need to check if comment is EXIST in the DB, any error found will be returned
+func (r *Repo) CommentExists(commentID int) (bool, error) {
+	var id int
+	err := r.Db.QueryRow("SELECT 1 FROM comments WHERE id = ?", commentID).Scan(&id)
+	if err == sql.ErrNoRows {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+// insert a reaction to the post in the DB
+func (r *Repo) InsertPostReaction(userID int, reaction models.Reaction) error {
+	if reaction.Type != 0 && reaction.Type != 1 {
+		return errors.New("invalid reaction type")
+	}
+
+	_, err := r.Db.Exec("INSERT INTO post_reactions (reaction_type, user_id, post_id, created_at) VALUES (?, ?, ?, ?)",
+		reaction.Type, userID, reaction.PostorcommentID, time.Now(),
+	)
+	return err
+}
+
+// insert a reaction into comment in the DB
+func (r *Repo) InsertCommentReaction(userID int, reaction models.Reaction) error {
+	if reaction.Type != 0 && reaction.Type != 1 {
+		return errors.New("invalid reaction type")
+	}
+
+	_, err := r.Db.Exec("INSERT INTO comment_reactions (reaction_type, user_id, comment_id, created_at) VALUES (?, ?, ?, ?)",
+		reaction.Type, userID, reaction.PostorcommentID, time.Now(),
+	)
+	return err
+}
+
+// this function get 10 posts from DB with its comments, reactions and categories starting from 'endID'
+func (r *Repo) GetPosts(endID int) ([]models.Post, error) {
+	posts := []models.Post{}
+
+	rows, er := r.Db.Query(`SELECT posts.id, posts.user_id, posts.content, posts.created_at FROM posts
+	WHERE posts.id < ? ORDER BY posts.created_at DESC LIMIT 10
+	`, endID)
+	if er != nil {
+		return nil, er
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var p models.Post
+		er := rows.Scan(&p.ID, &p.UserID, &p.Content, &p.CreatedAt)
+		if er != nil {
+			return nil, er
+		}
+		// get comments from DB
+		p.Comments, er = r.GetPostComments(p.ID)
+		if er != nil {
+			return posts, er
+		}
+		// get categories from DB
+		p.CategoryType, er = r.GetPostCategories(p.ID)
+		if er != nil {
+			return posts, er
+		}
+		// get the number of likes/dislikes
+		p.NbrOfLikes, p.NbrOfDislikes, er = r.getPostReactions(p.ID)
+		if er != nil {
+			return posts, er
+		}
+		posts = append(posts, p)
+	}
+	return posts, nil
+}
+
+// this function get the comments post from DB based on an postID
+func (r *Repo) GetPostComments(postid int) ([]models.Comment, error) {
+	res := []models.Comment{}
+
+	rows, er := r.Db.Query(`SELECT id, content, user_id, post_id, created_at FROM comments WHERE post_id = ?`, postid)
+	if er != nil {
+		return nil, er
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var c models.Comment
+		er := rows.Scan(&c.ID, &c.Content, &c.UserID, &c.PostID, &c.CreatedAt)
+		if er != nil {
+			return nil, er
+		}
+		res = append(res, c)
+	}
+	return res, nil
+}
+
+// this func get the categories related to the post from DB
+func (r *Repo) GetPostCategories(postID int) ([]string, error) {
+	categories := []string{}
+
+	rows, er := r.Db.Query(`
+	SELECT categories.category_name FROM categories
+	JOIN posts_categories ON posts_categories.category_id = categories.id
+	WHERE posts_categories.post_id = ?`, postID)
+	if er != nil {
+		return nil, er
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var name string
+		er := rows.Scan(&name)
+		if er != nil {
+			return nil, er
+		}
+		categories = append(categories, name)
+	}
+	return categories, nil
+}
+
+// get the reaction (likes/disclikes) from DB
+func (r *Repo) getPostReactions(postID int) (int, int, error) {
+	var likes, dislikes int
+	err := r.Db.QueryRow(`SELECT COUNT(*) FROM post_reactions WHERE reaction_type = 1 AND post_id = ?`, postID).Scan(&likes)
+	if err != nil {
+		return 0, 0, err
+	}
+	err = r.Db.QueryRow(`SELECT COUNT(*) FROM post_reactions WHERE reaction_type = 0 AND post_id = ?`, postID).Scan(&dislikes)
+	if err != nil {
+		return 0, 0, err
+	}
+	return likes, dislikes, nil
 }
