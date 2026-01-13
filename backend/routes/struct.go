@@ -17,5 +17,7 @@ type Handler struct {
 	Repo          *db.Repo
 	Cntrlrs       *controllers.Controller
 	StatusAndData *models.UserInfos
-	LastRL        map[string]*RateLimiter
+
+	// ratelimiter for http
+	LastRL map[string]*RateLimiter
 }

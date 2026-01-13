@@ -14,7 +14,7 @@ type UserInfos struct {
 
 // user
 type User struct {
-	ID        int
+	ID        string
 	Nickname  string
 	Birthday  time.Time
 	Gender    string
@@ -27,7 +27,7 @@ type User struct {
 
 // posts
 type Post struct {
-	ID            int
+	ID            string
 	UserID        int
 	Content       string
 	CategoryType  []string
@@ -39,7 +39,7 @@ type Post struct {
 
 // comments
 type Comment struct {
-	ID        int
+	ID        string
 	Content   string
 	UserID    int
 	PostID    int

@@ -44,10 +44,12 @@ func (r *Repo) InsertUserDB(user models.User) error {
 		return err
 	}
 
+	user.ID = uuid.NewString()
+
 	//
 	_, err = r.Db.Exec(
-		"INSERT INTO users(nickname, birthday, gender, firstname, lastname, email, password) VALUES (?, ?, ?, ?, ?, ?, ?)",
-		user.Nickname, user.Birthday, user.Gender, user.Firstname, user.Lastname, user.Email, hashed,
+		"INSERT INTO users(id, nickname, birthday, gender, firstname, lastname, email, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+		user.ID, user.Nickname, user.Birthday, user.Gender, user.Firstname, user.Lastname, user.Email, hashed,
 	)
 	if err != nil {
 		return err
@@ -57,22 +59,22 @@ func (r *Repo) InsertUserDB(user models.User) error {
 }
 
 // check existance of the user in the DB
-func (r *Repo) IsUserExist(user *models.User) (int, error) {
-	var id int
+func (r *Repo) IsUserExist(user *models.User) (string, error) {
+	var id string
 	var hashedPassword string
 
-	err := r.Db.QueryRow("SELECT id, password FROM users WHERE nickname=?", user.Nickname).Scan(&id, &hashedPassword)
+	err := r.Db.QueryRow("SELECT id, password FROM users WHERE nickname=? OR email=?", user.Nickname, user.Email).Scan(&id, &hashedPassword)
 
 	if err == sql.ErrNoRows {
-		return -1, errors.New("USER NOT EXIST")
+		return "", errors.New("USER NOT EXIST")
 	}
 
 	if bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(user.Password)) != nil {
-		return -1, errors.New("PASSWORD INCORRECT")
+		return "", errors.New("PASSWORD INCORRECT")
 	}
 
 	if err != nil {
-		return -1, err
+		return "", err
 	}
 
 	return id, nil

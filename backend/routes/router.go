@@ -25,4 +25,12 @@ func Routes(mux *http.ServeMux, handler *Handler) {
 	for path, h := range LRroutes {
 		mux.HandleFunc(path, handler.RateLimit(h))
 	}
+
+	//
+	ws := map[string]http.HandlerFunc{
+		"/message": handler.Cntrlrs.Messages,
+	}
+	for path, h := range ws {
+		mux.HandleFunc(path, h)
+	}
 }

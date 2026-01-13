@@ -10,6 +10,7 @@ import (
 	"rtf/models"
 	"rtf/routes"
 
+	"github.com/gorilla/websocket"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -21,8 +22,21 @@ func main() {
 
 	r := &db.Repo{Db: database}
 	handler := &routes.Handler{
-		Repo:          r,
-		Cntrlrs:       &controllers.Controller{DB: r},
+		Repo: r,
+		Cntrlrs: &controllers.Controller{
+			DB: r,
+			Ws: &controllers.WS{
+				WsCon:     make(map[string]*websocket.Conn),
+				Broadcast: make(chan []byte),
+				Upgrader: websocket.Upgrader{
+					ReadBufferSize:  1024,
+					WriteBufferSize: 1024,
+					CheckOrigin: func(r *http.Request) bool {
+						return true
+					},
+				},
+			},
+		},
 		StatusAndData: &models.UserInfos{LoggedIn: false, User: "", Posts: []models.Post{}, Categories: []string{}},
 		LastRL:        make(map[string]*routes.RateLimiter),
 	}
