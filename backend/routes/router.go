@@ -31,6 +31,6 @@ func Routes(mux *http.ServeMux, handler *Handler) {
 		"/message": handler.Cntrlrs.Messages,
 	}
 	for path, h := range ws {
-		mux.HandleFunc(path, h)
+		mux.HandleFunc(path, h) // rate limiter will be handled later
 	}
 }

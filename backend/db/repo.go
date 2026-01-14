@@ -45,11 +45,12 @@ func (r *Repo) InsertUserDB(user models.User) error {
 	}
 
 	user.ID = uuid.NewString()
+	user.FrontID = uuid.NewString()
 
 	//
 	_, err = r.Db.Exec(
-		"INSERT INTO users(id, nickname, birthday, gender, firstname, lastname, email, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-		user.ID, user.Nickname, user.Birthday, user.Gender, user.Firstname, user.Lastname, user.Email, hashed,
+		"INSERT INTO users(id, front_id, nickname, birthday, gender, firstname, lastname, email, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+		user.ID, user.FrontID, user.Nickname, user.Birthday, user.Gender, user.Firstname, user.Lastname, user.Email, hashed,
 	)
 	if err != nil {
 		return err
@@ -64,73 +65,84 @@ func (r *Repo) IsUserExist(user *models.User) (string, error) {
 	var hashedPassword string
 
 	err := r.Db.QueryRow("SELECT id, password FROM users WHERE nickname=? OR email=?", user.Nickname, user.Email).Scan(&id, &hashedPassword)
-
-	if err == sql.ErrNoRows {
-		return "", errors.New("USER NOT EXIST")
-	}
-
-	if bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(user.Password)) != nil {
-		return "", errors.New("PASSWORD INCORRECT")
-	}
-
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", errors.New("USER NOT EXIST")
+		}
 		return "", err
+	}
+	if bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(user.Password)) != nil {
+		fmt.Println("error here") // il me donne error ici
+		return "", errors.New("PASSWORD INCORRECT")
 	}
 
 	return id, nil
 }
 
 // set new session in case of user login
-func (r *Repo) SetUserSession(w http.ResponseWriter, userID int) ([]interface{}, error) {
+func (r *Repo) SetUserSession(w http.ResponseWriter, userID string) ([]interface{}, error) {
 	sessionId := uuid.NewString()
 	now := time.Now()
-	expired := now.Add(24 * time.Hour)
+	timeExpired := now.Add(24 * time.Hour).Format("2006-01-02 15:04:05")
+	timeNow := now.Format("2006-01-02 15:04:05")
+	e := now.Add(24 * time.Hour)
 
-	_, err := r.Db.Exec("UPDATE users SET session_id=?, session_created_at=?, session_expired_at=? WHERE id=?", sessionId, now, expired, userID)
+	_, err := r.Db.Exec("UPDATE users SET session_id=?, session_created_at=?, session_expired_at=? WHERE id=?", sessionId, timeNow, timeExpired, userID)
 	if err != nil {
 		return nil, err
 	}
-	return []interface{}{sessionId, expired}, nil
+	return []interface{}{sessionId, e}, nil
 }
 
 // delete the session from the DB in case of logout
-func (r *Repo) DisconnectUser(userID int) error {
+func (r *Repo) DisconnectUser(userID string) error {
 	_, er := r.Db.Exec("UPDATE users SET session_id=NULL, session_created_at=NULL, session_expired_at=NULL WHERE id=?", userID)
 	return er
 }
 
 // this check session sended by the browser if it is included in the DB
-func (r *Repo) CheckSessionExistance(req *http.Request) (int, error) {
+func (r *Repo) CheckSessionExistance(req *http.Request) (models.User, error) {
+	var user models.User
+
 	// check in the browser
 	cookie, err := req.Cookie("session_id")
 	if err != nil || cookie.Value == "" {
-		return 0, err
+		return user, err
 	}
 
 	// check in DB
-	var userID int
-	err = r.Db.QueryRow("SELECT id FROM users WHERE session_id = ?", cookie.Value).Scan(&userID)
+	err = r.Db.QueryRow("SELECT id, front_id, nickname, birthday, gender, firstname, lastname, email, session_expired_at FROM users WHERE session_id = ?", cookie.Value).
+		Scan(&user.ID, &user.FrontID, &user.Nickname, &user.Birthday, &user.Gender, &user.Firstname, &user.Lastname, &user.Email, &user.SessionExpired)
 	if err != nil {
-		return 0, err
+		return user, err
 	}
 
-	return userID, nil
+	// check if the session already expired
+	if user.SessionExpired != "" {
+		sessionExpiredTime, err := time.Parse("2006-01-02 15:04:05", user.SessionExpired)
+		if err != nil {
+			return user, err
+		}
+		if time.Now().After(sessionExpiredTime) {
+			return user, errors.New("session expired")
+		}
+	}
+
+	return user, nil
 }
 
-func (r *Repo) InsertPostDB(userID int, post models.Post, ids []int) error {
+func (r *Repo) InsertPostDB(userID string, post models.Post, ids []int) error {
+	postID := uuid.NewString()
+
 	// Insert post
-	res, err := r.Db.Exec("INSERT INTO posts(user_id, content, created_at) VALUES (?, ?, ?)", userID, post.Content, time.Now())
+	_, err := r.Db.Exec("INSERT INTO posts(id, user_id, content, created_at) VALUES (?, ?, ?, ?)", postID, userID, post.Content, time.Now())
 	if err != nil {
 		return err
 	}
-	// get the last inserted id
-	postID, err := res.LastInsertId()
-	if err != nil {
-		return err
-	}
+
 	// Insert categories (many to many)
 	for _, catID := range ids {
-		_, err := r.Db.Exec("INSERT INTO posts_categories(post_id, category_id) VALUES (?, ?)", postID, catID)
+		_, err = r.Db.Exec("INSERT INTO posts_categories(post_id, category_id) VALUES (?, ?)", postID, catID)
 		if err != nil {
 			return err
 		}
@@ -171,18 +183,17 @@ func (r *Repo) InsertCommentDB(comment models.Comment) error {
 }
 
 // to insert a comment to the DB need to check if this post already exist in the DB
-func (r *Repo) PostExists(postID int) (bool, error) {
-	var id int
+func (r *Repo) PostExists(postID string) (bool, error) {
+	var id string
 	err := r.Db.QueryRow("SELECT id FROM posts WHERE id = ?", postID).Scan(&id)
 	if err != nil {
-		fmt.Println("db error", postID)
 		return false, err
 	}
 	return true, nil
 }
 
 // to insert a reaction (like/dislike) to the DB need to check if comment is EXIST in the DB, any error found will be returned
-func (r *Repo) CommentExists(commentID int) (bool, error) {
+func (r *Repo) CommentExists(commentID string) (bool, error) {
 	var id int
 	err := r.Db.QueryRow("SELECT 1 FROM comments WHERE id = ?", commentID).Scan(&id)
 	if err == sql.ErrNoRows {
@@ -195,7 +206,7 @@ func (r *Repo) CommentExists(commentID int) (bool, error) {
 }
 
 // insert a reaction to the post in the DB
-func (r *Repo) InsertPostReaction(userID int, reaction models.Reaction) error {
+func (r *Repo) InsertPostReaction(userID string, reaction models.Reaction) error {
 	if reaction.Type != 0 && reaction.Type != 1 {
 		return errors.New("invalid reaction type")
 	}
@@ -207,7 +218,7 @@ func (r *Repo) InsertPostReaction(userID int, reaction models.Reaction) error {
 }
 
 // insert a reaction into comment in the DB
-func (r *Repo) InsertCommentReaction(userID int, reaction models.Reaction) error {
+func (r *Repo) InsertCommentReaction(userID string, reaction models.Reaction) error {
 	if reaction.Type != 0 && reaction.Type != 1 {
 		return errors.New("invalid reaction type")
 	}
@@ -257,7 +268,7 @@ func (r *Repo) GetPosts(endID int) ([]models.Post, error) {
 }
 
 // this function get the comments post from DB based on an postID
-func (r *Repo) GetPostComments(postid int) ([]models.Comment, error) {
+func (r *Repo) GetPostComments(postid string) ([]models.Comment, error) {
 	res := []models.Comment{}
 
 	rows, er := r.Db.Query(`SELECT id, content, user_id, post_id, created_at FROM comments WHERE post_id = ?`, postid)
@@ -278,7 +289,7 @@ func (r *Repo) GetPostComments(postid int) ([]models.Comment, error) {
 }
 
 // this func get the categories related to the post from DB
-func (r *Repo) GetPostCategories(postID int) ([]string, error) {
+func (r *Repo) GetPostCategories(postID string) ([]string, error) {
 	categories := []string{}
 
 	rows, er := r.Db.Query(`
@@ -302,7 +313,7 @@ func (r *Repo) GetPostCategories(postID int) ([]string, error) {
 }
 
 // get the reaction (likes/disclikes) from DB
-func (r *Repo) getPostReactions(postID int) (int, int, error) {
+func (r *Repo) getPostReactions(postID string) (int, int, error) {
 	var likes, dislikes int
 	err := r.Db.QueryRow(`SELECT COUNT(*) FROM post_reactions WHERE reaction_type = 1 AND post_id = ?`, postID).Scan(&likes)
 	if err != nil {
@@ -313,4 +324,33 @@ func (r *Repo) getPostReactions(postID int) (int, int, error) {
 		return 0, 0, err
 	}
 	return likes, dislikes, nil
+}
+
+// get all users exists in the DB
+func (r *Repo) GetAllUsers() ([]models.User, error) {
+	var users []models.User
+
+	rows, err := r.Db.Query("SELECT front_id, nickname, birthday, gender, firstname, lastname, email FROM users")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var u models.User
+		err := rows.Scan(&u.FrontID, &u.Nickname, &u.Birthday, &u.Gender, &u.Firstname, &u.Lastname, &u.Email)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, u)
+	}
+	return users, nil
+}
+
+func (r *Repo) GetUserByFrontID(cookieName string) (string, error) {
+	return "", nil
+}
+
+func (r *Repo) InertMessage(from, to, msg string) error {
+	return nil
 }

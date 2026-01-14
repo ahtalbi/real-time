@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"sync"
 
 	"rtf/controllers"
 	"rtf/db"
@@ -35,6 +36,7 @@ func main() {
 						return true
 					},
 				},
+				Mu: sync.Mutex{},
 			},
 		},
 		StatusAndData: &models.UserInfos{LoggedIn: false, User: "", Posts: []models.Post{}, Categories: []string{}},

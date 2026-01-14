@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"sync"
+
 	"rtf/db"
 
 	"github.com/gorilla/websocket"
@@ -16,4 +18,5 @@ type WS struct {
 	WsCon     map[string]*websocket.Conn
 	Broadcast chan []byte
 	Upgrader  websocket.Upgrader
+	Mu        sync.Mutex
 }

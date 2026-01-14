@@ -10,8 +10,11 @@ import (
 
 // register
 func (c *Controller) Register(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	if r.Method != http.MethodPost {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write([]byte(`{"error":"method not allowed"}`))
 		return
 	}
 
@@ -20,7 +23,8 @@ func (c *Controller) Register(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		http.Error(w, "invalid user infos", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(`{"error":"invalid user infos"}`))
 		return
 	}
 
@@ -28,26 +32,31 @@ func (c *Controller) Register(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch err.Error() {
 		case "USER ALREADY EXIST":
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(`{"error":"USER ALREADY EXIST"}`))
 			break
 		case "INCORRECT INFOS":
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(`{"error":"INCORRECT INFOS"}`))
 			break
 		default:
-			http.Error(w, "DB ERROR", http.StatusInternalServerError)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(`{"error":"DB ERROR"}`))
 		}
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(`{"result": "registered successfully"}`))
 }
 
 // login handler
 func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	if r.Method != http.MethodPost {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write([]byte(`{"error":"method not allowed"}`))
 		return
 	}
 
@@ -56,7 +65,8 @@ func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		http.Error(w, "invalid user infos", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(`{"error":"invalid user infos"}`))
 		return
 	}
 
@@ -64,17 +74,20 @@ func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
 	if er != nil {
 		switch er.Error() {
 		case "USER NOT EXIST", "PASSWORD INCORRECT":
-			http.Error(w, "user not exists or incorrect password", http.StatusBadRequest)
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(`{"error":"user not exists or incorrect password"}`))
 			break
 		default:
-			http.Error(w, "DB ERROR", http.StatusInternalServerError)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(`{"error":"DB ERROR"}`))
 		}
 		return
 	}
 
 	a, er := c.DB.SetUserSession(w, userID)
 	if er != nil {
-		http.Error(w, "DB ERROR", http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"error":"DB ERROR"}`))
 		return
 	}
 
@@ -86,9 +99,24 @@ func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
 		Expires:  a[1].(time.Time),
 	})
 
-	w.Header().Set("Content-Type", "application/json")
+	// will send the list of the freinds temporary ----- will be deleted later
+	users, er := c.DB.GetAllUsers()
+	if er != nil {
+		return
+	}
+
+	data, er := json.Marshal(map[string]interface{}{
+		"result":  "login successfully",
+		"friends": users,
+	})
+
+	if er != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"error":"marchal ERROR"}`))
+		return
+	}
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"result": "login successffully"}`))
+	w.Write(data)
 }
 
 // logout
@@ -98,8 +126,8 @@ func (c *Controller) Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, ok := r.Context().Value("userID").(int)
-	if !ok || userID == 0 {
+	userID, ok := r.Context().Value("userID").(string)
+	if !ok || userID == "" {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}

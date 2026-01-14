@@ -12,7 +12,7 @@ import (
 func (c *Controller) CreateComment(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
-	userID, ok := r.Context().Value("userID").(int)
+	userID, ok := r.Context().Value("userID").(string)
 	if !ok {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
