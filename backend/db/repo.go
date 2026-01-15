@@ -3,7 +3,6 @@ package db
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -34,7 +33,8 @@ func (r *Repo) InsertUserDB(user models.User) error {
 	isCorrect, err := pkg.AreUserInfosCorret(user)
 	if err != nil {
 		return err
-	} else if !isCorrect {
+	}
+	if !isCorrect {
 		return errors.New("INCORRECT INFOS")
 	}
 
@@ -72,7 +72,6 @@ func (r *Repo) IsUserExist(user *models.User) (string, error) {
 		return "", err
 	}
 	if bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(user.Password)) != nil {
-		fmt.Println("error here") // il me donne error ici
 		return "", errors.New("PASSWORD INCORRECT")
 	}
 

@@ -10,16 +10,19 @@ import (
 // reaction handler
 func (c *Controller) Reactions(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
+	w.Header().Set("Content-Type", "application/json")
 
 	userID, ok := r.Context().Value("userID").(string)
 	if !ok {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(`{"error":"unauthorized"}`))
 		return
 	}
 
 	var reaction models.Reaction
 	if err := json.NewDecoder(r.Body).Decode(&reaction); err != nil {
-		http.Error(w, "invalid json input", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(`{"error":"json input invalid"}`))
 		return
 	}
 
@@ -28,40 +31,47 @@ func (c *Controller) Reactions(w http.ResponseWriter, r *http.Request) {
 	case "POST":
 		exist, er := c.DB.PostExists(reaction.PostorcommentID)
 		if er != nil {
-			http.Error(w, "DB ERROR", http.StatusInternalServerError)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(`{"error":"DB ERROR"}`))
 			return
 		}
 		if !exist {
-			http.Error(w, "post not exist", http.StatusBadRequest)
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(`{"error":"post not found"}`))
 			return
 		}
 		er = c.DB.InsertPostReaction(userID, reaction)
 		if er != nil {
-			http.Error(w, "DB ERROR", http.StatusInternalServerError)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(`{"error":"DB ERROR"}`))
 			return
 		}
 
 	case "COMMENT":
 		exist, er := c.DB.CommentExists(reaction.PostorcommentID)
 		if er != nil {
-			http.Error(w, "DB ERROR", http.StatusInternalServerError)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(`{"error":"DB ERROR"}`))
 			return
 		}
 		if !exist {
-			http.Error(w, "comment not found", http.StatusBadRequest)
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(`{"error":"comment not found"}`))
 			return
 		}
 		err := c.DB.InsertCommentReaction(userID, reaction)
 		if err != nil {
-			http.Error(w, "DB ERROR", http.StatusInternalServerError)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(`{"error":"DB ERROR"}`))
 			return
 		}
 
 	default:
-		http.Error(w, "invalid PostOrComment type", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(`{"error":"invalid PostOrComment type"}`))
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(`{"result": "reaction successffully created"}`))
 }

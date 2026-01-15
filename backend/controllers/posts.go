@@ -11,10 +11,13 @@ import (
 // handle create post
 func (c *Controller) CreatePost(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
+	w.Header().Set("Content-Type", "application/json")
+
 	// get the user ID
 	userID, ok := r.Context().Value("userID").(string)
 	if !ok {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(`{"error":"unauthorized"}`))
 		return
 	}
 
@@ -22,24 +25,27 @@ func (c *Controller) CreatePost(w http.ResponseWriter, r *http.Request) {
 	var post models.Post
 	er := json.NewDecoder(r.Body).Decode(&post)
 	if er != nil {
-		http.Error(w, "json input invalid", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(`{"error":"json input invalid"}`))
 		return
 	}
 
 	// check if the post content is correct and the categories exists in the DB
 	ids, er := c.DB.AreCategoriesCorrect(post.CategoryType)
 	if er != nil || !pkg.ArePostInfosCorrect(post) {
-		http.Error(w, "incorrect post content", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(`{"error":"incorrect post content"}`))
 		return
 	}
 
 	// insert the post into the DB
 	er = c.DB.InsertPostDB(userID, post, ids)
 	if er != nil {
-		http.Error(w, "DB ERROR", http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"error":"DB ERROR"}`))
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(`{"result": "post successffully created"}`))
 }

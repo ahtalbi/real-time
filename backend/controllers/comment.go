@@ -11,40 +11,47 @@ import (
 // create comments handler
 func (c *Controller) CreateComment(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
+	w.Header().Set("Content-Type", "application/json")
 
 	userID, ok := r.Context().Value("userID").(string)
 	if !ok {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(`{"error":"unauthorized"}`))
 		return
 	}
 
 	var comment models.Comment
 	if err := json.NewDecoder(r.Body).Decode(&comment); err != nil {
-		http.Error(w, "invalid json input", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(`{"error":"json input invalid"}`))
 		return
 	}
 	comment.UserID = userID
 
 	if !pkg.IsvalidComment(comment) {
-		http.Error(w, "invalid comment input", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(`{"error":"invalid comment input"}`))
 		return
 	}
 
 	exist, err := c.DB.PostExists(comment.PostID)
 	if err != nil {
-		http.Error(w, "db error", http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"error":"DB ERROR"}`))
 		return
 	}
 	if !exist {
-		http.Error(w, "post not found", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(`{"error":"post not found"}`))
 		return
 	}
 
 	if err := c.DB.InsertCommentDB(comment); err != nil {
-		http.Error(w, "db error", http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"error":"DB ERROR"}`))
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(`{"result": "comment successffully created"}`))
 }

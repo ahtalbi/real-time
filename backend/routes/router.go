@@ -11,6 +11,7 @@ func Routes(mux *http.ServeMux, handler *Handler) {
 		"/createpost":    handler.Cntrlrs.CreatePost,
 		"/createcomment": handler.Cntrlrs.CreateComment,
 		"/getposts":      handler.Cntrlrs.GetPosts,
+		"/getusers":      handler.Cntrlrs.Getusers,
 		"/":              handler.Cntrlrs.Home,
 	}
 	for path, h := range routes {
