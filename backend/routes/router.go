@@ -10,6 +10,8 @@ func Routes(mux *http.ServeMux, handler *Handler) {
 		"/logout":        handler.Cntrlrs.Logout,
 		"/createpost":    handler.Cntrlrs.CreatePost,
 		"/createcomment": handler.Cntrlrs.CreateComment,
+		"/getposts":      handler.Cntrlrs.GetPosts,
+		"/":              handler.Cntrlrs.Home,
 	}
 	for path, h := range routes {
 		mux.HandleFunc(path, handler.RateLimit(handler.Middleware(h)))
@@ -17,10 +19,8 @@ func Routes(mux *http.ServeMux, handler *Handler) {
 
 	// home page, login and register routes
 	LRroutes := map[string]http.HandlerFunc{
-		"/":         handler.Cntrlrs.Home,
 		"/login":    handler.Cntrlrs.Login,
 		"/register": handler.Cntrlrs.Register,
-		"/getposts": handler.Cntrlrs.GetPosts,
 	}
 	for path, h := range LRroutes {
 		mux.HandleFunc(path, handler.RateLimit(h))
@@ -31,6 +31,6 @@ func Routes(mux *http.ServeMux, handler *Handler) {
 		"/message": handler.Cntrlrs.Messages,
 	}
 	for path, h := range ws {
-		mux.HandleFunc(path, h) // rate limiter will be handled later
+		mux.HandleFunc(path, h)
 	}
 }

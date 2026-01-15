@@ -2,7 +2,9 @@ package pkg
 
 import (
 	"regexp"
+	"time"
 
+	"rtf/config"
 	"rtf/models"
 
 	"golang.org/x/crypto/bcrypt"
@@ -43,4 +45,12 @@ func ArePostInfosCorrect(post models.Post) bool {
 // check if the comment data is correct
 func IsvalidComment(comment models.Comment) bool {
 	return len(comment.Content) != 0 && len(comment.Content) < 500
+}
+
+// this function handle the rate limit for the messages
+func MessageRLExceeded(count int, last time.Time) bool {
+	if time.Since(last) > config.FiveSec {
+		return false
+	}
+	return count >= config.Max_Messages
 }

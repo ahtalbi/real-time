@@ -6,12 +6,12 @@ import (
 	"strconv"
 )
 
-// home hanfdler
+// handler serve the index of the html file
 func (c *Controller) Home(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "../frontend/h.html")
 }
 
-// the home will be accessible by all users, regardless of whether they are logged in or not, so some posts will be rendred automatically
+// get a list of posts from the DB and render it to the front
 func (c *Controller) GetPosts(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 

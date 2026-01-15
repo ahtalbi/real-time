@@ -347,10 +347,15 @@ func (r *Repo) GetAllUsers() ([]models.User, error) {
 	return users, nil
 }
 
-func (r *Repo) GetUserByFrontID(cookieName string) (string, error) {
-	return "", nil
+// get the user id based on the front id from DB
+func (r *Repo) GetUserByFrontID(frontID string) (string, error) {
+	var id string
+	er := r.Db.QueryRow("SELECT id FROM users WHERE front_id=?", frontID).Scan(&id)
+	return id, er
 }
 
+// insert new message to the DB
 func (r *Repo) InertMessage(from, to, msg string) error {
-	return nil
+	_, er := r.Db.Exec("INSERT INTO messages(sender_id, receiver_id, content, created_at) VALUES (?, ?, ?, ?)", from, to, msg, time.Now())
+	return er
 }

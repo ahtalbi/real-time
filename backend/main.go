@@ -23,12 +23,16 @@ func main() {
 
 	r := &db.Repo{Db: database}
 	handler := &routes.Handler{
-		Repo: r,
+		Repo:          r,
+		StatusAndData: &models.UserInfos{LoggedIn: false, User: "", Posts: []models.Post{}, Categories: []string{}},
+		LastRL:        make(map[string]*routes.RateLimiter),
 		Cntrlrs: &controllers.Controller{
 			DB: r,
 			Ws: &controllers.WS{
-				WsCon:     make(map[string]*websocket.Conn),
-				Broadcast: make(chan []byte),
+				WsCon:          make(map[string]*websocket.Conn),
+				Channels:       make(map[string]chan []byte),
+				Mu:             sync.Mutex{},
+				MsgRateLimiter: make(map[string]*controllers.Msgrl),
 				Upgrader: websocket.Upgrader{
 					ReadBufferSize:  1024,
 					WriteBufferSize: 1024,
@@ -36,11 +40,8 @@ func main() {
 						return true
 					},
 				},
-				Mu: sync.Mutex{},
 			},
 		},
-		StatusAndData: &models.UserInfos{LoggedIn: false, User: "", Posts: []models.Post{}, Categories: []string{}},
-		LastRL:        make(map[string]*routes.RateLimiter),
 	}
 
 	mux := http.NewServeMux()
