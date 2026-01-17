@@ -1,0 +1,22 @@
+:root {
+    --bg-main: #FAF8F0;
+    --bg-surface: #EFECE1;
+    --text-primary: #2D2D2D;
+    --text-secondary: #757575;
+    --accent-color: #7A9A86;
+    --accent-hover: #658270;
+    --highlight-terracotta: #C97C7C;
+    --border-subtle: #DCD8C8;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    min-height: 100vh;
+    font-family: "Lato", sans-serif;
+    background-color: var(--bg-main);
+}

@@ -1,0 +1,151 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap');
+
+nav {
+    position: fixed;
+    width: 100%;
+    padding: 15px clamp(15px, 5vw, 30px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-main);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+nav #logo {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+nav #logo img {
+    width: 80px;
+    height: auto;
+}
+
+nav h1 {
+    font-size: clamp(1.2rem, 4vw, 1.8rem);
+    color: var(--text-primary);
+}
+
+#auth {
+    display: flex;
+    gap: clamp(0px, 3vw, 20px);
+}
+
+#auth button {
+    position: relative;
+    border: none;
+    padding: 8px 15px;
+    background: transparent;
+    font-size: clamp(0.9rem, 2vw, 1.1rem);
+    font-family: "Lato", sans-serif;
+    cursor: pointer;
+    white-space: nowrap;
+    color: var(--text-primary);
+}
+
+#auth button::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--accent-color);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s ease-out;
+}
+
+#auth button:hover::after {
+    transform: scaleX(1);
+}
+
+#actions {
+    display: flex;
+    align-items: center;
+    gap: clamp(0px, 2vw, 15px);
+    font-size: clamp(1.5rem, 5vw, 2rem);
+    color: var(--text-primary);
+}
+
+#actions i {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+#actions i:hover {
+    transform: scale(1.1);
+}
+
+#actions #profile {
+    border: 2px solid var(--bg-main);
+    outline: 2px solid var(--accent-color);
+    border-radius: 50%;
+    width: clamp(35px, 8vw, 50px);
+    height: clamp(35px, 8vw, 50px);
+    object-fit: cover;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+#actions #profile:hover {
+    transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+    nav {
+        padding: 12px 15px;
+    }
+
+    #actions {
+        font-size: 1.5rem;
+    }
+
+    #actions #profile {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+@media (max-width: 480px) {
+    nav h1 {
+        font-size: 1.2rem;
+    }
+
+    #actions {
+        gap: 10px;
+        font-size: 1.3rem;
+    }
+
+    #actions #profile {
+        width: 35px;
+        height: 35px;
+    }
+
+    #auth button {
+        padding: 6px 10px;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 360px) {
+    nav {
+        padding: 10px;
+    }
+
+    nav h1 {
+        font-size: 1rem;
+    }
+
+    #actions {
+        gap: 8px;
+        font-size: 1.1rem;
+    }
+
+    #actions #profile {
+        width: 30px;
+        height: 30px;
+    }
+}
