@@ -8,7 +8,6 @@ import (
 
 	"rtf/controllers"
 	"rtf/db"
-	"rtf/models"
 	"rtf/routes"
 
 	"github.com/gorilla/websocket"
@@ -23,9 +22,8 @@ func main() {
 
 	r := &db.Repo{Db: database}
 	handler := &routes.Handler{
-		Repo:          r,
-		StatusAndData: &models.UserInfos{LoggedIn: false, User: "", Posts: []models.Post{}, Categories: []string{}},
-		LastRL:        make(map[string]*routes.RateLimiter),
+		Repo:   r,
+		LastRL: make(map[string]*routes.RateLimiter),
 		Cntrlrs: &controllers.Controller{
 			DB: r,
 			Ws: &controllers.WS{

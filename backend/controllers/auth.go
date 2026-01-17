@@ -2,13 +2,14 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
 	"rtf/models"
 )
 
-// register
+// this handler handles the  user registration. it expects a POST request, and it returns a JSON response with (error or success)
 func (c *Controller) Register(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -24,33 +25,29 @@ func (c *Controller) Register(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(`{"error":"invalid user infos"}`))
+		w.Write([]byte(`{"error":"invalid fields"}`))
 		return
 	}
 
 	err = c.DB.InsertUserDB(user)
 	if err != nil {
 		switch err.Error() {
-		case "USER ALREADY EXIST":
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(`{"error":"USER ALREADY EXIST"}`))
-			break
-		case "INCORRECT INFOS":
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(`{"error":"INCORRECT INFOS"}`))
+		case "SERVER ERROR":
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(`{"error":"SERVER ERROR"}`))
 			break
 		default:
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`{"error":"DB ERROR"}`))
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(fmt.Sprintf(`{"error":"%s"}`, err.Error())))
 		}
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"result": "registered successfully"}`))
+	w.Write([]byte(`{"success": "registered successfully"}`))
 }
 
-// login handler
+// this handler is for login. it expects a POST request, and it returns a JSON response with (error or success)
 func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -66,28 +63,35 @@ func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(`{"error":"invalid user infos"}`))
+		w.Write([]byte(`{"error":"invalid fields"}`))
 		return
 	}
 
 	userID, er := c.DB.IsUserExist(&user)
 	if er != nil {
 		switch er.Error() {
-		case "USER NOT EXIST", "PASSWORD INCORRECT":
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(`{"error":"user not exists or incorrect password"}`))
+		case "SERVER ERROR":
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(`{"error":"SERVER ERROR"}`))
 			break
 		default:
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`{"error":"DB ERROR"}`))
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, er.Error())))
 		}
+		return
+	}
+
+	user, er = c.DB.GetUserInfos(userID)
+	if er != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"error":"SERVER ERROR"}`))
 		return
 	}
 
 	a, er := c.DB.SetUserSession(w, userID)
 	if er != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(`{"error":"DB ERROR"}`))
+		w.Write([]byte(`{"error":"SERVER ERROR"}`))
 		return
 	}
 
@@ -99,17 +103,14 @@ func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
 		Expires:  a[1].(time.Time),
 	})
 
-	if er != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(`{"error":"marchal ERROR"}`))
-		return
-	}
-
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"result":"logged in successfully"}`))
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"user":    user,
+		"success": "logged in successfully",
+	})
 }
 
-// logout
+// logout handler set user session from the DB to null and  return JSON response with (error or success)
 func (c *Controller) Logout(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -122,7 +123,7 @@ func (c *Controller) Logout(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value("userID").(string)
 	if !ok || userID == "" {
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte(`{"error":"StatusUnauthorized"}`))
+		w.Write([]byte(`{"error":"Status Unauthorized"}`))
 		return
 	}
 
@@ -135,10 +136,10 @@ func (c *Controller) Logout(w http.ResponseWriter, r *http.Request) {
 	err := c.DB.DisconnectUser(userID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(`{"error":"DB ERROR"}`))
+		w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err.Error())))
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"result": "Logged out successfully"}`))
+	w.Write([]byte(`{"success": "Logged out successfully"}`))
 }

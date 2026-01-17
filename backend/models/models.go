@@ -4,13 +4,6 @@ import (
 	"database/sql"
 )
 
-type UserInfos struct {
-	LoggedIn   bool
-	User       string
-	Posts      []Post
-	Categories []string
-}
-
 // user
 type User struct {
 	ID             string
@@ -29,6 +22,8 @@ type User struct {
 // posts
 type Post struct {
 	ID            string
+	AutherName    string
+	FrontID       string
 	UserID        string
 	Content       string
 	CategoryType  []string

@@ -3,26 +3,26 @@ package controllers
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 )
 
 // get a list of posts from the DB and render it to the front
 func (c *Controller) GetPosts(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	q := r.URL.Query()
 
-	endID, er := strconv.Atoi((q.Get("endID")))
+	var req struct {
+		Offset int `json:"offset"`
+	}
+	er := json.NewDecoder(r.Body).Decode(&req)
 	if er != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(`{"error":"atoi ERROR"}`))
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(`{"error":"invalid fields"}`))
 		return
 	}
 
-	posts, er := c.DB.GetPosts(endID)
-
+	posts, er := c.DB.GetPosts(req.Offset)
 	if er != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(`{"error":"DB ERROR"}`))
+		w.Write([]byte(`{"error":"SERVER ERROR"}`))
 		return
 	}
 	if len(posts) == 0 {

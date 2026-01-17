@@ -34,4 +34,3 @@ func (h *Handler) RateLimit(next http.HandlerFunc) http.HandlerFunc {
 		next(w, r)
 	}
 }
-

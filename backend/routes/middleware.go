@@ -11,13 +11,13 @@ func (h *Handler) Middleware(next http.HandlerFunc) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 
 		// check session existance
-		userID, err := h.Repo.CheckSessionExistance(r)
+		user, err := h.Repo.CheckSessionExistance(r)
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte(`{"error":"unauthorized"}`))
 			return
 		}
-		ctx := context.WithValue(r.Context(), "userID", userID)
+		ctx := context.WithValue(r.Context(), "userID", user.ID)
 		next(w, r.WithContext(ctx))
 	}
 }

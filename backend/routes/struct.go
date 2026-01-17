@@ -5,7 +5,6 @@ import (
 
 	"rtf/controllers"
 	"rtf/db"
-	"rtf/models"
 )
 
 type RateLimiter struct {
@@ -14,9 +13,8 @@ type RateLimiter struct {
 }
 
 type Handler struct {
-	Repo          *db.Repo
-	Cntrlrs       *controllers.Controller
-	StatusAndData *models.UserInfos
+	Repo    *db.Repo
+	Cntrlrs *controllers.Controller
 
 	// ratelimiter for http
 	LastRL map[string]*RateLimiter

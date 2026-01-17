@@ -12,7 +12,6 @@ func Routes(mux *http.ServeMux, handler *Handler) {
 		"/createcomment": handler.Cntrlrs.CreateComment,
 		"/getposts":      handler.Cntrlrs.GetPosts,
 		"/getusers":      handler.Cntrlrs.Getusers,
-		"/":              handler.Cntrlrs.Home,
 	}
 	for path, h := range routes {
 		mux.HandleFunc(path, handler.RateLimit(handler.Middleware(h)))
@@ -20,8 +19,15 @@ func Routes(mux *http.ServeMux, handler *Handler) {
 
 	// home page, login and register routes
 	LRroutes := map[string]http.HandlerFunc{
+		
+		"/assets/":           handler.Cntrlrs.StaticsHandler,
+		"/componenets/":      handler.Cntrlrs.StaticsHandler,
+		"/pages/":            handler.Cntrlrs.StaticsHandler,
+		"/confing_theme.css": handler.Cntrlrs.StaticsHandler,
+
 		"/login":    handler.Cntrlrs.Login,
 		"/register": handler.Cntrlrs.Register,
+		"/":         handler.Cntrlrs.Home,
 	}
 	for path, h := range LRroutes {
 		mux.HandleFunc(path, handler.RateLimit(h))

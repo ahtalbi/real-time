@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"rtf/models"
@@ -26,26 +27,39 @@ func (c *Controller) CreatePost(w http.ResponseWriter, r *http.Request) {
 	er := json.NewDecoder(r.Body).Decode(&post)
 	if er != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(`{"error":"json input invalid"}`))
+		w.Write([]byte(`{"error":"invalid fields"}`))
 		return
 	}
 
 	// check if the post content is correct and the categories exists in the DB
 	ids, er := c.DB.AreCategoriesCorrect(post.CategoryType)
-	if er != nil || !pkg.ArePostInfosCorrect(post) {
+	if er != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(`{"error":"incorrect post content"}`))
+		w.Write([]byte(fmt.Sprintf(`{"error":"%s"}`, er.Error())))
+		return
+	}
+	er = pkg.ArePostInfosCorrect(post)
+	if er != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(fmt.Sprintf(`{"error":"%s"}`, er.Error())))
 		return
 	}
 
 	// insert the post into the DB
-	er = c.DB.InsertPostDB(userID, post, ids)
+	post, er = c.DB.InsertPostDB(userID, post, ids)
 	if er != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(`{"error":"DB ERROR"}`))
+		w.Write([]byte(fmt.Sprintf(`{"error":"%s"}`, er.Error())))
+		return
+	}
+
+	post.AutherName, er = c.DB.GetNicknameByUserID(userID)
+	if er != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(fmt.Sprintf(`{"error":"%s"}`, er.Error())))
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"result": "post successffully created"}`))
+	json.NewEncoder(w).Encode(post)
 }
