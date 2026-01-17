@@ -1,0 +1,144 @@
+<!-- Hero Section -->
+<div id="hero">
+    <!-- Left Sidebar: Profile only -->
+    <aside id="links">
+        <div class="card profile">
+            <div class="avatar" aria-hidden="true"></div>
+
+            <div class="meta">
+                <h2 class="name">Your Name</h2>
+                <p class="status">Self-learner • Level: Intermediate</p>
+            </div>
+
+            <button class="btn primary" type="button">Create a post</button>
+            <button class="btn" type="button">Edit profile</button>
+        </div>
+        <!-- Ecosystem menu (moved to right) -->
+        <div class="card menu">
+            <h3 class="title">My Ecosystem</h3>
+            <a class="item" href="#">Feed</a>
+            <a class="item" href="#">Paths</a>
+            <a class="item" href="#">Library</a>
+            <a class="item" href="#">Projects</a>
+            <a class="item" href="#">Challenges</a>
+            <a class="item" href="#">Settings</a>
+        </div>
+    </aside>
+
+    <!-- Center Feed -->
+    <main id="posts">
+        <!-- Composer -->
+        <div class="composer card">
+            <div class="row">
+                <div class="avatar sm" aria-hidden="true"></div>
+                <input class="input" type="text" placeholder="What are you learning today?" />
+            </div>
+
+            <div class="row-between" style="margin-top:12px;">
+                <div class="row" style="gap:10px;">
+                    <button class="btn" type="button">Photo</button>
+                    <button class="btn" type="button">Link</button>
+                    <button class="btn" type="button">Challenge</button>
+                </div>
+                <button class="btn primary" type="button">Post</button>
+            </div>
+        </div>
+
+        <!-- Post with image -->
+        <article class="post card">
+            <header class="post-head">
+                <div class="avatar sm" aria-hidden="true"></div>
+                <div>
+                    <h3 class="post-title">Built my 3-column layout</h3>
+                    <p class="muted">2 hours ago • CSS Grid</p>
+                </div>
+            </header>
+
+            <p class="post-body">
+                Left profile, center feed, right community. Next step: sticky sidebars + clean spacing.
+            </p>
+
+            <figure class="post-media">
+                <img src="https://picsum.photos/seed/valtonom/1200/700" alt="Screenshot-style image" loading="lazy" />
+            </figure>
+
+            <footer class="post-foot">
+                <button class="btn" type="button">Like</button>
+                <button class="btn" type="button">Comment</button>
+                <button class="btn" type="button">Save</button>
+            </footer>
+        </article>
+
+        <!-- Text-only post -->
+        <article class="post card">
+            <header class="post-head">
+                <div class="avatar sm" aria-hidden="true"></div>
+                <div>
+                    <h3 class="post-title">Learning plan: Go + HTTP</h3>
+                    <p class="muted">Yesterday • 45 min</p>
+                </div>
+            </header>
+
+            <p class="post-body">
+                Today I’ll implement middleware (logging + auth) and a simple router package.
+            </p>
+
+            <footer class="post-foot">
+                <button class="btn" type="button">Like</button>
+                <button class="btn" type="button">Comment</button>
+                <button class="btn" type="button">Share</button>
+            </footer>
+        </article>
+    </main>
+
+    <!-- Right Sidebar: Ecosystem + Friends + Communities -->
+    <aside id="friends">
+
+
+        <!-- Friends -->
+        <div class="card suggestions">
+            <h3 class="title">Friends</h3>
+            <ul class="list">
+                <li class="row-between">
+                    <span><span class="dot ok"></span> Marc</span>
+                    <button class="btn" type="button">Message</button>
+                </li>
+                <li class="row-between">
+                    <span><span class="dot ok"></span> Elana</span>
+                    <button class="btn" type="button">Message</button>
+                </li>
+                <li class="row-between">
+                    <span><span class="dot"></span> Leem</span>
+                    <button class="btn" type="button">Message</button>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Communities -->
+        <div class="card communities">
+            <h3 class="title">Communities</h3>
+            <ul class="list">
+                <li class="row-between">
+                    <span>Go Learners</span>
+                    <button class="btn" type="button">Join</button>
+                </li>
+                <li class="row-between">
+                    <span>CSS & UI</span>
+                    <button class="btn" type="button">Join</button>
+                </li>
+                <li class="row-between">
+                    <span>42 Challenges</span>
+                    <button class="btn" type="button">Join</button>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Help -->
+        <div class="card help">
+            <h3 class="title">Help</h3>
+            <a class="item" href="#">Guide</a>
+            <a class="item" href="#">Rules</a>
+            <a class="item" href="#">Support</a>
+        </div>
+    </aside>
+</div>
