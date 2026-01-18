@@ -9,6 +9,19 @@
     --border-subtle: #DCD8C8;
 }
 
+/* dark mode */
+/* :root {
+    --bg-main: #0f1117;
+    --bg-surface: #161b22;
+    --text-primary: #e6edf3;
+    --text-secondary: #9ba3b4;
+    --accent-color: #4f8cff;
+    --accent-hover: #3b73d9;
+    --highlight-terracotta: #ff7b72;
+    --border-subtle: #2a2f3a;
+} */
+
+
 * {
     margin: 0;
     padding: 0;
@@ -19,4 +32,55 @@ body {
     min-height: 100vh;
     font-family: "Lato", sans-serif;
     background-color: var(--bg-main);
+}
+
+/* ---------- cards ---------- */
+.card {
+    background: var(--bg-surface);
+    border-radius: 14px;
+    padding: 16px;
+    border: 1px solid var(--border-subtle);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+}
+
+/* ---------- buttons ---------- */
+.btn {
+    padding: 8px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border-subtle);
+    background: var(--bg-main);
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.05s ease;
+}
+
+.btn:hover {
+    background: var(--bg-surface);
+}
+
+.btn:active {
+    transform: translateY(1px);
+}
+
+.btn.primary {
+    background: var(--accent-color);
+    color: #fff;
+    border: 1px solid transparent;
+}
+
+.btn.primary:hover {
+    background: var(--accent-hover);
+}
+
+.page-center {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }

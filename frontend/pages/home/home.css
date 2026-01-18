@@ -1,3 +1,47 @@
+/* ---------- follow stats ---------- */
+.follow-stats {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.follow-stats .stat {
+  flex: 1;
+  text-align: center;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--bg-main);
+  border: 1px solid var(--border-subtle);
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.05s ease, border-color 0.15s ease;
+}
+
+.follow-stats .stat:hover {
+  background: var(--bg-surface);
+  border-color: var(--border-subtle);
+}
+
+.follow-stats .stat:active {
+  transform: translateY(1px);
+}
+
+.follow-stats .number {
+  display: block;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+
+.follow-stats .label {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
 
 /* ---------- layout ---------- */
 #hero {
@@ -41,19 +85,6 @@
   width: 100%;
   height: auto;
 }
-/* ---------- cards ---------- */
-.card {
-  background: var(--bg-surface);
-  border-radius: 14px;
-  padding: 16px;
-  border: 1px solid var(--border-subtle);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
-}
 
 /* ---------- typography ---------- */
 h2, h3 {
@@ -83,31 +114,6 @@ h2, h3 {
   font-size: 13px;
   color: var(--text-secondary);
   margin: 4px 0 0;
-}
-
-/* ---------- buttons ---------- */
-.btn {
-  padding: 8px 14px;
-  border-radius: 10px;
-  border: 1px solid var(--border-subtle);
-  background: var(--bg-main);
-  color: var(--text-primary);
-  cursor: pointer;
-  font-size: 14px;
-  transition: background 0.15s ease, border-color 0.15s ease, transform 0.05s ease;
-}
-
-.btn:hover { background: var(--bg-surface); }
-.btn:active { transform: translateY(1px); }
-
-.btn.primary {
-  background: var(--accent-color);
-  color: #fff;
-  border: 1px solid transparent;
-}
-
-.btn.primary:hover {
-  background: var(--accent-hover);
 }
 
 /* ---------- avatars ---------- */

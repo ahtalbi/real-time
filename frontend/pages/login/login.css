@@ -1,0 +1,72 @@
+@import url('https://fonts.googleapis.com/css2?family=Short+Stack&display=swap');
+
+#login-container {
+    max-width: 800px;
+    max-height: 500px;
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+}
+
+#login-container img {
+    border-radius: 30px;
+    width: 50%;
+    object-fit: cover;
+}
+
+#login-container form {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding-block: 100px;
+    padding-inline: 15px;
+    width: 100%;
+}
+
+#login-container form input {
+    width: 100%;
+    padding: 12px 4px;
+    font-size: 15px;
+    border: none;
+    background: transparent;
+    border-bottom: 3px solid var(--border-subtle);
+    color: var(--text-primary);
+    outline: none;
+    font-family: "Short Stack", cursive;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+#login-container form input:focus {
+    border-bottom-color: var(--accent-color);
+}
+
+#login-container form input::placeholder {
+    font-family: "Short Stack", cursive;
+}
+
+#login-container form .btn {
+    font-family: "Short Stack", cursive;
+}
+
+.password-box {
+    position: relative;
+}
+
+.password-box input {
+    padding-right: 36px;
+}
+
+.password-box i {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-size: 16px;
+    transition: color 0.2s ease;
+}
+
+.password-box i:hover {
+    color: var(--accent-color);
+}
