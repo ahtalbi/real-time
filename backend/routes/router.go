@@ -25,10 +25,11 @@ func Routes(mux *http.ServeMux, handler *Handler) {
 		"/confing_theme.css": handler.Cntrlrs.StaticsHandler,
 		"/src/":              handler.Cntrlrs.StaticsHandler,
 		"/packages/":         handler.Cntrlrs.StaticsHandler,
-		
+
+		"/hassession":    handler.Cntrlrs.HasSession,
 		"/api/login":    handler.Cntrlrs.Login,
 		"/api/register": handler.Cntrlrs.Register,
-		"/":         handler.Cntrlrs.Home,
+		"/":             handler.Cntrlrs.Home,
 	}
 	for path, h := range LRroutes {
 		mux.HandleFunc(path, handler.RateLimit(h))
