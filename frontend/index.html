@@ -10,34 +10,12 @@
     <link rel="stylesheet" href="componenets/navbar/navbar.css">
     <link rel="stylesheet" href="pages/home/home.css">
     <link rel="stylesheet" href="pages/login/login.css">
-    <style>
-
-    </style>
+    <link rel="stylesheet" href="pages/register/register.css">
 </head>
 
 <body>
-    <div class="page-center">
-        <div id="login-container" class="card">
-            <img id="form-image" src="assets/images/" alt="login image">
-
-            <form>
-                <input type="text" placeholder="Username">
-
-                <div class="password-box">
-                    <input type="password" placeholder="Password" id="password">
-                    <i class="fa-solid fa-eye" id="togglePassword"></i>
-                </div>
-
-                <button type="submit" class="btn primary">Login</button>
-
-                <p class="register-text">
-                    Not registered?
-                    <a href="/register.html">Create an account</a>
-                </p>
-            </form>
-        </div>
-    </div>
-    <script src="pages/login/login.js"></script>
+    <div id="app"></div>
+    <script type="module" src="src/index.js"></script>
 </body>
 
 </html>
