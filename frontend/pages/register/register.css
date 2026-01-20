@@ -1,0 +1,7 @@
+#login-container form {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding-block: 10px;
+    width: 100%;
+}
