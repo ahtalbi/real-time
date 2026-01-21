@@ -64,7 +64,7 @@ function validateLogin({ Nickname, Password }) {
     if (Nickname?.length === 0 || Password?.length === 0) return "all feilds are required";
     if (!isValidLogin(Nickname)) return "invalid nickname or email";
 
-    const minPass = 8;
+    const minPass = 1;
     const maxPass = 60;
     if (Password.length < minPass) return `password must be at least ${minPass} characters`;
     if (Password.length > maxPass) return "feild too large";

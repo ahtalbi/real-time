@@ -27,6 +27,8 @@ async function loadPageScript(src) {
     const s = document.createElement("script");
     s.type = "module";
     s.src = src;
+    s.src = `${src}?v=${Date.now()}`;
+
     s.dataset.page = "true";
     document.body.appendChild(s);
 
@@ -42,6 +44,7 @@ async function renderPage(pageName, root) {
     const html = await fetch(base + ".html", { cache: "no-cache" });
     if (!html.ok) throw new Error("404");
 
+    root.innerHTML = "";
     root.innerHTML = await html.text();
 
     if (await fileExists(base + ".css")) {
@@ -70,5 +73,9 @@ export async function HandleRoutes() {
         .listen(on404);
 
     await fetch("http://localhost:3000/hassession")
-    .then(res => res.json())
+        .then(res => res.json())
+        .then(res => {
+            if (res.success) ClientRouter.navigate("/")
+            else if (res.error) ClientRouter.navigate("/login")
+        })
 }
