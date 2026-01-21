@@ -36,7 +36,6 @@
             </div>
         </div>
 
-        <!-- Ecosystem menu (moved to right) -->
         <div class="card menu">
             <h3 class="title">My Ecosystem</h3>
             <a class="item" href="#">Feed</a>
@@ -48,23 +47,33 @@
         </div>
     </aside>
 
-    <!-- Center Feed -->
     <main id="posts">
-        <!-- Composer -->
         <div class="composer card">
-            <div class="row">
-                <div class="avatar sm" aria-hidden="true"></div>
-                <input class="input" type="text" placeholder="What are you learning today?" />
-            </div>
-
-            <div class="row-between" style="margin-top:12px;">
-                <div class="row" style="gap:10px;">
-                    <button class="btn" type="button">Photo</button>
-                    <button class="btn" type="button">Link</button>
-                    <button class="btn" type="button">Challenge</button>
+            <form id="postCreate">
+                <div class="row">
+                    <div class="avatar sm" aria-hidden="true"></div>
+                    <input class="input" name="content" type="text" placeholder="What you want to (ask | share) today?" />
                 </div>
-                <button class="btn primary" type="button">Post</button>
-            </div>
+                <div class="row-between" style="margin-top:12px;">
+                    <div class="row" style="gap:10px;">
+                        <select name="category" class="input" style="max-width:220px;" required>
+                            <option value="" disabled selected>Select category</option>
+                            <option value="Science">Science</option>
+                            <option value="Technology">Technology</option>
+                            <option value="Mathematics">Mathematics</option>
+                            <option value="Languages">Languages</option>
+                            <option value="Humanities">Humanities</option>
+                            <option value="Personal-development">Personal Development</option>
+                        </select>
+                        <button class="btn" type="button">Photo</button>
+                        <button class="btn" type="button">Link</button>
+                        <button class="btn" type="button">Challenge</button>
+
+                    </div>
+
+                    <button class="btn primary" type="submit">Post</button>
+                </div>
+            </form>
         </div>
 
         <!-- Post with image -->

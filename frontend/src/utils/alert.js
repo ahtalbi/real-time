@@ -1,12 +1,13 @@
 let alertTimer = null;
-// this function is for making alert when the user make some thing wrong
-export function showAlert(message, duration = 10000) {
+
+export function showAlert(message, duration = 10000, bg = "red") {
   const old = document.getElementById("alert");
   if (old) old.remove();
   if (alertTimer) clearTimeout(alertTimer);
 
   const div = document.createElement("div");
   div.id = "alert";
+  div.style.backgroundColor = bg;
   div.textContent = message;
   document.body.appendChild(div);
 

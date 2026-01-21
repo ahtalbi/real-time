@@ -11,7 +11,7 @@ export class Router {
         return navigation.navigate(path, { history });
     }
 
-    listen(onError404, { autoFire = true } = {}) {
+    listen(onError404, { autoFire = false } = {}) {
         navigation.addEventListener("navigate", (event) => {
             const url = new URL(event.destination.url);
 

@@ -397,6 +397,7 @@ h2, h3 {
   background: var(--highlight-terracotta);
 }
 
+
 @media (max-width: 1024px) {
   #hero {
     grid-template-columns: 240px 1fr;
@@ -420,3 +421,4 @@ h2, h3 {
     display: none;
   }
 }
+

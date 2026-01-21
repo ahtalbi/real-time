@@ -55,8 +55,8 @@ form.addEventListener("submit", async (e) => {
     }
 
     let data = await res.json();
-
-    if (data.succes) ClientRouter.navigate("/");
+    
+    if (data.success) ClientRouter.navigate("/");
     else if (data.error) showAlert(data.error);
 })
 
