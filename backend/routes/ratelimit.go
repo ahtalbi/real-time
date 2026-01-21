@@ -18,7 +18,7 @@ func (h *Handler) RateLimit(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		// return if too may requests
-		if time.Since(rl.LastTime) < 10*time.Second && rl.Counter >= 30 {
+		if time.Since(rl.LastTime) < 10*time.Second && rl.Counter >= 500 {
 			http.Error(w, "Too many requests", http.StatusTooManyRequests)
 			return
 		}

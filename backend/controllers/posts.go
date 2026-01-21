@@ -21,7 +21,7 @@ func (c *Controller) CreatePost(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`{"error":"unauthorized"}`))
 		return
 	}
-
+	
 	// get the data from the front
 	var post models.Post
 	er := json.NewDecoder(r.Body).Decode(&post)
@@ -30,7 +30,7 @@ func (c *Controller) CreatePost(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`{"error":"invalid fields"}`))
 		return
 	}
-
+	fmt.Println(post)
 	// check if the post content is correct and the categories exists in the DB
 	ids, er := c.DB.AreCategoriesCorrect(post.CategoryType)
 	if er != nil {

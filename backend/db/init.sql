@@ -34,11 +34,13 @@ CREATE TABLE IF NOT EXISTS categories(
 );
 
 -- insert categories seeds
-INSERT OR IGNORE INTO categories (category_name)  VALUES
-("Social"),
-("Education"),
-("Sport"),
-("Gaming");
+INSERT OR IGNORE INTO categories (category_name) VALUES
+("Science"),
+("Technology"),
+("Mathematics"),
+("Languages"),
+("Humanities"),
+("Personal Development");
 
 -- post-categories
 CREATE TABLE IF NOT EXISTS posts_categories (
