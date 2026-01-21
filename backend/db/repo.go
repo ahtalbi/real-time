@@ -61,6 +61,10 @@ func (r *Repo) IsUserExist(user *models.User) (string, error) {
 	var id string
 	var hashedPassword string
 
+	if len(user.Email) > 60 || len(user.Nickname) > 60 || len(user.Password) > 60 {   
+		return "", errors.New("user not exist")
+	}
+
 	err := r.Db.QueryRow("SELECT id, password FROM users WHERE nickname=? OR email=?", user.Nickname, user.Email).Scan(&id, &hashedPassword)
 	if err != nil {
 		if err == sql.ErrNoRows {
