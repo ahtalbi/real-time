@@ -57,7 +57,7 @@ form.addEventListener("submit", async (e) => {
     let data = await res.json();
 
     if (data.succes) ClientRouter.navigate("/");
-
+    else if (data.error) showAlert(data.error);
 })
 
 function validateLogin({ Nickname, Password }) {
@@ -76,7 +76,7 @@ function isValidLogin(value) {
     if (/\s/.test(value)) return false;
 
     const emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
-    const nicknameRegex = /^[a-zA-Z0-9_]{3,30}$/;
+    const nicknameRegex = /^[a-zA-Z0-9_]{1,30}$/;
 
     return emailRegex.test(value) || nicknameRegex.test(value);
 }
