@@ -1,5 +1,5 @@
 <div class="page-center">
-    <div id="login-container" class="card">
+    <div id="auth-container" class="card">
         <img id="form-image" src="assets/images/cat1.jpg" />
         <form id="register-form">
             <input type="text" name="nickname" placeholder="Username" required>
@@ -9,18 +9,27 @@
             <input type="date" name="birthday" required>
             <div class="gender">
                 <label>
-                    <input type="radio" name="gender" value="male" required>
+                    <input type="radio" name="gender" value="Male" required>
                     Male
                 </label>
 
                 <label>
-                    <input type="radio" name="gender" value="female">
+                    <input type="radio" name="gender" value="Female">
                     Female
+                </label>
+
+                <label>
+                    <input type="radio" name="gender" value="Other">
+                    Other
                 </label>
             </div>
 
             <div class="password-box">
                 <input type="password" name="password" placeholder="Password" required>
+            </div>
+
+            <div class="password-box">
+                <input type="password" name="passwordverificate" placeholder="Password" required>
             </div>
 
             <button type="submit" class="btn primary">

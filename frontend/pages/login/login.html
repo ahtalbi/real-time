@@ -1,12 +1,12 @@
 <div class="page-center">
-    <div id="login-container" class="card">
-        <img id="form-image" src="assets/images/" alt="login image">
+    <div id="auth-container" class="card">
+        <img id="form-image" src="assets/images/cat1.jpg" alt="login image">
 
-        <form>
-            <input type="text" placeholder="Username">
+        <form id="login-container">
+            <input type="text" name="nickname" placeholder="Nickname Or Email">
 
             <div class="password-box">
-                <input type="password" placeholder="Password" id="password">
+                <input type="password" name="password" placeholder="Password Or Email" id="password">
                 <i class="fa-solid fa-eye" id="togglePassword"></i>
             </div>
 
@@ -19,4 +19,3 @@
         </form>
     </div>
 </div>
-<script src="pages/login/login.js"></script>

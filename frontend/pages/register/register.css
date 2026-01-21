@@ -5,3 +5,42 @@
     padding-block: 10px;
     width: 100%;
 }
+
+
+/* notificaiton */
+
+#alert {
+  position: fixed;
+  top: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+
+  min-width: 260px;
+  max-width: 90%;
+
+  background: #ff3b3b;
+  color: #fff;
+
+  padding: 14px 28px;
+  border-radius: 10px;
+
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+  z-index: 9999;
+
+  animation: alert-slide 0.25s ease;
+}
+
+@keyframes alert-slide {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -15px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
