@@ -31,12 +31,12 @@ func AreUserInfosCorret(user models.User) error {
 	}
 	now := time.Now().Unix()
 	max := now - int64(60*60*24*365.25*200)
-	legal := now - int64(60*60*24*365.25*18)
+	legal := now - int64(60*60*24*365.25*15)
 	birth_ms := b.Unix()
 
 	if birth_ms > legal || birth_ms < max {
 		return errors.New("you're not allowed to use this website")
-	}
+	}                                                                       
 
 	// gender
 	if user.Gender != "Male" &&
