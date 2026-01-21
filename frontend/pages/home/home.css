@@ -422,3 +422,104 @@ h2, h3 {
   }
 }
 
+/* COMMENTS */
+.comments {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border-subtle);
+    display: grid;
+    gap: 12px;
+}
+
+.comments.is-hidden {
+    display: none;
+}
+
+.comments-head {
+    gap: 10px;
+}
+
+.comments-title {
+    font-size: 14px;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.comment-create .row {
+    gap: 10px;
+    align-items: center;
+}
+
+.comments-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+}
+
+.comment {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 10px;
+    padding: 10px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    background: var(--bg-surface);
+}
+
+.comment-body {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+}
+
+.comment-author {
+    font-size: 13px;
+    color: var(--text-primary);
+}
+
+.comment-time {
+    font-size: 12px;
+}
+
+.comment-text {
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.35;
+    word-break: break-word;
+}
+
+.comment-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* Avatar sizes (si pas déjà dans ton projet) */
+.avatar.xs {
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border-subtle);
+}
+
+/* Boutons variants (si tu utilises déjà .btn, garde seulement si manquants) */
+.btn.ghost {
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+}
+
+.btn.xs {
+    padding: 6px 10px;
+    font-size: 12px;
+    border-radius: 10px;
+}
+
+.btn.sm {
+    padding: 8px 12px;
+    font-size: 13px;
+    border-radius: 12px;
+}

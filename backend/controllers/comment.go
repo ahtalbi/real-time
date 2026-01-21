@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"rtf/models"
@@ -36,6 +37,7 @@ func (c *Controller) CreateComment(w http.ResponseWriter, r *http.Request) {
 
 	exist, err := c.DB.PostExists(comment.PostID)
 	if err != nil {
+		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(`{"error":"DB ERROR"}`))
 		return
@@ -47,6 +49,7 @@ func (c *Controller) CreateComment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := c.DB.InsertCommentDB(comment); err != nil {
+		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(`{"error":"DB ERROR"}`))
 		return

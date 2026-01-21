@@ -75,7 +75,11 @@ export async function HandleRoutes() {
     await fetch("http://localhost:3000/hassession")
         .then(res => res.json())
         .then(res => {
+            let path = window.location.pathname;
+            console.log(path);
+            
             if (res.success) ClientRouter.navigate("/")
-            else if (res.error) ClientRouter.navigate("/login")
+            else if (res.error && path !== "/register") ClientRouter.navigate("/login")
+            else ClientRouter.navigate("/register")
         })
 }

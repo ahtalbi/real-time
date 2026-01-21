@@ -13,7 +13,7 @@
 
 <!-- Hero Section -->
 <div id="hero">
-    <!-- Left Sidebar: Profile only -->
+    <!-- Left Sidebar -->
     <aside id="links">
         <div class="card profile">
             <div class="avatar" aria-hidden="true"></div>
@@ -52,8 +52,10 @@
             <form id="postCreate">
                 <div class="row">
                     <div class="avatar sm" aria-hidden="true"></div>
-                    <input class="input" name="content" type="text" placeholder="What you want to (ask | share) today?" />
+                    <input class="input" name="content" type="text"
+                        placeholder="What you want to (ask | share) today?" />
                 </div>
+
                 <div class="row-between" style="margin-top:12px;">
                     <div class="row" style="gap:10px;">
                         <select name="category" class="input" style="max-width:220px;" required>
@@ -65,10 +67,10 @@
                             <option value="Humanities">Humanities</option>
                             <option value="Personal-development">Personal Development</option>
                         </select>
+
                         <button class="btn" type="button">Photo</button>
                         <button class="btn" type="button">Link</button>
                         <button class="btn" type="button">Challenge</button>
-
                     </div>
 
                     <button class="btn primary" type="submit">Post</button>
@@ -96,9 +98,53 @@
 
             <footer class="post-foot">
                 <button class="btn" type="button">Like</button>
-                <button class="btn" type="button">Comment</button>
+                <button class="btn" type="button" data-toggle-comments>Comment</button>
                 <button class="btn" type="button">Save</button>
             </footer>
+
+            <!-- Comments (INSIDE this post) -->
+            <section class="comments is-hidden" aria-label="Comments">
+                <div class="comments-head row-between">
+                    <h4 class="comments-title">Comments</h4>
+                    <button class="btn ghost sm" type="button" data-close-comments>Close</button>
+                </div>
+
+                <form class="comment-create" data-comment-form>
+                    <div class="row">
+                        <div class="avatar xs" aria-hidden="true"></div>
+                        <input class="input" name="comment" type="text" placeholder="Write a comment..." required />
+                        <button class="btn primary sm" type="submit">Send</button>
+                    </div>
+                </form>
+
+                <ul class="comments-list">
+                    <li class="comment">
+                        <div class="avatar xs" aria-hidden="true"></div>
+                        <div class="comment-body">
+                            <div class="row-between">
+                                <strong class="comment-author">Marc</strong>
+                                <span class="muted comment-time">2 min</span>
+                            </div>
+                            <p class="comment-text">Clean layout. Sticky sidebars will be nice.</p>
+                            <div class="comment-actions">
+                                <button class="btn ghost xs" type="button">Like</button>
+                                <button class="btn ghost xs" type="button">Reply</button>
+                            </div>
+                        </div>
+                    </li>
+
+                    <li class="comment">
+                        <div class="avatar xs" aria-hidden="true"></div>
+                        <div class="comment-body">
+                            <div class="row-between">
+                                <strong class="comment-author">Elana</strong>
+                                <span class="muted comment-time">10 min</span>
+                            </div>
+                            <p class="comment-text">Try grid-template-columns: 280px 1fr 320px.</p>
+                        </div>
+                    </li>
+                </ul>
+            </section>
         </article>
 
         <!-- Text-only post -->
@@ -117,17 +163,43 @@
 
             <footer class="post-foot">
                 <button class="btn" type="button">Like</button>
-                <button class="btn" type="button">Comment</button>
+                <button class="btn" type="button" data-toggle-comments>Comment</button>
                 <button class="btn" type="button">Share</button>
             </footer>
+
+            <section class="comments is-hidden" aria-label="Comments">
+                <div class="comments-head row-between">
+                    <h4 class="comments-title">Comments</h4>
+                    <button class="btn ghost sm" type="button" data-close-comments>Close</button>
+                </div>
+
+                <form class="comment-create" data-comment-form>
+                    <div class="row">
+                        <input type="hidden" name="PostId" value="22a6e0e6-994a-4cc9-8405-c0d78a89a43e"/>
+                        <div class="avatar xs" aria-hidden="true"></div>
+                        <input class="input" name="comment" type="text" placeholder="Writfe a comment..." required />
+                        <button class="btn primary sm" type="submit">Send</button>
+                    </div>
+                </form>
+
+                <ul class="comments-list">
+                    <li class="comment">
+                        <div class="avatar xs" aria-hidden="true"></div>
+                        <div class="comment-body">
+                            <div class="row-between">
+                                <strong class="comment-author">Leem</strong>
+                                <span class="muted comment-time">1 h</span>
+                            </div>
+                            <p class="comment-text">Nice plan. Add auth middleware early.</p>
+                        </div>
+                    </li>
+                </ul>
+            </section>
         </article>
     </main>
 
-    <!-- Right Sidebar: Ecosystem + Friends + Communities -->
+    <!-- Right Sidebar -->
     <aside id="friends">
-
-
-        <!-- Friends -->
         <div class="card suggestions">
             <h3 class="title">Friends</h3>
             <ul class="list">
@@ -146,7 +218,6 @@
             </ul>
         </div>
 
-        <!-- Communities -->
         <div class="card communities">
             <h3 class="title">Communities</h3>
             <ul class="list">
@@ -165,7 +236,6 @@
             </ul>
         </div>
 
-        <!-- Help -->
         <div class="card help">
             <h3 class="title">Help</h3>
             <a class="item" href="#">Guide</a>
