@@ -23,7 +23,6 @@ type User struct {
 type Post struct {
 	ID            string
 	AutherName    string
-	FrontID       string
 	UserID        string
 	Content       string
 	CategoryType  string
@@ -36,6 +35,7 @@ type Post struct {
 // comments
 type Comment struct {
 	ID        string
+	FrontID   string
 	Content   string
 	UserID    string
 	PostID    string
@@ -51,11 +51,11 @@ type Message struct {
 	CreatedAt  string
 }
 
-// include (psot or comment ID), (PostOrComment: "POST" or "COMMENT"), (type : 0 = dislike, 1 = like) ...etc
+// include (psot or comment ID), (PostOrComment: "POST" or "COMMENT"), (type : 0 -> 6) ...etc
 type Reaction struct {
-	PostorcommentID string `json:"id"`
-	PostOrComment   string `json:"postOrComment"`
-	Type            int    `json:"type"`
+	PostorcommentID string 
+	PostOrComment   string
+	Type            int
 	UserID          int
 	CreatedAt       string
 }

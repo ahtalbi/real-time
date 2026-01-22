@@ -2,6 +2,8 @@ package pkg
 
 import (
 	"errors"
+	"fmt"
+	"net/http"
 	"regexp"
 	"time"
 
@@ -36,7 +38,7 @@ func AreUserInfosCorret(user models.User) error {
 
 	if birth_ms > legal || birth_ms < max {
 		return errors.New("you're not allowed to use this website")
-	}                                                                       
+	}
 
 	// gender
 	if user.Gender != "Male" &&
@@ -101,4 +103,17 @@ func MessageRLExceeded(count int, last time.Time) bool {
 		return false
 	}
 	return count >= config.Max_Messages
+}
+
+// this is a helper function return HTTP errors
+func StatusError(w http.ResponseWriter, er error) {
+	if er != nil {
+		if er.Error() == "SERVER ERROR" {
+			w.WriteHeader(http.StatusInternalServerError)
+		} else {
+			w.WriteHeader(http.StatusBadRequest)
+		}
+		w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, er)))
+		return
+	}
 }

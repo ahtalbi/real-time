@@ -19,7 +19,6 @@ CREATE TABLE IF NOT EXISTS users (
 -- posts
 CREATE TABLE IF NOT EXISTS posts (
     id TEXT PRIMARY KEY,
-    front_id TEXT UNIQUE,
     user_id TEXT NOT NULL,
     category_id INTEGER NOT NULL,
     content TEXT,
@@ -49,7 +48,6 @@ INSERT OR IGNORE INTO categories (category_name) VALUES
 -- comments
 CREATE TABLE IF NOT EXISTS comments (
     id TEXT PRIMARY KEY UNIQUE,
-    front_id TEXT UNIQUE,
     content TEXT NOT NULL,
     user_id TEXT NOT NULL,
     post_id TEXT NOT NULL,
@@ -63,7 +61,7 @@ CREATE INDEX IF NOT EXISTS ids_comments_post_id ON comments(post_id);
 -- post reactions
 CREATE TABLE IF NOT EXISTS post_reactions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    reaction_type INTEGER CHECK(reaction_type IN (0,1)),
+    reaction_type INTEGER CHECK(reaction_type IN (0,1,2,3,4,5,6)),
     user_id TEXT NOT NULL,
     post_id TEXT NOT NULL,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
@@ -77,7 +75,7 @@ CREATE INDEX IF NOT EXISTS ids_post_reactions_post_id ON post_reactions(post_id)
 -- comment reactions
 CREATE TABLE IF NOT EXISTS comment_reactions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    reaction_type INTEGER CHECK(reaction_type IN (0,1)),
+    reaction_type INTEGER CHECK(reaction_type IN (0,1,2,3,4,5,6)),
     user_id TEXT NOT NULL,
     comment_id TEXT NOT NULL,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,

@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"rtf/models"
+	"rtf/pkg"
 )
 
 // reaction handler
@@ -29,40 +30,27 @@ func (c *Controller) Reactions(w http.ResponseWriter, r *http.Request) {
 	switch reaction.PostOrComment {
 
 	case "POST":
-		exist, er := c.DB.PostExists(reaction.PostorcommentID)
+		er := c.DB.PostExists(reaction.PostorcommentID)
 		if er != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`{"error":"DB ERROR"}`))
-			return
-		}
-		if !exist {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(`{"error":"post not found"}`))
+			pkg.StatusError(w, er)
 			return
 		}
 		er = c.DB.InsertPostReaction(userID, reaction)
 		if er != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`{"error":"DB ERROR"}`))
+			pkg.StatusError(w, er)
 			return
 		}
 
 	case "COMMENT":
-		exist, er := c.DB.CommentExists(reaction.PostorcommentID)
+		er := c.DB.CommentExists(reaction.PostorcommentID)
 		if er != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`{"error":"DB ERROR"}`))
+			pkg.StatusError(w, er)
 			return
 		}
-		if !exist {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(`{"error":"comment not found"}`))
-			return
-		}
+
 		err := c.DB.InsertCommentReaction(userID, reaction)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`{"error":"DB ERROR"}`))
+		if er != nil {
+			pkg.StatusError(w, err)
 			return
 		}
 

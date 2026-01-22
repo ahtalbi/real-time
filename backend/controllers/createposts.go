@@ -32,6 +32,7 @@ func (c *Controller) CreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+
 	// check if the post content is correct and the category exists in the DB
 	id, er := c.DB.IsCategoryCorrect(post.CategoryType)
 	if er != nil {
@@ -61,6 +62,7 @@ func (c *Controller) CreatePost(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(fmt.Sprintf(`{"error":"%s"}`, er.Error())))
 		return
 	}
+
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(post)
