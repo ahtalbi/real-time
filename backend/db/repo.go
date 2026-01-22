@@ -61,11 +61,11 @@ func (r *Repo) IsUserExist(user *models.User) (string, error) {
 	var id string
 	var hashedPassword string
 
-	if len(user.Email) > 60 || len(user.Nickname) > 60 || len(user.Password) > 60 {   
+	if len(user.Email) > 60 || len(user.Nickname) > 60 || len(user.Password) > 60 {
 		return "", errors.New("user not exist")
 	}
 
-	err := r.Db.QueryRow("SELECT id, password FROM users WHERE nickname=? OR email=?", user.Nickname, user.Email).Scan(&id, &hashedPassword)
+	err := r.Db.QueryRow("SELECT id, password FROM users WHERE nickname=? OR email=?", user.Nickname, user.Nickname).Scan(&id, &hashedPassword)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return "", errors.New("user not exist")
@@ -134,53 +134,38 @@ func (r *Repo) CheckSessionExistance(req *http.Request) (models.User, error) {
 	return user, nil
 }
 
-func (r *Repo) InsertPostDB(userID string, post models.Post, ids []int) (models.Post, error) {
+func (r *Repo) InsertPostDB(userID string, post models.Post, categoryID int) (models.Post, error) {
 	postID := uuid.NewString()
 	frontid := uuid.NewString()
 	t := time.Now().Format("2006-01-02 15:04:05")
 
-	// Insert post
-	_, err := r.Db.Exec("INSERT INTO posts(id, front_id, user_id, content, created_at) VALUES (?, ?, ?, ?, ?)", postID, frontid, userID, post.Content, t)
+	_, err := r.Db.Exec(
+		`INSERT INTO posts(id, front_id, user_id, category_id, content, created_at) VALUES (?, ?, ?, ?, ?, ?)`,
+		postID, frontid, userID, categoryID, post.Content, t,
+	)
 	if err != nil {
 		return post, errors.New("SERVER ERROR")
 	}
 
-	// Insert categories (many to many)
-	for _, catID := range ids {
-		_, err = r.Db.Exec("INSERT INTO posts_categories(post_id, category_id) VALUES (?, ?)", postID, catID)
-		if err != nil {
-			return post, errors.New("SERVER ERROR")
-		}
-	}
-
 	post.FrontID = frontid
 	post.CreatedAt = t
-
 	return post, nil
 }
 
 // this check if the categories exists in DB,  it return the categories id & bool, bool type is false in case of an element not exist, true otherwise
-func (r *Repo) AreCategoriesCorrect(categories []string) ([]int, error) {
-	if len(categories) == 0 {
-		return []int{}, errors.New("post categorie is required")
+func (r *Repo) IsCategoryCorrect(category string) (int, error) {
+	if len(category) == 0 {
+		return 0, errors.New("post category is required")
 	}
-	seen := make(map[string]bool)
-	ids := []int{}
-	for _, cat := range categories {
-		// check duplication
-		if seen[cat] {
-			return nil, errors.New("duplicated category")
-		}
-		seen[cat] = true
-
-		var id int
-		err := r.Db.QueryRow("SELECT id FROM categories WHERE category_name = ?", cat).Scan(&id)
-		if err != nil {
-			return nil, errors.New("SERVER ERROR")
-		}
-		ids = append(ids, id)
+	var id int
+	err := r.Db.QueryRow(
+		"SELECT id FROM categories WHERE category_name = ?",
+		category,
+	).Scan(&id)
+	if err != nil {
+		return 0, errors.New("invalid category")
 	}
-	return ids, nil
+	return id, nil
 }
 
 // insert comment into the DB
@@ -260,7 +245,7 @@ func (r *Repo) GetPosts(offset int) ([]models.Post, error) {
 			return posts, er
 		}
 		// get categories from DB
-		p.CategoryType, er = r.GetPostCategories(p.ID)
+		p.CategoryType, er = r.GetPostCategory(p.ID)
 		if er != nil {
 			return posts, er
 		}
@@ -297,28 +282,18 @@ func (r *Repo) GetPostComments(postid string) ([]models.Comment, error) {
 }
 
 // this func get the categories related to the post from DB
-func (r *Repo) GetPostCategories(postID string) ([]string, error) {
-	categories := []string{}
+func (r *Repo) GetPostCategory(postID string) (string, error) {
+	var category string
 
-	rows, er := r.Db.Query(`
-	SELECT categories.category_name FROM categories
-	JOIN posts_categories ON posts_categories.category_id = categories.id
-	WHERE posts_categories.post_id = ?`, postID)
-	if er != nil {
-		return nil, er
+	err := r.Db.QueryRow(`
+		SELECT categories.category_name
+		FROM posts
+		JOIN categories ON categories.id = posts.category_id
+		WHERE posts.id = ?`, postID).Scan(&category)
+	if err != nil {
+		return "", err
 	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var name string
-		er := rows.Scan(&name)
-		if er != nil {
-			return nil, er
-		}
-		categories = append(categories, name)
-	}
-
-	return categories, nil
+	return category, nil
 }
 
 // get the reaction (likes/disclikes) from DB

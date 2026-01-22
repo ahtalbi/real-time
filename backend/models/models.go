@@ -26,7 +26,7 @@ type Post struct {
 	FrontID       string
 	UserID        string
 	Content       string
-	CategoryType  []string
+	CategoryType  string
 	CreatedAt     string
 	NbrOfLikes    int
 	NbrOfDislikes int

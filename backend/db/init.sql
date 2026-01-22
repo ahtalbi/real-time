@@ -18,14 +18,18 @@ CREATE TABLE IF NOT EXISTS users (
 
 -- posts
 CREATE TABLE IF NOT EXISTS posts (
-    id TEXT PRIMARY KEY UNIQUE,
+    id TEXT PRIMARY KEY,
     front_id TEXT UNIQUE,
     user_id TEXT NOT NULL,
+    category_id INTEGER NOT NULL,
     content TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE RESTRICT
 );
-CREATE INDEX IF NOT EXISTS ids_posts_user_id ON posts(user_id);
+
+CREATE INDEX IF NOT EXISTS idx_posts_user_id ON posts(user_id);
+CREATE INDEX IF NOT EXISTS idx_posts_category_id ON posts(category_id);
 
 -- categories
 CREATE TABLE IF NOT EXISTS categories(
@@ -41,16 +45,6 @@ INSERT OR IGNORE INTO categories (category_name) VALUES
 ("Languages"),
 ("Humanities"),
 ("Personal Development");
-
--- post-categories
-CREATE TABLE IF NOT EXISTS posts_categories (
-    post_id TEXT NOT NULL,
-    category_id INTEGER NOT NULL,
-    FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
-    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE,
-    PRIMARY KEY (post_id, category_id)
-);
-CREATE INDEX IF NOT EXISTS ids_posts_categories_category_id ON posts_categories(category_id);
 
 -- comments
 CREATE TABLE IF NOT EXISTS comments (
@@ -100,6 +94,7 @@ CREATE TABLE IF NOT EXISTS messages (
     sender_id TEXT NOT NULL,
     receiver_id TEXT NOT NULL,
     content TEXT NOT NULL,
+    is_read INTEGER NOT NULL DEFAULT 0,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE
