@@ -9,9 +9,10 @@ func Routes(mux *http.ServeMux, handler *Handler) {
 	routes := map[string]http.HandlerFunc{
 		"/logout":        handler.Cntrlrs.Logout,
 		"/createpost":    handler.Cntrlrs.CreatePost,
+		"/createreaction":    handler.Cntrlrs.Reactions,
 		"/createcomment": handler.Cntrlrs.CreateComment,
-		"/getposts":      handler.Cntrlrs.GetPosts,
 		"/getusers":      handler.Cntrlrs.Getusers,
+		"/getposts":      handler.Cntrlrs.GetPosts,
 	}
 	for path, h := range routes {
 		mux.HandleFunc(path, handler.RateLimit(handler.Middleware(h)))

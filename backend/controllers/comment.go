@@ -35,26 +35,31 @@ func (c *Controller) CreateComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	exist, err := c.DB.PostExists(comment.PostID)
+	err := c.DB.PostExists(comment.PostID)
 	if err != nil {
-		fmt.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(`{"error":"DB ERROR"}`))
-		return
-	}
-	if !exist {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(`{"error":"post not found"}`))
+		if err.Error() == "SERVER ERROR" {
+			w.WriteHeader(http.StatusInternalServerError)
+		} else {
+			w.WriteHeader(http.StatusBadRequest)
+		}
+		w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
 		return
 	}
 
-	if err := c.DB.InsertCommentDB(comment); err != nil {
-		fmt.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(`{"error":"DB ERROR"}`))
+	comment, err = c.DB.InsertCommentDB(comment)
+	if err != nil {
+		if err.Error() == "SERVER ERROR" {
+			w.WriteHeader(http.StatusInternalServerError)
+		} else {
+			w.WriteHeader(http.StatusBadRequest)
+		}
+		w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"result": "comment successffully created"}`))
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"comment": comment,
+		"success": "comment successfully created",
+	})
 }

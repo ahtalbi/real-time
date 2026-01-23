@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
@@ -19,12 +20,16 @@ func (c *Controller) GetPosts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	posts, er := c.DB.GetPosts(req.Offset)
+	fmt.Println("hre",req)
+
+	posts, er := c.DB.GetPostsfromDB(req.Offset)
 	if er != nil {
+		fmt.Println("here: ", er)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(`{"error":"SERVER ERROR"}`))
 		return
 	}
+
 	if len(posts) == 0 {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(`{"error":"no posts"}`))

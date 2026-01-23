@@ -14,6 +14,7 @@ func (c *Controller) CreatePost(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	w.Header().Set("Content-Type", "application/json")
 
+
 	// get the user ID
 	userID, ok := r.Context().Value("userID").(string)
 	if !ok {
@@ -30,9 +31,10 @@ func (c *Controller) CreatePost(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`{"error":"invalid fields"}`))
 		return
 	}
-	fmt.Println(post)
-	// check if the post content is correct and the categories exists in the DB
-	ids, er := c.DB.AreCategoriesCorrect(post.CategoryType)
+
+
+	// check if the post content is correct and the category exists in the DB
+	id, er := c.DB.IsCategoryCorrect(post.CategoryType)
 	if er != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(fmt.Sprintf(`{"error":"%s"}`, er.Error())))
@@ -45,8 +47,9 @@ func (c *Controller) CreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+
 	// insert the post into the DB
-	post, er = c.DB.InsertPostDB(userID, post, ids)
+	post, er = c.DB.InsertPostDB(userID, post, id)
 	if er != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(fmt.Sprintf(`{"error":"%s"}`, er.Error())))
@@ -59,6 +62,7 @@ func (c *Controller) CreatePost(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(fmt.Sprintf(`{"error":"%s"}`, er.Error())))
 		return
 	}
+
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(post)
