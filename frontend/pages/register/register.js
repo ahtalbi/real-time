@@ -6,7 +6,7 @@ let form = document.getElementById("register-form");
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const payloadObj = {
+  let payloadObj = {
     Nickname: form.nickname.value.trim(),
     Firstname: form.firstname.value.trim(),
     Lastname: form.lastname.value.trim(),
@@ -17,7 +17,7 @@ form.addEventListener("submit", async (e) => {
     VerifyPassword : form.passwordverificate.value,
   };
 
-  const err = validateUserInfos(payloadObj);
+  let err = validateUserInfos(payloadObj);
   if (err) {
     showAlert(err);
     return
@@ -39,7 +39,7 @@ form.addEventListener("submit", async (e) => {
   try {
     data = await res.json();
   } catch {
-    const text = await res.text();
+    let text = await res.text();
     console.log("Server did not return JSON:", text.slice(0, 200));
     return;
   }
@@ -72,14 +72,14 @@ function validateUserInfos(user) {
     return "invalid date format";
   }
 
-  const birthMs = Date.parse(user.Birthday + "T00:00:00Z");
+  let birthMs = Date.parse(user.Birthday + "T00:00:00Z");
   if (Number.isNaN(birthMs)) {
     return "invalid date format";
   }
 
-  const now = Date.now();
-  const max = now - (60 * 60 * 24 * 365.25 * 200 * 1000);
-  const legal = now - (60 * 60 * 24 * 365.25 * 15 * 1000);
+  let now = Date.now();
+  let max = now - (60 * 60 * 24 * 365.25 * 200 * 1000);
+  let legal = now - (60 * 60 * 24 * 365.25 * 15 * 1000);
 
   if (birthMs > legal || birthMs < max) {
     return "you're not allowed to use this website";

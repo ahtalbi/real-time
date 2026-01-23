@@ -4,7 +4,7 @@ export let ClientRouter = Object.create(null);
 
 async function fileExists(url) {
     try {
-        const res = await fetch(url, { cache: "no-cache" });
+        let res = await fetch(url, { cache: "no-cache" });
         return res.ok;
     } catch {
         return false;
@@ -14,17 +14,17 @@ async function fileExists(url) {
 function loadCSSOnce(href) {
     if (document.querySelector(`link[href="${href}"]`)) return;
 
-    const link = document.createElement("link");
+    let link = document.createElement("link");
     link.rel = "stylesheet";
     link.href = href;
     document.head.appendChild(link);
 }
 
 async function loadPageScript(src) {
-    const old = document.querySelector('script[data-page]');
+    let old = document.querySelector('script[data-page]');
     if (old) old.remove();
 
-    const s = document.createElement("script");
+    let s = document.createElement("script");
     s.type = "module";
     s.src = src;
     s.src = `${src}?v=${Date.now()}`;
@@ -39,9 +39,9 @@ async function loadPageScript(src) {
 }
 
 async function renderPage(pageName, root) {
-    const base = `/pages/${pageName}/${pageName}`;
+    let base = `/pages/${pageName}/${pageName}`;
 
-    const html = await fetch(base + ".html", { cache: "no-cache" });
+    let html = await fetch(base + ".html", { cache: "no-cache" });
     if (!html.ok) throw new Error("404");
 
     root.innerHTML = "";
@@ -58,9 +58,9 @@ async function renderPage(pageName, root) {
 
 
 export async function HandleRoutes() {
-    const app = document.getElementById("app") ?? document.body;
+    let app = document.getElementById("app") ?? document.body;
 
-    const on404 = () => {
+    let on404 = () => {
         renderPage("error", app).catch(() => {
             app.innerHTML = "<h1>404</h1>";
         });

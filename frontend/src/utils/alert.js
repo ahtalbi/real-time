@@ -1,11 +1,11 @@
 let alertTimer = null;
 
 export function showAlert(message, duration = 10000, bg = "red") {
-  const old = document.getElementById("alert");
+  let old = document.getElementById("alert");
   if (old) old.remove();
   if (alertTimer) clearTimeout(alertTimer);
 
-  const div = document.createElement("div");
+  let div = document.createElement("div");
   div.id = "alert";
   div.style.backgroundColor = bg;
   div.textContent = message;

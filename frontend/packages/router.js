@@ -13,13 +13,13 @@ export class Router {
 
     listen(onError404, { autoFire = false } = {}) {
         navigation.addEventListener("navigate", (event) => {
-            const url = new URL(event.destination.url);
+            let url = new URL(event.destination.url);
 
             event.intercept({
                 handler: () => {
                     console.log(url.pathname, this.#Routes);
 
-                    const fn = this.#Routes[url.pathname];
+                    let fn = this.#Routes[url.pathname];
                     if (!fn) {
                         onError404();
                         return;
