@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"sync"
 	"time"
 
 	"rtf/controllers"
@@ -15,6 +16,7 @@ type RateLimiter struct {
 type Handler struct {
 	Repo    *db.Repo
 	Cntrlrs *controllers.Controller
+	Mu      sync.RWMutex
 
 	// ratelimiter for http
 	LastRL map[string]*RateLimiter

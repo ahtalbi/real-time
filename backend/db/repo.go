@@ -42,12 +42,11 @@ func (r *Repo) InsertUserDB(user models.User) error {
 	}
 
 	user.ID = uuid.NewString()
-	user.FrontID = uuid.NewString()
 
 	//
 	_, err = r.Db.Exec(
-		"INSERT INTO users(id, front_id, nickname, birthday, gender, firstname, lastname, email, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-		user.ID, user.FrontID, user.Nickname, user.Birthday, user.Gender, user.Firstname, user.Lastname, user.Email, hashed,
+		"INSERT INTO users(id, nickname, birthday, gender, firstname, lastname, email, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+		user.ID, user.Nickname, user.Birthday, user.Gender, user.Firstname, user.Lastname, user.Email, hashed,
 	)
 	if err != nil {
 		return errors.New("SERVER ERROR")
@@ -114,8 +113,8 @@ func (r *Repo) CheckSessionExistance(req *http.Request) (models.User, error) {
 	}
 
 	// check in DB
-	err = r.Db.QueryRow("SELECT id, front_id, nickname, birthday, gender, firstname, lastname, email, session_expired_at FROM users WHERE session_id = ?", cookie.Value).
-		Scan(&user.ID, &user.FrontID, &user.Nickname, &user.Birthday, &user.Gender, &user.Firstname, &user.Lastname, &user.Email, &user.SessionExpired)
+	err = r.Db.QueryRow("SELECT id, nickname, birthday, gender, firstname, lastname, email, session_expired_at FROM users WHERE session_id = ?", cookie.Value).
+		Scan(&user.ID, &user.Nickname, &user.Birthday, &user.Gender, &user.Firstname, &user.Lastname, &user.Email, &user.SessionExpired)
 	if err != nil {
 		return user, err
 	}
@@ -179,6 +178,13 @@ func (r *Repo) InsertCommentDB(comment models.Comment) (models.Comment, error) {
 	if er != nil {
 		return models.Comment{}, errors.New("SERVER ERROR")
 	}
+
+	// get the user nickname
+	comment.AutherName, er = r.GetUserAuthernameByID(comment.UserID)
+	if er != nil {
+		return models.Comment{}, errors.New("SERVER ERROR")
+	}
+
 	return comment, nil
 }
 
@@ -287,32 +293,44 @@ func (r *Repo) GetPostsfromDB(offset int) ([]models.Post, error) {
 		if er != nil {
 			return nil, er
 		}
+
+		// get the user nickname
+		p.AutherName, er = r.GetUserAuthernameByID(p.UserID)
+		if er != nil {
+			return nil, errors.New("SERVER ERROR")
+		}
 		// get comments from DB
 		p.Comments, er = r.GetPostComments(p.ID)
 		if er != nil {
-			return posts, er
+			return nil, er
 		}
 		// get categories from DB
 		p.CategoryType, er = r.GetPostCategory(p.ID)
 		if er != nil {
-			return posts, er
+			return nil, er
 		}
-		p.ID = ""
+
 		// get the number of likes/dislikes
 		p.NbrOfLikes, p.NbrOfDislikes, er = r.getPostReactions(p.ID)
 		if er != nil {
-			return posts, er
+			return nil, er
 		}
 		posts = append(posts, p)
 	}
 	return posts, nil
 }
 
+func (r *Repo) GetUserAuthernameByID(userID string) (string, error) {
+	var nickname string
+	er := r.Db.QueryRow("SELECT nickname FROM users WHERE id=?", userID).Scan(&nickname)
+	return nickname, er
+}
+
 // this function get the comments post from DB based on an postID
 func (r *Repo) GetPostComments(postid string) ([]models.Comment, error) {
 	res := []models.Comment{}
 
-	rows, er := r.Db.Query(`SELECT id, content, user_id, post_id, created_at FROM comments WHERE post_id = ?`, postid)
+	rows, er := r.Db.Query(`SELECT id, content, user_id, post_id, created_at FROM comments WHERE post_id = ? ORDER BY created_at DESC`, postid)
 	if er != nil {
 		if er == sql.ErrNoRows {
 			return nil, errors.New("not exists")
@@ -326,6 +344,10 @@ func (r *Repo) GetPostComments(postid string) ([]models.Comment, error) {
 		er := rows.Scan(&c.ID, &c.Content, &c.UserID, &c.PostID, &c.CreatedAt)
 		if er != nil {
 			return nil, er
+		}
+		c.AutherName, er = r.GetUserAuthernameByID(c.UserID)
+		if er != nil {
+			return nil, errors.New("SERVER ERROR")
 		}
 		res = append(res, c)
 	}
@@ -369,7 +391,7 @@ func (r *Repo) getPostReactions(postID string) (int, int, error) {
 func (r *Repo) Get100UsersFor(userID string, startID int) ([]models.User, error) {
 	var users []models.User
 
-	rows, err := r.Db.Query(`SELECT id, front_id, nickname, birthday, gender, firstname, lastname, email FROM users LIMIT 100 OFFSET ?`, startID)
+	rows, err := r.Db.Query(`SELECT id, nickname, birthday, gender, firstname, lastname, email FROM users LIMIT 100 OFFSET ?`, startID)
 	if err != nil {
 		return nil, errors.New("SERVER ERROR")
 	}
@@ -377,7 +399,7 @@ func (r *Repo) Get100UsersFor(userID string, startID int) ([]models.User, error)
 
 	for rows.Next() {
 		var u models.User
-		err := rows.Scan(&u.ID, &u.FrontID, &u.Nickname, &u.Birthday, &u.Gender, &u.Firstname, &u.Lastname, &u.Email)
+		err := rows.Scan(&u.ID, &u.Nickname, &u.Birthday, &u.Gender, &u.Firstname, &u.Lastname, &u.Email)
 		if err != nil {
 			return nil, errors.New("SERVER ERROR")
 		}
@@ -399,9 +421,14 @@ func (r *Repo) GetUserByFrontID(frontID string) (string, error) {
 }
 
 // insert new message to the DB
-func (r *Repo) InertMessage(from, to, msg string) error {
-	_, er := r.Db.Exec("INSERT INTO messages(sender_id, receiver_id, content, created_at) VALUES (?, ?, ?, ?)", from, to, msg, time.Now())
-	return er
+func (r *Repo) InsertMessage(msg models.Message) (models.Message, error) {
+	msg.CreatedAt = time.Now().Format("2006-01-02 15:04:05")
+	_, err := r.Db.Exec("INSERT INTO messages(sender_id, receiver_id, content, created_at) VALUES (?, ?, ?, ?)",
+		msg.SenderID, msg.ReceiverID, msg.Content, msg.CreatedAt)
+	if err != nil {
+		return models.Message{}, err
+	}
+	return msg, nil
 }
 
 func (r *Repo) GetNicknameByUserID(userID string) (string, error) {
@@ -416,9 +443,9 @@ func (r *Repo) GetNicknameByUserID(userID string) (string, error) {
 func (r *Repo) GetUserInfos(userID string) (models.User, error) {
 	var user models.User
 
-	err := r.Db.QueryRow(`SELECT front_id, nickname, birthday, gender, firstname, lastname, email 
+	err := r.Db.QueryRow(`SELECT id, nickname, birthday, gender, firstname, lastname, email 
 		FROM users WHERE id=?`, userID).
-		Scan(&user.FrontID, &user.Nickname, &user.Birthday, &user.Gender, &user.Firstname, &user.Lastname, &user.Email)
+		Scan(&user.ID, &user.Nickname, &user.Birthday, &user.Gender, &user.Firstname, &user.Lastname, &user.Email)
 	if err != nil {
 		return user, err
 	}

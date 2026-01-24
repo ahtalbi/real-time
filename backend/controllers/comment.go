@@ -27,6 +27,7 @@ func (c *Controller) CreateComment(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`{"error":"json input invalid"}`))
 		return
 	}
+
 	comment.UserID = userID
 
 	if !pkg.IsvalidComment(comment) {

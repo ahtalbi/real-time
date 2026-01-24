@@ -20,26 +20,28 @@ func main() {
 		log.Fatal(er)
 	}
 
+	// initialize
 	r := &db.Repo{Db: database}
-	handler := &routes.Handler{
-		Repo:   r,
-		LastRL: make(map[string]*routes.RateLimiter),
-		Cntrlrs: &controllers.Controller{
-			DB: r,
-			Ws: &controllers.WS{
-				WsCon:          make(map[string]*websocket.Conn),
-				Channels:       make(map[string]chan []byte),
-				Mu:             sync.Mutex{},
-				MsgRateLimiter: make(map[string]*controllers.Msgrl),
-				Upgrader: websocket.Upgrader{
-					ReadBufferSize:  1024,
-					WriteBufferSize: 1024,
-					CheckOrigin: func(r *http.Request) bool {
-						return true
-					},
-				},
-			},
+
+	ws := &controllers.WS{
+		Upgrader: websocket.Upgrader{
+			ReadBufferSize:  1024,
+			WriteBufferSize: 1024,
+			CheckOrigin:     func(r *http.Request) bool { return true },
 		},
+		Clients: make(map[string]*controllers.UserWS),
+		Mu:      sync.RWMutex{},
+	}
+
+	controller := &controllers.Controller{
+		DB: r,
+		Ws: ws,
+	}
+
+	handler := &routes.Handler{
+		Repo:    r,
+		LastRL:  make(map[string]*routes.RateLimiter),
+		Cntrlrs: controller,
 	}
 
 	mux := http.NewServeMux()

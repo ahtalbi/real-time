@@ -31,7 +31,7 @@ export async function fetchPosts() {
   }
 
   let posts = document.getElementById("posts");
-  for (let post of data) {
+  for (let post of data.posts) {
     posts.insertAdjacentHTML("beforeend", postTemplate(post));
   }
 

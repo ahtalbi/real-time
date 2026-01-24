@@ -1,6 +1,6 @@
 export function postTemplate(post) {
   return `
-<article class="post card">
+<article class="post card" id="${post.ID}">
   <header class="post-head">
     <div class="avatar sm" aria-hidden="true"></div>
     <div>
@@ -45,7 +45,7 @@ export function commentTemplate(c) {
   <div class="avatar xs" aria-hidden="true"></div>
   <div class="comment-body">
     <div class="row-between">
-      <strong class="comment-author">${c.UserID}</strong>
+      <strong class="comment-author">${c.AutherName}</strong>
       <span class="muted comment-time">${c.CreatedAt}</span>
     </div>
     <p class="comment-text">${c.Content}</p>

@@ -5,14 +5,16 @@ import (
 	"net/http"
 	"time"
 
+	"rtf/config"
+	"rtf/models"
 	"rtf/pkg"
+
+	"github.com/gorilla/websocket"
 )
 
-// Messages handler
 func (c *Controller) Messages(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	//
 	user, er := c.DB.CheckSessionExistance(r)
 	if er != nil {
 		w.WriteHeader(http.StatusUnauthorized)
@@ -20,110 +22,109 @@ func (c *Controller) Messages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// switch to websocket
+	// switch to WS
 	conn, err := c.Ws.Upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(`{"error":"WebSocket ERROR"}`))
+		w.Write([]byte(`{"error":"SERVER ERROR"}`))
 		return
 	}
-	userChannel := make(chan []byte)
 
-	// save user connection and channel in the maps
+	// initialize user WS in the map
 	c.Ws.Mu.Lock()
-	c.Ws.WsCon[user.FrontID] = conn
-	c.Ws.Channels[user.FrontID] = userChannel
+	c.Ws.Clients[user.ID] = InitializeUserWS(conn)
+	userWS := c.Ws.Clients[user.ID]
 	c.Ws.Mu.Unlock()
 
-	// if connexion closed, user should be removed from the maps
+	//
 	defer func() {
 		c.Ws.Mu.Lock()
-		delete(c.Ws.WsCon, user.FrontID)
-		delete(c.Ws.Channels, user.FrontID)
+		delete(c.Ws.Clients, user.ID)
 		c.Ws.Mu.Unlock()
-		close(userChannel)
+		close(userWS.Chan)
 		conn.Close()
 	}()
 
-	// write the messages saved in the channel to the specific user
-	go func() {
-		for msg := range userChannel {
-			_ = conn.WriteMessage(1, msg)
-		}
-	}()
+	//
+	WSkeepalive(conn)
+	WriteToClient(userWS, conn, c)
+	SendPingMessageEveryPeriodeOfTime(userWS)
 
 	for {
-		_, p, err := conn.ReadMessage()
-		if err != nil {
+		_, p, er := conn.ReadMessage()
+		if er != nil {
+			break
+		}
+		if len(p) > config.Max_Size_message {
 			continue
 		}
 
-		// here is the handling of the rate limiter
-		u, ok := c.Ws.MsgRateLimiter[user.FrontID]
-		if !ok {
-			c.Ws.MsgRateLimiter[user.FrontID] = &Msgrl{
-				Count:             1,
-				Last:              time.Now(),
-				blocked:           false,
-				timetoRemoveBlock: time.Now(),
-			}
-			u = c.Ws.MsgRateLimiter[user.FrontID]
-		} else {
-			// remove block if 10 sec passed
-			if u.blocked {
-				if time.Now().After(u.timetoRemoveBlock) {
-					u.blocked = false
-					u.Count = 0
-				} else {
-					continue
-				}
-			}
-			// set block in case of message spam
-			if pkg.MessageRLExceeded(u.Count, u.Last) {
-				u.blocked = true
-				u.timetoRemoveBlock = time.Now().Add(10 * time.Second)
+		var data models.Message
+		er = json.Unmarshal(p, &data)
+		if er != nil {
+			continue
+		}
+
+		if !pkg.TheMessageFormatIsCorrect(data) {
+			continue
+		}
+
+		// rate limiter
+		c.Ws.Mu.Lock()
+		rl := userWS.Rate
+		now := time.Now()
+		// if the user already blocked check time for deblock or continue
+		if rl.Blocked {
+			if now.After(rl.Deleteblock) {
+				rl.Blocked = false
+				rl.Count = 0
+			} else {
+				c.Ws.Mu.Unlock()
 				continue
 			}
-			u.Count++
-			u.Last = time.Now()
 		}
-
-		//
-		var data map[string]interface{}
-		if err := json.Unmarshal(p, &data); err != nil {
+		// block user in case of spumming
+		if pkg.MessageRLExceeded(rl.Count, rl.Last) {
+			rl.Blocked = true
+			rl.Deleteblock = now.Add(10 * time.Second)
+			c.Ws.Mu.Unlock()
 			continue
 		}
-
-		// get the infos of the user (receiver)
-		to_frontID, ok := data["front_id_to"].(string)
-		if !ok {
-			continue
-		}
-		toID, er := c.DB.GetUserByFrontID(to_frontID)
-		if er != nil {
-			continue
-		}
-
-		// write the message to the DB
-		er = c.DB.InertMessage(user.ID, toID, data["msg"].(string))
-		if er != nil {
-			continue
-		}
-
-		//
-		msgByte, er := json.Marshal(map[string]interface{}{"front_id_from": user.FrontID, "msg": data["msg"].(string)})
-		if er != nil {
-			continue
-		}
-
-		// send the message to the receiver if he's on line
-		c.Ws.Mu.Lock()
-		to, exist := c.Ws.Channels[to_frontID]
+		rl.Count++
+		rl.Last = now
 		c.Ws.Mu.Unlock()
 
+		data.SenderID = user.ID
+
+		// insert the messages to the DB
+		m, er := c.DB.InsertMessage(data)
+		if er != nil {
+			continue
+		}
+
+		MSG, err := json.Marshal(map[string]interface{}{
+			"message": m,
+			"success": "message correctly sent",
+		})
+		if err == nil {
+			userWS.Mu.Lock()
+			_ = conn.SetWriteDeadline(time.Now().Add(config.Try_write))
+			_ = conn.WriteMessage(websocket.TextMessage, MSG)
+			userWS.Mu.Unlock()
+		}
+
+		msgByte, er := json.Marshal(m)
+		if er != nil {
+			continue
+		}
+
+		// send the message to the user if he's online
+		c.Ws.Mu.RLock()
+		toUserWS, exist := c.Ws.Clients[data.ReceiverID]
+		c.Ws.Mu.RUnlock()
 		if exist {
 			select {
-			case to <- msgByte:
+			case toUserWS.Chan <- msgByte:
 			default:
 			}
 		}

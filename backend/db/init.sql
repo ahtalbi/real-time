@@ -3,7 +3,6 @@ PRAGMA foreign_keys = ON;
 -- users
 CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY UNIQUE,
-    front_id TEXT UNIQUE,
     nickname TEXT NOT NULL UNIQUE,
     birthday TEXT NOT NULL,
     gender TEXT NOT NULL,

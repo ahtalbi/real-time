@@ -34,7 +34,7 @@ form.addEventListener("submit", async (e) => {
         Password: form.password.value,
     };
 
-    console.log(payloadObj);
+    // console.log(payloadObj);
     
     let err = validateLogin(payloadObj);
     if (err) {

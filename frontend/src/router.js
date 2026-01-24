@@ -76,7 +76,7 @@ export async function HandleRoutes() {
         .then(res => res.json())
         .then(res => {
             let path = window.location.pathname;
-            console.log(path);
+            // console.log(path);
             
             if (res.success) ClientRouter.navigate("/")
             else if (res.error && path !== "/register") ClientRouter.navigate("/login")

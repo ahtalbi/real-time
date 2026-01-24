@@ -51,5 +51,8 @@ func (c *Controller) Getusers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(data)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"data":    data,
+		"success": "data fetched successfully",
+	})
 }

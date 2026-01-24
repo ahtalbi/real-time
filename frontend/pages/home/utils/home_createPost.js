@@ -41,7 +41,6 @@ export function initCreatePost() {
       return;
     }
 
-    console.log(data);
     data.Comments = []
 
     let posts = document.getElementById("posts");

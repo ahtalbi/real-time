@@ -7,7 +7,6 @@ import (
 // user
 type User struct {
 	ID             string
-	FrontID        string
 	Nickname       string
 	Birthday       string `json:"Birthday"`
 	Gender         string
@@ -34,26 +33,26 @@ type Post struct {
 
 // comments
 type Comment struct {
-	ID        string
-	FrontID   string
-	Content   string
-	UserID    string
-	PostID    string
-	CreatedAt string
+	ID         string
+	AutherName string
+	Content    string
+	UserID     string
+	PostID     string
+	CreatedAt  string
 }
 
 // messages
 type Message struct {
-	ID         int
-	SenderID   int
-	ReceiverID int
+	ID         string
+	SenderID   string
+	ReceiverID string
 	Content    string
 	CreatedAt  string
 }
 
 // include (psot or comment ID), (PostOrComment: "POST" or "COMMENT"), (type : 0 -> 6) ...etc
 type Reaction struct {
-	PostorcommentID string 
+	PostorcommentID string
 	PostOrComment   string
 	Type            int
 	UserID          int

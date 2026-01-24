@@ -105,6 +105,10 @@ func MessageRLExceeded(count int, last time.Time) bool {
 	return count >= config.Max_Messages
 }
 
+func TheMessageFormatIsCorrect(data models.Message) bool {
+	return len(data.Content) > 0 && len(data.Content) < 500 && len(data.ReceiverID) < 100 && len(data.ReceiverID) > 0
+}
+
 // this is a helper function return HTTP errors
 func StatusError(w http.ResponseWriter, er error) {
 	if er != nil {

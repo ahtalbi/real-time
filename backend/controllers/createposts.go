@@ -14,7 +14,6 @@ func (c *Controller) CreatePost(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	w.Header().Set("Content-Type", "application/json")
 
-
 	// get the user ID
 	userID, ok := r.Context().Value("userID").(string)
 	if !ok {
@@ -22,7 +21,7 @@ func (c *Controller) CreatePost(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`{"error":"unauthorized"}`))
 		return
 	}
-	
+
 	// get the data from the front
 	var post models.Post
 	er := json.NewDecoder(r.Body).Decode(&post)
@@ -31,7 +30,6 @@ func (c *Controller) CreatePost(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`{"error":"invalid fields"}`))
 		return
 	}
-
 
 	// check if the post content is correct and the category exists in the DB
 	id, er := c.DB.IsCategoryCorrect(post.CategoryType)
@@ -46,7 +44,6 @@ func (c *Controller) CreatePost(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(fmt.Sprintf(`{"error":"%s"}`, er.Error())))
 		return
 	}
-
 
 	// insert the post into the DB
 	post, er = c.DB.InsertPostDB(userID, post, id)
@@ -63,7 +60,9 @@ func (c *Controller) CreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(post)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"post":    post,
+		"success": "post successfully created",
+	})
 }
