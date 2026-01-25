@@ -174,6 +174,8 @@ func (r *Repo) InsertCommentDB(comment models.Comment) (models.Comment, error) {
 		"INSERT INTO comments (id, content, user_id, post_id, created_at) VALUES (?, ?, ?, ?, ?)", id, comment.Content, comment.UserID, comment.PostID, t,
 	)
 	comment.CreatedAt = t
+	comment.NbrOfReactions = 0
+	comment.UserReaction = -1
 
 	if er != nil {
 		return models.Comment{}, errors.New("SERVER ERROR")
@@ -275,7 +277,7 @@ func (r *Repo) InsertCommentReaction(userID string, reaction models.Reaction) er
 }
 
 // this function get 10 posts from DB with its comments, reactions and categories starting from 'endID'
-func (r *Repo) GetPostsfromDB(offset int) ([]models.Post, error) {
+func (r *Repo) GetPostsfromDB(userID string, offset int) ([]models.Post, error) {
 	posts := []models.Post{}
 
 	rows, er := r.Db.Query(`SELECT id, user_id, content, created_at FROM posts ORDER BY created_at DESC LIMIT 10 OFFSET ?`, offset)
@@ -300,7 +302,7 @@ func (r *Repo) GetPostsfromDB(offset int) ([]models.Post, error) {
 			return nil, errors.New("SERVER ERROR")
 		}
 		// get comments from DB
-		p.Comments, er = r.GetPostComments(p.ID)
+		p.Comments, er = r.GetPostComments(userID, p.ID)
 		if er != nil {
 			return nil, er
 		}
@@ -312,6 +314,14 @@ func (r *Repo) GetPostsfromDB(offset int) ([]models.Post, error) {
 
 		// get the number of likes/dislikes
 		p.NbrOfLikes, p.NbrOfDislikes, er = r.getPostReactions(p.ID)
+		if er != nil {
+			return nil, er
+		}
+		p.NbrOfReactions, er = r.CountPostReactions(p.ID)
+		if er != nil {
+			return nil, er
+		}
+		p.UserReaction, er = r.GetUserPostReaction(userID, p.ID)
 		if er != nil {
 			return nil, er
 		}
@@ -327,7 +337,7 @@ func (r *Repo) GetUserAuthernameByID(userID string) (string, error) {
 }
 
 // this function get the comments post from DB based on an postID
-func (r *Repo) GetPostComments(postid string) ([]models.Comment, error) {
+func (r *Repo) GetPostComments(userID string, postid string) ([]models.Comment, error) {
 	res := []models.Comment{}
 
 	rows, er := r.Db.Query(`SELECT id, content, user_id, post_id, created_at FROM comments WHERE post_id = ? ORDER BY created_at DESC`, postid)
@@ -346,6 +356,14 @@ func (r *Repo) GetPostComments(postid string) ([]models.Comment, error) {
 			return nil, er
 		}
 		c.AutherName, er = r.GetUserAuthernameByID(c.UserID)
+		if er != nil {
+			return nil, errors.New("SERVER ERROR")
+		}
+		c.NbrOfReactions, er = r.CountCommentReactions(c.ID)
+		if er != nil {
+			return nil, errors.New("SERVER ERROR")
+		}
+		c.UserReaction, er = r.GetUserCommentReaction(userID, c.ID)
 		if er != nil {
 			return nil, errors.New("SERVER ERROR")
 		}
@@ -385,6 +403,48 @@ func (r *Repo) getPostReactions(postID string) (int, int, error) {
 		return 0, 0, err
 	}
 	return likes, dislikes, nil
+}
+
+func (r *Repo) CountPostReactions(postID string) (int, error) {
+	var total int
+	err := r.Db.QueryRow(`SELECT COUNT(*) FROM post_reactions WHERE post_id = ?`, postID).Scan(&total)
+	if err != nil {
+		return 0, errors.New("SERVER ERROR")
+	}
+	return total, nil
+}
+
+func (r *Repo) CountCommentReactions(commentID string) (int, error) {
+	var total int
+	err := r.Db.QueryRow(`SELECT COUNT(*) FROM comment_reactions WHERE comment_id = ?`, commentID).Scan(&total)
+	if err != nil {
+		return 0, errors.New("SERVER ERROR")
+	}
+	return total, nil
+}
+
+func (r *Repo) GetUserPostReaction(userID string, postID string) (int, error) {
+	var reaction int
+	err := r.Db.QueryRow(`SELECT reaction_type FROM post_reactions WHERE user_id = ? AND post_id = ?`, userID, postID).Scan(&reaction)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return -1, nil
+		}
+		return -1, errors.New("SERVER ERROR")
+	}
+	return reaction, nil
+}
+
+func (r *Repo) GetUserCommentReaction(userID string, commentID string) (int, error) {
+	var reaction int
+	err := r.Db.QueryRow(`SELECT reaction_type FROM comment_reactions WHERE user_id = ? AND comment_id = ?`, userID, commentID).Scan(&reaction)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return -1, nil
+		}
+		return -1, errors.New("SERVER ERROR")
+	}
+	return reaction, nil
 }
 
 // get all users exists in the DB

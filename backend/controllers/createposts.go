@@ -59,6 +59,8 @@ func (c *Controller) CreatePost(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(fmt.Sprintf(`{"error":"%s"}`, er.Error())))
 		return
 	}
+	post.UserReaction = -1
+	post.NbrOfReactions = 0
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{

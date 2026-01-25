@@ -28,6 +28,8 @@ type Post struct {
 	CreatedAt     string
 	NbrOfLikes    int
 	NbrOfDislikes int
+	NbrOfReactions int
+	UserReaction   int
 	Comments      []Comment
 }
 
@@ -39,6 +41,8 @@ type Comment struct {
 	UserID     string
 	PostID     string
 	CreatedAt  string
+	NbrOfReactions int
+	UserReaction   int
 }
 
 // messages

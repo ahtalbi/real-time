@@ -27,6 +27,8 @@ func (c *Controller) Reactions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var total int
+
 	switch reaction.PostOrComment {
 
 	case "POST":
@@ -40,6 +42,11 @@ func (c *Controller) Reactions(w http.ResponseWriter, r *http.Request) {
 			pkg.StatusError(w, er)
 			return
 		}
+		total, er = c.DB.CountPostReactions(reaction.PostorcommentID)
+		if er != nil {
+			pkg.StatusError(w, er)
+			return
+		}
 
 	case "COMMENT":
 		er := c.DB.CommentExists(reaction.PostorcommentID)
@@ -48,9 +55,14 @@ func (c *Controller) Reactions(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		err := c.DB.InsertCommentReaction(userID, reaction)
+		er = c.DB.InsertCommentReaction(userID, reaction)
 		if er != nil {
-			pkg.StatusError(w, err)
+			pkg.StatusError(w, er)
+			return
+		}
+		total, er = c.DB.CountCommentReactions(reaction.PostorcommentID)
+		if er != nil {
+			pkg.StatusError(w, er)
 			return
 		}
 
@@ -61,5 +73,8 @@ func (c *Controller) Reactions(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"result": "reaction successffully created"}`))
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"result": "reaction successfully created",
+		"total":  total,
+	})
 }

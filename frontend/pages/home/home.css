@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap');
 
-/* ---------- Navbar ---------- */
 nav {
   position: sticky;
   top: 0;
@@ -45,6 +44,7 @@ nav h1 {
   cursor: pointer;
   white-space: nowrap;
   color: var(--text-primary);
+
 }
 
 #auth button::after {
@@ -347,6 +347,52 @@ h3 {
   flex-wrap: wrap;
 }
 
+.reactions {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.reaction-btn {
+  padding: 6px 8px;
+  line-height: 1;
+}
+
+.reaction-btn.is-selected {
+  background: var(--accent-color);
+  color: #fff;
+}
+
+.reaction-menu {
+  position: absolute;
+  display: none;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 10px;
+  background: var(--reaction-menu-bg);
+  border: 1px solid var(--border-subtle);
+  transform: translateY(-10px);
+  box-shadow: 0 10px 30px rgba(16, 20, 24, 0.08);
+  z-index: 10;
+}
+
+.reactions:hover .reaction-menu {
+  display: inline-flex;
+}
+
+.reaction-option {
+  padding: 6px 8px;
+  line-height: 1;
+}
+
+.reaction-total {
+  font-size: 13px;
+  color: var(--text-secondary);
+  padding-left: 2px;
+}
+
 .item {
   display: block;
   padding: 10px 12px;
@@ -502,7 +548,6 @@ h3 {
   gap: 8px;
 }
 
-/* Avatar sizes (si pas déjà dans ton projet) */
 .avatar.xs {
   width: 28px;
   height: 28px;
@@ -511,7 +556,6 @@ h3 {
   border: 1px solid var(--border-subtle);
 }
 
-/* Boutons variants (si tu utilises déjà .btn, garde seulement si manquants) */
 .btn.ghost {
   background: transparent;
   border: 1px solid var(--border-subtle);
@@ -537,3 +581,4 @@ h3 {
   height: 30px;
   z-index: 999;
 }
+/* ---------- Navbar ---------- */

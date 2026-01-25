@@ -9,6 +9,13 @@ import (
 func (c *Controller) GetPosts(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	userID, ok := r.Context().Value("userID").(string)
+	if !ok {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(`{"error":"unauthorized"}`))
+		return
+	}
+
 	var req struct {
 		Offset int `json:"offset"`
 	}
@@ -19,7 +26,7 @@ func (c *Controller) GetPosts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	posts, er := c.DB.GetPostsfromDB(req.Offset)
+	posts, er := c.DB.GetPostsfromDB(userID, req.Offset)
 	if er != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(`{"error":"SERVER ERROR"}`))

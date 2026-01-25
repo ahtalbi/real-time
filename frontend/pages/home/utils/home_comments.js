@@ -30,12 +30,13 @@ export function initCreateComment() {
       let data = await res.json().catch(() => null);
       if (!res.ok) return showAlert(data?.error || `HTTP ${res.status}`);
       if (data?.error) return showAlert(data.error);
-
+      console.log(data.comment);
+      
       const comment = data.comment ?? data;
       const post = form.closest(".post");
       const list = post?.querySelector(".comments-list");
       if (list && comment) {
-        list.insertAdjacentHTML("beforeend", commentTemplate(comment));
+        list.insertAdjacentHTML("afterbegin", commentTemplate(comment));
       }
 
       showAlert("Comment added successfully", 3000, "green");

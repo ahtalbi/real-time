@@ -5,7 +5,7 @@ let offset = 0;
 let loading = false;
 let hasMore = true;
 
-export async function fetchPosts() {
+async function fetchPosts() {
   if (loading || !hasMore) return;
   loading = true;
 
@@ -21,10 +21,19 @@ export async function fetchPosts() {
     showAlert("Server unreachable");
     return;
   }
-
   let data = await res.json().catch(() => null);
+  if (!res.ok) {
+    if (data && data.error === "no posts") {
+      hasMore = false;
+      loading = false;
+      return;
+    }
+    loading = false;
+    showAlert((data && data.error) || "Failed to fetch posts");
+    return;
+  }
 
-  if (!data || data.length === 0 || data.error) {
+  if (!data || !Array.isArray(data.posts) || data.posts.length === 0) {
     hasMore = false;
     loading = false;
     return;
@@ -48,4 +57,5 @@ export function launchObserver() {
   });
 
   observer.observe(footer);
+  fetchPosts();
 }

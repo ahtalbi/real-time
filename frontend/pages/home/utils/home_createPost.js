@@ -3,7 +3,6 @@ import { postTemplate } from "./home_templates.js";
 
 export function initCreatePost() {
   let PostCreate = document.getElementById("postCreate");
-  if (!PostCreate) return;
 
   PostCreate.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -41,17 +40,16 @@ export function initCreatePost() {
       return;
     }
 
-    data.Comments = []
+    const post = data?.post ?? data;
+    if (!Array.isArray(post.Comments)) post.Comments = [];
 
     let posts = document.getElementById("posts");
 
-    let div = postTemplate(data);
+    let div = postTemplate(post);
     let wrapper = document.createElement("div");
     wrapper.innerHTML = div;
-    const newPost = wrapper.firstElementChild;
-    const firstChild = posts.firstElementChild;
 
-    posts.insertBefore(newPost, firstChild.nextSibling);
+    posts.insertBefore(wrapper.firstElementChild, posts.firstElementChild.nextSibling);
     showAlert("post added succesfully", 3000, "green");
     PostCreate.reset();
   });
