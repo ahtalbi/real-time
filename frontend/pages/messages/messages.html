@@ -1,0 +1,67 @@
+<!-- Navbar -->
+<nav>
+    <div id="logo">
+        <img src="./assets/images/logo.png" width="50px" alt="">
+        <h1>Valtonom</h1>
+    </div>
+
+    <div id="actions">
+        <i class="fa-solid fa-bell"></i>
+        <div class="profile-menu" id="profileMenu">
+            <img id="profile" src="https://avatars.githubusercontent.com/u/128240067?v=4" alt="Profile">
+            <div class="profile-dropdown" id="profileDropdown">
+                <button class="dropdown-item" id="logoutBtn" type="button">Logout</button>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="messages-page">
+    <aside class="threads card">
+        <h3 class="title">Messages</h3>
+        <div class="thread is-active">
+            <div class="avatar sm" aria-hidden="true"></div>
+            <div class="meta">
+                <span class="name"><span class="dot ok"></span>Marc</span>
+                <span class="preview">Hey! Tu es dispo ?</span>
+            </div>
+        </div>
+        <div class="thread">
+            <div class="avatar sm" aria-hidden="true"></div>
+            <div class="meta">
+                <span class="name"><span class="dot ok"></span>Elana</span>
+                <span class="preview">Merci pour ton aide.</span>
+            </div>
+        </div>
+        <div class="thread">
+            <div class="avatar sm" aria-hidden="true"></div>
+            <div class="meta">
+                <span class="name"><span class="dot"></span>Leem</span>
+                <span class="preview">On se capte demain.</span>
+            </div>
+        </div>
+    </aside>
+
+    <section class="conversation card">
+        <header class="conversation-header">
+            <div class="row">
+                <div class="avatar sm" aria-hidden="true"></div>
+                <div class="meta">
+                    <span class="name">Marc</span>
+                    <span class="status"><span class="dot ok"></span>En ligne</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="conversation-body">
+            <div class="bubble incoming">Salut, tu as vu la derniere update ?</div>
+            <div class="bubble outgoing">Oui, je peux t'aider si tu veux.</div>
+            <div class="bubble incoming">Top, merci !</div>
+        </div>
+
+        <form class="composer">
+            <input class="input" type="text" placeholder="Ecrire un message..." />
+            <button class="btn primary" type="button">Envoyer</button>
+        </form>
+    </section>
+</div>

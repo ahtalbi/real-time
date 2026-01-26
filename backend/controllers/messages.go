@@ -45,7 +45,6 @@ func (c *Controller) Messages(w http.ResponseWriter, r *http.Request) {
 		conn.Close()
 	}()
 
-	//
 	WSkeepalive(conn)
 	WriteToClient(userWS, conn, c)
 	SendPingMessageEveryPeriodeOfTime(userWS)

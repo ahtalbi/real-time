@@ -70,15 +70,16 @@ export async function HandleRoutes() {
         .on("/", () => renderPage("home", app).catch(on404))
         .on("/login", () => renderPage("login", app).catch(on404))
         .on("/register", () => renderPage("register", app).catch(on404))
+        .on("/messages", () => renderPage("messages", app).catch(on404))
         .listen(on404);
 
     await fetch("http://localhost:3000/hassession")
         .then(res => res.json())
         .then(res => {
             let path = window.location.pathname;
-            // console.log(path);
+            console.log(path);
             
-            if (res.success) ClientRouter.navigate("/")
+            if (res.success) {if (path !== "/messages") {ClientRouter.navigate("/")} else {ClientRouter.navigate("/messages")}}
             else if (res.error && path !== "/register") ClientRouter.navigate("/login")
             else ClientRouter.navigate("/register")
         })

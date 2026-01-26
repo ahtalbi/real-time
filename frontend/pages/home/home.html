@@ -7,7 +7,12 @@
 
     <div id="actions">
         <i class="fa-solid fa-bell"></i>
-        <img id="profile" src="https://avatars.githubusercontent.com/u/128240067?v=4" alt="Profile">
+        <div class="profile-menu" id="profileMenu">
+            <img id="profile" src="https://avatars.githubusercontent.com/u/128240067?v=4" alt="Profile">
+            <div class="profile-dropdown" id="profileDropdown">
+                <button class="dropdown-item" id="logoutBtn" type="button">Logout</button>
+            </div>
+        </div>
     </div>
 </nav>
 
@@ -84,19 +89,19 @@
     <!-- Right Sidebar -->
     <aside id="friends">
         <div class="card suggestions">
-            <h3 class="title">Friends</h3>
+            <div class="row-between">
+                <h3 class="title">Friends</h3>
+                <button class="btn" id="messagesBtn" type="button">Message</button>
+            </div>
             <ul class="list">
                 <li class="row-between">
                     <span><span class="dot ok"></span> Marc</span>
-                    <button class="btn" type="button">Message</button>
                 </li>
                 <li class="row-between">
                     <span><span class="dot ok"></span> Elana</span>
-                    <button class="btn" type="button">Message</button>
                 </li>
                 <li class="row-between">
                     <span><span class="dot"></span> Leem</span>
-                    <button class="btn" type="button">Message</button>
                 </li>
             </ul>
         </div>

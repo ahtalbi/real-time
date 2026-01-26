@@ -51,7 +51,7 @@ func main() {
 		Addr:    ":3000",
 		Handler: mux,
 	}
+	fmt.Print("http://localhost:3000")
 
-	fmt.Println("http://localhost:3000")
 	log.Fatal(server.ListenAndServe())
 }
