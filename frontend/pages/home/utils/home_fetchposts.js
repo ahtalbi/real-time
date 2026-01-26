@@ -6,6 +6,7 @@ let loading = false;
 let hasMore = true;
 
 async function fetchPosts() {
+  
   if (loading || !hasMore) return;
   loading = true;
 

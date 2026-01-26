@@ -18,4 +18,7 @@ const (
 	MESSAGE_SIZE_READ_LIMIT = 512              // message limit is 512 bytes
 )
 
-const Max_Size_message = 2 * 1024 * 1024
+const (
+	Max_Size_message     = 2 * 1024 * 1024
+	COMMENTS_FETCH_LIMIT = 10
+)

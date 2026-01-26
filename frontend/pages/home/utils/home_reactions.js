@@ -19,7 +19,8 @@ export function initReactions() {
     const scopeRaw = wrapper.dataset.reactionScope;
     const postOrComment = (scopeRaw || "POST").trim().toUpperCase();
 
-    if (!postOrCommentID) return;
+
+    if (!postOrCommentID) return
     if (postOrComment !== "POST" && postOrComment !== "COMMENT") return;
 
     if (mainButton) {

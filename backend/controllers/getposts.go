@@ -19,6 +19,7 @@ func (c *Controller) GetPosts(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Offset int `json:"offset"`
 	}
+
 	er := json.NewDecoder(r.Body).Decode(&req)
 	if er != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -26,7 +27,8 @@ func (c *Controller) GetPosts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	posts, er := c.DB.GetPostsfromDB(userID, req.Offset)
+	posts, er := c.DB.Get10PostsfromDB(userID, req.Offset)
+
 	if er != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(`{"error":"SERVER ERROR"}`))

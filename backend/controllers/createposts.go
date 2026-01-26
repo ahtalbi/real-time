@@ -24,12 +24,17 @@ func (c *Controller) CreatePost(w http.ResponseWriter, r *http.Request) {
 
 	// get the data from the front
 	var post models.Post
-	er := json.NewDecoder(r.Body).Decode(&post)
-	if er != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(`{"error":"invalid fields"}`))
-		return
+	f, h, er := r.FormFile("Image")
+	if er == nil {
+		defer f.Close()
+		filename := pkg.SaveFile(f, h.Filename)
+		if filename != "" {
+			post.ImageURL = "/pics/" + filename
+		}
 	}
+
+	post.Content = r.FormValue("Content")
+	post.CategoryType = r.FormValue("CategoryType")
 
 	// check if the post content is correct and the category exists in the DB
 	id, er := c.DB.IsCategoryCorrect(post.CategoryType)

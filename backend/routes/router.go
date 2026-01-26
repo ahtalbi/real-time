@@ -7,12 +7,13 @@ import (
 func Routes(mux *http.ServeMux, handler *Handler) {
 	//
 	routes := map[string]http.HandlerFunc{
-		"/logout":        handler.Cntrlrs.Logout,
-		"/createpost":    handler.Cntrlrs.CreatePost,
-		"/createreaction":    handler.Cntrlrs.Reactions,
-		"/createcomment": handler.Cntrlrs.CreateComment,
-		"/getusers":      handler.Cntrlrs.Getusers,
-		"/getposts":      handler.Cntrlrs.GetPosts,
+		"/logout":         handler.Cntrlrs.Logout,
+		"/createpost":     handler.Cntrlrs.CreatePost,
+		"/createreaction": handler.Cntrlrs.Reactions,
+		"/createcomment":  handler.Cntrlrs.CreateComment,
+		"/getusers":       handler.Cntrlrs.Getusers,
+		"/getposts":       handler.Cntrlrs.GetPosts,
+		"/getcomments":    handler.Cntrlrs.GetComments,
 	}
 	for path, h := range routes {
 		mux.HandleFunc(path, handler.RateLimit(handler.Middleware(h)))
@@ -26,8 +27,9 @@ func Routes(mux *http.ServeMux, handler *Handler) {
 		"/confing_theme.css": handler.Cntrlrs.StaticsHandler,
 		"/src/":              handler.Cntrlrs.StaticsHandler,
 		"/packages/":         handler.Cntrlrs.StaticsHandler,
+		"/pics/":             handler.Cntrlrs.ServePictures,
 
-		"/hassession":    handler.Cntrlrs.HasSession,
+		"/hassession":   handler.Cntrlrs.HasSession,
 		"/api/login":    handler.Cntrlrs.Login,
 		"/api/register": handler.Cntrlrs.Register,
 		"/":             handler.Cntrlrs.Home,

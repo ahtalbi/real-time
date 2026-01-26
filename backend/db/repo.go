@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"rtf/config"
 	"rtf/models"
 	"rtf/pkg"
 
@@ -138,8 +139,8 @@ func (r *Repo) InsertPostDB(userID string, post models.Post, categoryID int) (mo
 	t := time.Now().Format("2006-01-02 15:04:05")
 
 	_, err := r.Db.Exec(
-		`INSERT INTO posts(id, user_id, category_id, content, created_at) VALUES (?, ?, ?, ?, ?)`,
-		id, userID, categoryID, post.Content, t,
+		`INSERT INTO posts(id, user_id, category_id, content, url_image, created_at) VALUES (?, ?, ?, ?, ?, ?)`,
+		id, userID, categoryID, post.Content, post.ImageURL, t,
 	)
 	if err != nil {
 		return post, errors.New("SERVER ERROR")
@@ -176,6 +177,7 @@ func (r *Repo) InsertCommentDB(comment models.Comment) (models.Comment, error) {
 	comment.CreatedAt = t
 	comment.NbrOfReactions = 0
 	comment.UserReaction = -1
+	comment.ID = id
 
 	if er != nil {
 		return models.Comment{}, errors.New("SERVER ERROR")
@@ -277,10 +279,10 @@ func (r *Repo) InsertCommentReaction(userID string, reaction models.Reaction) er
 }
 
 // this function get 10 posts from DB with its comments, reactions and categories starting from 'endID'
-func (r *Repo) GetPostsfromDB(userID string, offset int) ([]models.Post, error) {
+func (r *Repo) Get10PostsfromDB(userID string, offset int) ([]models.Post, error) {
 	posts := []models.Post{}
 
-	rows, er := r.Db.Query(`SELECT id, user_id, content, created_at FROM posts ORDER BY created_at DESC LIMIT 10 OFFSET ?`, offset)
+	rows, er := r.Db.Query(`SELECT id, user_id, content, url_image, created_at FROM posts ORDER BY created_at DESC LIMIT 10 OFFSET ?`, offset)
 	if er != nil {
 		if er == sql.ErrNoRows {
 			return nil, errors.New("no post exist yet")
@@ -291,9 +293,15 @@ func (r *Repo) GetPostsfromDB(userID string, offset int) ([]models.Post, error) 
 
 	for rows.Next() {
 		var p models.Post
-		er := rows.Scan(&p.ID, &p.UserID, &p.Content, &p.CreatedAt)
+
+		er := rows.Scan(&p.ID, &p.UserID, &p.Content, &p.ImageURL, &p.CreatedAt)
 		if er != nil {
 			return nil, er
+		}
+		// get the number of comments
+		err := r.Db.QueryRow(`SELECT COUNT(*) FROM comments WHERE post_id = ?`, p.ID).Scan(&p.NbrOfComments)
+		if err != nil {
+			return nil, err
 		}
 
 		// get the user nickname
@@ -302,7 +310,8 @@ func (r *Repo) GetPostsfromDB(userID string, offset int) ([]models.Post, error) 
 			return nil, errors.New("SERVER ERROR")
 		}
 		// get comments from DB
-		p.Comments, er = r.GetPostComments(userID, p.ID)
+		p.Comments, p.NbrOfComments, er = r.Get10PostComments(p.ID, 0)
+
 		if er != nil {
 			return nil, er
 		}
@@ -337,39 +346,46 @@ func (r *Repo) GetUserAuthernameByID(userID string) (string, error) {
 }
 
 // this function get the comments post from DB based on an postID
-func (r *Repo) GetPostComments(userID string, postid string) ([]models.Comment, error) {
+func (r *Repo) Get10PostComments(postid string, offset int) ([]models.Comment, int, error) {
 	res := []models.Comment{}
 
-	rows, er := r.Db.Query(`SELECT id, content, user_id, post_id, created_at FROM comments WHERE post_id = ? ORDER BY created_at DESC`, postid)
+	var t int
+	er := r.Db.QueryRow(`SELECT COUNT(*) FROM comments WHERE post_id = ?`, postid).Scan(&t)
+	if er != nil {
+		return nil, 0, er
+	}
+	// fmt.Println(t, postid)
+
+	rows, er := r.Db.Query(` SELECT id, user_id, content, created_at FROM comments WHERE post_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`, postid, config.COMMENTS_FETCH_LIMIT, offset)
 	if er != nil {
 		if er == sql.ErrNoRows {
-			return nil, errors.New("not exists")
+			return nil, 0, errors.New("not exists")
 		}
-		return nil, errors.New("SERVER ERROR")
+		return nil, 0, errors.New("SERVER ERROR")
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		var c models.Comment
-		er := rows.Scan(&c.ID, &c.Content, &c.UserID, &c.PostID, &c.CreatedAt)
+		er := rows.Scan(&c.ID, &c.UserID , &c.Content, &c.CreatedAt)
 		if er != nil {
-			return nil, er
+			return nil, 0, er
 		}
 		c.AutherName, er = r.GetUserAuthernameByID(c.UserID)
 		if er != nil {
-			return nil, errors.New("SERVER ERROR")
+			return nil, 0, errors.New("SERVER ERROR")
 		}
 		c.NbrOfReactions, er = r.CountCommentReactions(c.ID)
 		if er != nil {
-			return nil, errors.New("SERVER ERROR")
+			return nil, 0, errors.New("SERVER ERROR")
 		}
-		c.UserReaction, er = r.GetUserCommentReaction(userID, c.ID)
+		c.UserReaction, er = r.GetUserCommentReaction(c.UserID, c.ID)
 		if er != nil {
-			return nil, errors.New("SERVER ERROR")
+			return nil, 0, errors.New("SERVER ERROR")
 		}
 		res = append(res, c)
 	}
-	return res, nil
+	return res, t, nil
 }
 
 // this func get the categories related to the post from DB
@@ -511,3 +527,31 @@ func (r *Repo) GetUserInfos(userID string) (models.User, error) {
 	}
 	return user, nil
 }
+
+// func (r *Repo) Get10PostComments(postID string, offset int) ([]models.Comment, error) {
+// 	rows, er := r.Db.Query(` SELECT id, user_id, content, created_at FROM comments WHERE post_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+// 		postID, config.COMMENTS_FETCH_LIMIT, offset)
+// 	if er != nil {
+// 		return nil, er
+// 	}
+// 	defer rows.Close()
+
+// 	var comments []models.Comment
+// 	for rows.Next() {
+// 		var c models.Comment
+// 		er := rows.Scan(&c.ID, &c.UserID, &c.Content, &c.CreatedAt)
+// 		if er != nil {
+// 			return nil, er
+// 		}
+// 		c.AutherName, er = r.GetUserAuthernameByID(c.UserID)
+// 		if er != nil {
+// 			return nil, er
+// 		}
+// 		c.NbrOfReactions, er = r.CountCommentReactions(c.ID)
+// 		if er != nil {
+// 			return nil, er
+// 		}
+// 		comments = append(comments, c)
+// 	}
+// 	return comments, nil
+// }

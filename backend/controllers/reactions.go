@@ -76,5 +76,6 @@ func (c *Controller) Reactions(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"result": "reaction successfully created",
 		"total":  total,
+		// "userReaction":  type,
 	})
 }

@@ -3,13 +3,18 @@ package pkg
 import (
 	"errors"
 	"fmt"
+	"io"
+	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"regexp"
 	"time"
 
 	"rtf/config"
 	"rtf/models"
 
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -120,4 +125,24 @@ func StatusError(w http.ResponseWriter, er error) {
 		w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, er)))
 		return
 	}
+}
+
+func SaveFile(r io.Reader, originalName string) string {
+	name := uuid.New().String() + filepath.Ext(originalName)
+	fp := "db/pics/" + name
+
+	out, err := os.Create(fp)
+	if err != nil {
+		log.Println("SaveFile: create failed:", err)
+		return ""
+	}
+	defer out.Close()
+
+	_, err = io.Copy(out, r)
+	if err != nil {
+		log.Println("SaveFile: copy failed:", err)
+		return ""
+	}
+
+	return name
 }

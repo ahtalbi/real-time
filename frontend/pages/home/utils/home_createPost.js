@@ -4,12 +4,19 @@ import { postTemplate } from "./home_templates.js";
 export function initCreatePost() {
   let PostCreate = document.getElementById("postCreate");
 
+  // add picture as option
+  let pic = document.getElementById("pic");
+  let fileInput = document.getElementById("postImage");
+  console.log(pic, fileInput)
+  pic.addEventListener("click", () => fileInput.click());
+
   PostCreate.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     let payload = {
       Content: PostCreate.content.value.trim(),
       CategoryType: PostCreate.category.value,
+      formData: new FormData(),
     };
 
     if (payload.Content.length === 0 || payload.Content.length > 60) {
@@ -17,12 +24,18 @@ export function initCreatePost() {
       return;
     }
 
+    payload.formData.append("Content", payload.Content);
+    payload.formData.append("CategoryType", payload.CategoryType);
+
+    if (fileInput?.files?.length > 0) {
+      payload.formData.append("Image", fileInput.files[0]);
+    }
+
     let data;
     try {
       let res = await fetch("http://localhost:3000/createpost", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: payload?.formData,
       });
 
       data = await res.json().catch(() => null);
@@ -36,7 +49,7 @@ export function initCreatePost() {
         return;
       }
     } catch {
-      showAlert("Server unreachable");
+      showAlert("Server unreachable")
       return;
     }
 
@@ -44,7 +57,7 @@ export function initCreatePost() {
     if (!Array.isArray(post.Comments)) post.Comments = [];
 
     let posts = document.getElementById("posts");
-
+    console.log(post.ImageURL)
     let div = postTemplate(post);
     let wrapper = document.createElement("div");
     wrapper.innerHTML = div;

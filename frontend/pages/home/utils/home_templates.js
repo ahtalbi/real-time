@@ -25,6 +25,9 @@ export function postTemplate(p) {
   </header>
 
   <p class="post-body">${p.Content}</p>
+  ${p.ImageURL ? `<figure class="post-media">
+  <img src="${p?.ImageURL || ""}"/>
+  </figure>` : ""}
 
   <footer class="post-foot">
     <div class="reactions" aria-label="Reactions" data-reaction-scope="POST" data-reaction-id="${p.ID}" data-default-emoji="👍">
@@ -40,7 +43,7 @@ export function postTemplate(p) {
       </div>
       <span class="reaction-total">${reactionsTotal}</span>
     </div>
-    <button class="btn" type="button" data-toggle-comments>💬 ${p.Comments.length}</button>
+    <button class="btn" type="button" data-toggle-comments>💬 ${p?.NbrOfComments}</button>
   </footer>
 
   <section class="comments is-hidden" aria-label="Comments">
@@ -61,6 +64,7 @@ export function postTemplate(p) {
     <ul class="comments-list">
       ${p.Comments.map(commentTemplate).join("")}
     </ul>
+    <button class="btn ghost sm" type="button" data-see-more-comments>See More...</button>
   </section>
 </article>`;
 }

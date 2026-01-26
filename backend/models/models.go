@@ -20,29 +20,32 @@ type User struct {
 
 // posts
 type Post struct {
-	ID            string
-	AutherName    string
-	UserID        string
-	Content       string
-	CategoryType  string
-	CreatedAt     string
-	NbrOfLikes    int
-	NbrOfDislikes int
+	ID             string
+	AutherName     string
+	UserID         string
+	Content        string
+	CategoryType   string
+	CreatedAt      string
+	NbrOfComments  int
+	NbrOfLikes     int
+	NbrOfDislikes  int
 	NbrOfReactions int
 	UserReaction   int
-	Comments      []Comment
+	Comments       []Comment
+	ImageURL       string
 }
 
 // comments
 type Comment struct {
-	ID         string
-	AutherName string
-	Content    string
-	UserID     string
-	PostID     string
-	CreatedAt  string
+	ID             string
+	AutherName     string
+	Content        string
+	UserID         string
+	PostID         string
+	CreatedAt      string
 	NbrOfReactions int
 	UserReaction   int
+	Offset         int
 }
 
 // messages

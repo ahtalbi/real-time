@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS posts (
     user_id TEXT NOT NULL,
     category_id INTEGER NOT NULL,
     content TEXT,
+    url_image TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE RESTRICT
