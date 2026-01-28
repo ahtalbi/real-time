@@ -43,16 +43,9 @@ func (c *Controller) Getusers(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	data, er := json.Marshal(users)
-	if er != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(`{"error":"marchal ERROR"}`))
-		return
-	}
-
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"data":    data,
+		"data":    users,
 		"success": "data fetched successfully",
 	})
 }

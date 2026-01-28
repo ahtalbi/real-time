@@ -1,62 +1,83 @@
 import { showAlert } from "../../../src/utils/alert.js";
 import { postTemplate } from "./home_templates.js";
 
-let offset = 0;
-let loading = false;
-let hasMore = true;
+let statePosts = {
+  offset: 0,
+  loading: false,
+  hasMore: true,
+  observer: null,
+};
 
 async function fetchPosts() {
-  
-  if (loading || !hasMore) return;
-  loading = true;
+  if (statePosts.loading || !statePosts.hasMore) return;
+
+  statePosts.loading = true;
 
   let res;
   try {
     res = await fetch("http://localhost:3000/getposts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ offset }),
+      body: JSON.stringify({ offset: statePosts.offset }),
     });
   } catch {
-    loading = false;
+    statePosts.loading = false;
     showAlert("Server unreachable");
     return;
   }
+
   let data = await res.json().catch(() => null);
+
   if (!res.ok) {
     if (data && data.error === "no posts") {
-      hasMore = false;
-      loading = false;
+      statePosts.hasMore = false;
+      statePosts.loading = false;
       return;
     }
-    loading = false;
+
+    statePosts.loading = false;
     showAlert((data && data.error) || "Failed to fetch posts");
     return;
   }
 
   if (!data || !Array.isArray(data.posts) || data.posts.length === 0) {
-    hasMore = false;
-    loading = false;
+    statePosts.hasMore = false;
+    statePosts.loading = false;
     return;
   }
 
-  let posts = document.getElementById("posts");
-  for (let post of data.posts) {
+  const posts = document.getElementById("posts");
+
+  for (const post of data.posts) {
     posts.insertAdjacentHTML("beforeend", postTemplate(post));
   }
 
-  offset += 10;
-  loading = false;
+  statePosts.offset += 10;
+  statePosts.loading = false;
 }
 
 export function launchObserver() {
-  let footer = document.getElementById("footer-observer");
+  const footer = document.getElementById("footer-observer");
   if (!footer) return;
 
-  let observer = new IntersectionObserver(([entry]) => {
+  statePosts.offset = 0;
+  statePosts.loading = false;
+  statePosts.hasMore = true;
+
+  const posts = document.getElementById("posts");
+  if (posts) {
+    posts.querySelectorAll("article.post").forEach((el) => el.remove());
+  }
+
+  if (statePosts.observer) {
+    statePosts.observer.disconnect();
+  }
+
+  statePosts.observer = new IntersectionObserver(([entry]) => {
     if (entry.isIntersecting) fetchPosts();
   });
 
-  observer.observe(footer);
+  statePosts.observer.observe(footer);
+
   fetchPosts();
 }

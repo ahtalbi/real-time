@@ -101,3 +101,9 @@ export function commentTemplate(c) {
   </div>
 </li>`;
 }
+
+function userTemplate(User) {
+  return `<li class="row-between">
+     <span><span class="dot ok"></span> ${User.UserName}</span>
+  </li>`
+}

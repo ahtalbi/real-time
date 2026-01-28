@@ -19,27 +19,8 @@
 <div class="messages-page">
     <aside class="threads card">
         <h3 class="title">Messages</h3>
-        <div class="thread is-active">
-            <div class="avatar sm" aria-hidden="true"></div>
-            <div class="meta">
-                <span class="name"><span class="dot ok"></span>Marc</span>
-                <span class="preview">Hey! Tu es dispo ?</span>
-            </div>
-        </div>
-        <div class="thread">
-            <div class="avatar sm" aria-hidden="true"></div>
-            <div class="meta">
-                <span class="name"><span class="dot ok"></span>Elana</span>
-                <span class="preview">Merci pour ton aide.</span>
-            </div>
-        </div>
-        <div class="thread">
-            <div class="avatar sm" aria-hidden="true"></div>
-            <div class="meta">
-                <span class="name"><span class="dot"></span>Leem</span>
-                <span class="preview">On se capte demain.</span>
-            </div>
-        </div>
+        <ul class="list" data-friends-list data-friends-actions="message"></ul>
+        <button class="btn seemore ghost" type="button" data-see-more-users>See More...</button>
     </aside>
 
     <section class="conversation card">
@@ -47,21 +28,17 @@
             <div class="row">
                 <div class="avatar sm" aria-hidden="true"></div>
                 <div class="meta">
-                    <span class="name">Marc</span>
-                    <span class="status"><span class="dot ok"></span>En ligne</span>
+                    <span class="name" data-conversation-name>Select a user</span>
+                    <span class="status" data-conversation-status>Ready when you are</span>
                 </div>
             </div>
         </header>
 
-        <div class="conversation-body">
-            <div class="bubble incoming">Salut, tu as vu la derniere update ?</div>
-            <div class="bubble outgoing">Oui, je peux t'aider si tu veux.</div>
-            <div class="bubble incoming">Top, merci !</div>
-        </div>
+        <div class="conversation-body" data-conversation-body></div>
 
-        <form class="composer">
-            <input class="input" type="text" placeholder="Ecrire un message..." />
-            <button class="btn primary" type="button">Envoyer</button>
+        <form class="composer" data-composer>
+            <input class="input" type="text" placeholder="Ecrire un message..." data-message-input disabled />
+            <button class="btn primary" type="submit" data-message-send disabled>Envoyer</button>
         </form>
     </section>
 </div>

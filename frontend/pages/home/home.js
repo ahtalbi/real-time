@@ -3,6 +3,7 @@ import { initCreatePost } from "./utils/home_createPost.js";
 import { initCreateComment, initToggleComments } from "./utils/home_comments.js";
 import { initReactions } from "./utils/home_reactions.js";
 import { showAlert } from "../../src/utils/alert.js";
+import { initFetchUsers } from "./utils/home_fetchUsers.js";
 
 export function initLogout() {
   let profile = document.getElementById("profile");
@@ -43,6 +44,11 @@ export function initLogout() {
       return;
     }
 
+    try {
+      localStorage.removeItem("rtf_user");
+    } catch {
+      // ignore storage errors
+    }
     window.location.pathname = "/login";
   });
 }
@@ -62,9 +68,14 @@ initToggleComments();
 initReactions();
 initLogout();
 initMessagesShortcut();
+initFetchUsers();
 
 if (document.readyState === "loading") {
   window.addEventListener("DOMContentLoaded", launchObserver);
 } else {
   launchObserver();
 }
+
+window.addEventListener("pageshow", (event) => {
+  if (event.persisted) launchObserver();
+});

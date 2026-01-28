@@ -56,8 +56,16 @@ form.addEventListener("submit", async (e) => {
 
     let data = await res.json();
     
-    if (data.success) ClientRouter.navigate("/");
-    else if (data.error) showAlert(data.error);
+    if (data.success) {
+        if (data.user) {
+            try {
+                localStorage.setItem("rtf_user", JSON.stringify(data.user));
+            } catch {
+                // ignore storage errors
+            }
+        }
+        ClientRouter.navigate("/");
+    } else if (data.error) showAlert(data.error);
 })
 
 function validateLogin({ Nickname, Password }) {
