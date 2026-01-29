@@ -30,13 +30,15 @@ func (c *Controller) GetPosts(w http.ResponseWriter, r *http.Request) {
 	posts, er := c.DB.Get10PostsfromDB(userID, req.Offset)
 
 	if er != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(`{"error":"SERVER ERROR"}`))
+		if er.Error() == "SERVER ERROR" {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(`{"error":"SERVER ERROR"}`))
+			return
+		}
+		w.Write([]byte(`{"error":"no posts"}`))
 		return
 	}
-
 	if len(posts) == 0 {
-		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(`{"error":"no posts"}`))
 		return
 	}

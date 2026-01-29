@@ -38,9 +38,9 @@ func (c *Controller) Getusers(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(`{"error":"SERVER ERROR"}`))
 			break
 		default:
-			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(`{"error":"startID reached the max"}`))
 		}
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
