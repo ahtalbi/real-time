@@ -367,7 +367,7 @@ func (r *Repo) Get10PostComments(postid string, offset int) ([]models.Comment, i
 
 	for rows.Next() {
 		var c models.Comment
-		er := rows.Scan(&c.ID, &c.UserID , &c.Content, &c.CreatedAt)
+		er := rows.Scan(&c.ID, &c.UserID, &c.Content, &c.CreatedAt)
 		if er != nil {
 			return nil, 0, er
 		}
@@ -497,25 +497,30 @@ func (r *Repo) GetUserByFrontID(frontID string) (string, error) {
 }
 
 // insert new message to the DB
-func (r *Repo) InsertMessage(msg models.Message) (models.Message, error) {
-	msg.CreatedAt = time.Now().Format("2006-01-02 15:04:05")
-	_, err := r.Db.Exec("INSERT INTO messages(sender_id, receiver_id, content, created_at) VALUES (?, ?, ?, ?)",
-		msg.SenderID, msg.ReceiverID, msg.Content, msg.CreatedAt)
-	if err != nil {
-		return models.Message{}, err
+func (r *Repo) InsertMessage(msg map[string]interface{}) (models.Message, error) {
+	content, ok1 := msg["Content"].(string)
+	senderID, ok2 := msg["SenderID"].(string)
+	receiverID, ok3 := msg["ReceiverID"].(string)
+	if !ok1 || !ok2 || !ok3 {
+		return models.Message{}, errors.New("invalid message format")
 	}
-	return msg, nil
-}
 
-func (r *Repo) GetNicknameByUserID(userID string) (string, error) {
-	var name string
-	er := r.Db.QueryRow("SELECT nickname FROM users WHERE id=?", userID).Scan(&name)
+	m := models.Message{
+		SenderID:   senderID,
+		ReceiverID: receiverID,
+		Content:    content,
+		CreatedAt:  time.Now().Format("2006-01-02 15:04:05"),
+	}
+
+	_, er := r.Db.Exec("INSERT INTO messages(sender_id, receiver_id, content, created_at) VALUES (?, ?, ?, ?)", m.SenderID, m.ReceiverID, m.Content, m.CreatedAt)
 	if er != nil {
-		return "", errors.New("SERVER ERROR")
+		return models.Message{}, er
 	}
-	return name, nil
+
+	return m, nil
 }
 
+// get user infos from DB
 func (r *Repo) GetUserInfos(userID string) (models.User, error) {
 	var user models.User
 
@@ -528,30 +533,96 @@ func (r *Repo) GetUserInfos(userID string) (models.User, error) {
 	return user, nil
 }
 
-// func (r *Repo) Get10PostComments(postID string, offset int) ([]models.Comment, error) {
-// 	rows, er := r.Db.Query(` SELECT id, user_id, content, created_at FROM comments WHERE post_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`,
-// 		postID, config.COMMENTS_FETCH_LIMIT, offset)
-// 	if er != nil {
-// 		return nil, er
-// 	}
-// 	defer rows.Close()
+// this method get the users with its last message in order from DB for chat
+func (r *Repo) GetUsersForChatInOrder(userID string, offset int) ([]models.Message, error) {
+	rows, er := r.Db.Query(`
+		SELECT sender_id, receiver_id, content, created_at FROM messages
+		WHERE sender_id = ? OR receiver_id = ?
+		ORDER BY created_at DESC`, userID, userID)
+	if er != nil {
+		return nil, er
+	}
+	defer rows.Close()
 
-// 	var comments []models.Comment
-// 	for rows.Next() {
-// 		var c models.Comment
-// 		er := rows.Scan(&c.ID, &c.UserID, &c.Content, &c.CreatedAt)
-// 		if er != nil {
-// 			return nil, er
-// 		}
-// 		c.AutherName, er = r.GetUserAuthernameByID(c.UserID)
-// 		if er != nil {
-// 			return nil, er
-// 		}
-// 		c.NbrOfReactions, er = r.CountCommentReactions(c.ID)
-// 		if er != nil {
-// 			return nil, er
-// 		}
-// 		comments = append(comments, c)
-// 	}
-// 	return comments, nil
-// }
+	msgs := []models.Message{}
+	seen := make(map[string]bool)
+	i := 0
+
+	for rows.Next() {
+		m := models.Message{}
+		if er := rows.Scan(&m.SenderID, &m.ReceiverID, &m.Content, &m.CreatedAt); er != nil {
+			continue
+		}
+
+		if m.SenderID != userID {
+			// in case the user is the receiver
+			if seen[m.SenderID] {
+				continue
+			}
+			seen[m.SenderID] = true
+
+			if i < offset {
+				i++
+				continue
+			}
+
+			if er := r.GetUserNickNameByID(&m.SenderNickname, m.SenderID); er != nil {
+				return nil, errors.New("SERVER ERROR")
+			}
+
+		} else {
+			// in case the user is the sender
+			if seen[m.ReceiverID] {
+				continue
+			}
+			seen[m.ReceiverID] = true
+
+			if i < offset {
+				i++
+				continue
+			}
+
+			if er := r.GetUserNickNameByID(&m.ReceiverNickname, m.ReceiverID); er != nil {
+				return nil, errors.New("SERVER ERROR")
+			}
+		}
+
+		msgs = append(msgs, m)
+		if len(msgs) >= 100 {
+			break
+		}
+	}
+
+	return msgs, nil
+}
+
+// get the user nickname by its ID from DB
+func (r *Repo) GetUserNickNameByID(nickname *string, userID string) error {
+	return r.Db.QueryRow("SELECT nickname FROM users WHERE id=?", userID).Scan(nickname)
+}
+
+// this method get the messages history between two users from DB in order from the offset provided at ascending order
+func (r *Repo) GetMessagesHistoryBetweenTwoUsers(senderID, receiverID string, offset int) ([]models.Message, error) {
+	rows, er := r.Db.Query(`
+        SELECT sender_id, receiver_id, content, created_at 
+        FROM messages
+        WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)
+        ORDER BY created_at ASC
+        LIMIT 50 OFFSET ?`,
+		senderID, receiverID, receiverID, senderID, offset)
+	if er != nil {
+		return nil, er
+	}
+	defer rows.Close()
+
+	msgs := []models.Message{}
+	for rows.Next() {
+		m := models.Message{}
+		er := rows.Scan(&m.SenderID, &m.ReceiverID, &m.Content, &m.CreatedAt)
+		if er != nil {
+			continue
+		}
+		msgs = append(msgs, m)
+	}
+	return msgs, nil
+}

@@ -58,7 +58,7 @@ func (c *Controller) CreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	post.AutherName, er = c.DB.GetNicknameByUserID(userID)
+	er = c.DB.GetUserNickNameByID(&post.AutherName, userID)
 	if er != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(fmt.Sprintf(`{"error":"%s"}`, er.Error())))

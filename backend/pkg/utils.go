@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -110,8 +109,17 @@ func MessageRLExceeded(count int, last time.Time) bool {
 	return count >= config.Max_Messages
 }
 
-func TheMessageFormatIsCorrect(data models.Message) bool {
-	return len(data.Content) > 0 && len(data.Content) < 500 && len(data.ReceiverID) < 100 && len(data.ReceiverID) > 0
+// check if the message format is correct
+func TheMessageFormatIsCorrect(data map[string]interface{}) bool {
+	content, ok := data["Content"].(string)
+	if !ok {
+		return false
+	}
+	receiverID, ok := data["ReceiverID"].(string)
+	if !ok {
+		return false
+	}
+	return len(content) > 0 && len(content) < 500 && len(receiverID) > 0 && len(receiverID) < 100
 }
 
 // this is a helper function return HTTP errors
@@ -127,20 +135,19 @@ func StatusError(w http.ResponseWriter, er error) {
 	}
 }
 
+// this function save a file in the pics folder and return its new name that was generated randomly
 func SaveFile(r io.Reader, originalName string) string {
 	name := uuid.New().String() + filepath.Ext(originalName)
 	fp := "db/pics/" + name
 
 	out, err := os.Create(fp)
 	if err != nil {
-		log.Println("SaveFile: create failed:", err)
 		return ""
 	}
 	defer out.Close()
 
 	_, err = io.Copy(out, r)
 	if err != nil {
-		log.Println("SaveFile: copy failed:", err)
 		return ""
 	}
 

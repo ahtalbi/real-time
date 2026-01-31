@@ -40,7 +40,7 @@ func Routes(mux *http.ServeMux, handler *Handler) {
 
 	//
 	ws := map[string]http.HandlerFunc{
-		"/message": handler.Cntrlrs.Messages,
+		"/ws": handler.Cntrlrs.WebSocket,
 	}
 	for path, h := range ws {
 		mux.HandleFunc(path, h)

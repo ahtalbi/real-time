@@ -14,6 +14,7 @@ type User struct {
 	Lastname       string
 	Email          string
 	Password       string
+	ProfileImage   sql.NullString
 	SessionID      sql.NullString
 	SessionExpired string
 }
@@ -55,6 +56,9 @@ type Message struct {
 	ReceiverID string
 	Content    string
 	CreatedAt  string
+
+	SenderNickname   string
+	ReceiverNickname string
 }
 
 // include (psot or comment ID), (PostOrComment: "POST" or "COMMENT"), (type : 0 -> 6) ...etc
