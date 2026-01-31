@@ -11,11 +11,8 @@ import (
 
 // this handler handles the  user registration. it expects a POST request, and it returns a JSON response with (error or success)
 func (c *Controller) Register(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	if r.Method != http.MethodPost {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		w.Write([]byte(`{"error":"method not allowed"}`))
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -24,8 +21,7 @@ func (c *Controller) Register(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(`{"error":"invalid fields"}`))
+		http.Error(w, "invalid fields", http.StatusBadRequest)
 		return
 	}
 
@@ -33,27 +29,23 @@ func (c *Controller) Register(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch err.Error() {
 		case "SERVER ERROR":
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`{"error":"SERVER ERROR"}`))
+			http.Error(w, "SERVER ERROR", http.StatusInternalServerError)
 			break
 		default:
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(fmt.Sprintf(`{"error":"%s"}`, err.Error())))
+			http.Error(w, fmt.Sprintf("%s", err.Error()), http.StatusBadRequest)
 		}
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(`{"success": "registered successfully"}`))
 }
 
 // this handler is for login. it expects a POST request, and it returns a JSON response with (error or success)
 func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	if r.Method != http.MethodPost {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		w.Write([]byte(`{"error":"method not allowed"}`))
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -62,8 +54,7 @@ func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(`{"error":"invalid fields"}`))
+		http.Error(w, "invalid fields", http.StatusBadRequest)
 		return
 	}
 
@@ -71,27 +62,23 @@ func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
 	if er != nil {
 		switch er.Error() {
 		case "SERVER ERROR":
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`{"error":"SERVER ERROR"}`))
+			http.Error(w, "SERVER ERROR", http.StatusInternalServerError)
 			break
 		default:
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, er.Error())))
+			http.Error(w, fmt.Sprintf("%s", er.Error()), http.StatusBadRequest)
 		}
 		return
 	}
 
 	user, er = c.DB.GetUserInfos(userID)
 	if er != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(`{"error":"SERVER ERROR"}`))
+		http.Error(w, "SERVER ERROR", http.StatusInternalServerError)
 		return
 	}
 
 	a, er := c.DB.SetUserSession(w, userID)
 	if er != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(`{"error":"SERVER ERROR"}`))
+		http.Error(w, "SERVER ERROR", http.StatusInternalServerError)
 		return
 	}
 
@@ -103,6 +90,7 @@ func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
 		Expires:  a[1].(time.Time),
 	})
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"user":    user,

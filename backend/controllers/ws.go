@@ -133,6 +133,27 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 			}:
 			default:
 			}
+		// case of get online users
+		case "online_users":
+			ws.Mu.Lock()
+			onlineUsers := []map[string]string{}
+			for id, u := range ws.Clients {
+				if id != USER.ID {
+					onlineUsers = append(onlineUsers, map[string]string{
+						"id":       u.UserInfo.ID,
+						"nickname": u.UserInfo.Nickname,
+					})
+				}
+			}
+			ws.Mu.Unlock()
+
+			select {
+			case user.Chan <- map[string]interface{}{
+				"type": "onlineUsers",
+				"data": onlineUsers,
+			}:
+			default:
+			}
 
 		// case of get messages between two users
 		case "messages_history":
