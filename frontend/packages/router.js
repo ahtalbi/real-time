@@ -17,8 +17,6 @@ export class Router {
 
             event.intercept({
                 handler: () => {
-                    // console.log(url.pathname, this.#Routes);
-
                     let fn = this.#Routes[url.pathname];
                     if (!fn) {
                         onError404();
