@@ -1,6 +1,6 @@
 import { ClientRouter } from "../../../src/router.js";
 import { showAlert } from "../../../src/utils/alert.js";
-import { validateUserInfos } from "./register_validateUserInfos.js";
+import { validateUserInfos } from "./register_validateRegisterForm.js";
 
 export function registerSendPost(form) {
     let payload = {
@@ -21,8 +21,11 @@ export function registerSendPost(form) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
     })
-        .then(res => {
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        .then(async res => {
+            if (!res.ok) {
+                const msg = await res.text();
+                throw new Error(msg || `HTTP ${res.status}`);
+            }
             return res.json();
         })
         .then(res => {
