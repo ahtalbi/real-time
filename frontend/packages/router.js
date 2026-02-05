@@ -1,6 +1,10 @@
 export class Router {
-    #Routes = Object.create(null);
-
+	#Routes = Object.create(null);
+	
+	constructor(NavigationCustomBehaivor) {
+		this.custom = NavigationCustomBehaivor;
+	}
+	
     on(path, handler) {
         this.#Routes[path] = handler;
         return this;

@@ -8,7 +8,7 @@
     <div id="actions">
         <i class="fa-solid fa-bell"></i>
         <div class="profile-menu" id="profileMenu">
-            <img id="profile" src="https://avatars.githubusercontent.com/u/128240067?v=4" alt="Profile">
+            <img id="profile" src="" alt="Profile">
             <div class="profile-dropdown" id="profileDropdown">
                 <button class="dropdown-item" id="logoutBtn" type="button">Logout</button>
             </div>
@@ -19,12 +19,12 @@
 <!-- Hero Section -->
 <div id="hero">
     <!-- Left Sidebar -->
-    <aside id="links">
+    <div id="links">
         <div class="card profile">
-            <div class="avatar" aria-hidden="true"></div>
+            <img id="avatar" class="avatar" src="" alt="Avatar utilisateur">
 
             <div class="meta">
-                <h2 class="name">Your Name</h2>
+                <h2 id="username"></h2>
                 <p class="status">Self-learner • Level: Intermediate</p>
             </div>
 
@@ -50,7 +50,7 @@
             <a class="item" href="#">Challenges</a>
             <a class="item" href="#">Settings</a>
         </div>
-    </aside>
+    </div>
 
     <main id="posts">
         <div class="composer card">
@@ -73,9 +73,6 @@
                             <option value="Personal Development">Personal Development</option>
                         </select>
 
-                        <button class="btn" id="pic" type="button">Photo</button>
-                        <input class="pic" type="file" name="image" accept="image/*" style="display:none;" id="postImage">
-
                         <button class="btn" type="button">Link</button>
                         <button class="btn" type="button">Challenge</button>
                     </div>
@@ -87,14 +84,13 @@
     </main>
 
     <!-- Right Sidebar -->
-    <aside id="friends">
+    <div id="friends">
         <div class="card suggestions">
-            <div class="row-between">
-                <h3 class="title">Friends</h3>
-                <button class="btn" id="messagesBtn" type="button">Message</button>
+            <div class="Border-Bottom">
+                <h2 class="title">Friends</h2>
+                <button class="btn" id="messagesBtn" type="button">Messages</button>
             </div>
-            <ul class="list" data-friends-list></ul>
-            <button class="btn seemore ghost" type="button" data-see-more-users>See More...</button>
+            <ul id="FreindsList" class="list"></ul>
         </div>
 
         <div class="card communities">
@@ -121,6 +117,7 @@
             <a class="item" href="#">Rules</a>
             <a class="item" href="#">Support</a>
         </div>
-    </aside>
+    </div>
+    <button id="messagesFab" type="button" aria-label="Messages">💬</button>
 </div>
 <div id="footer-observer"></div>

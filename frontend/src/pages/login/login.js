@@ -1,4 +1,4 @@
-import { GlobalEventsManager } from "../../src/events/init.js";
+import { GlobalEventsManager } from "../../events/init.js";
 import { initImageAnimation } from "./utils/login_imageAnimation.js";
 import { loginSendPost } from "./utils/login_postRequest.js";
 

@@ -26,7 +26,7 @@ export class PageLoader {
     }
 
     async renderPage(pageName, root) {
-        let base = `/pages/${pageName}/${pageName}`;
+        let base = `/src/pages/${pageName}/${pageName}`;
     
         let html = await fetch(base + ".html", { cache: "no-cache" });
         if (!html.ok) throw new Error("404");

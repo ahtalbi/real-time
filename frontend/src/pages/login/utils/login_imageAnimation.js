@@ -1,4 +1,4 @@
-import { GlobalEventsManager } from "../../../src/events/init.js";
+import { GlobalEventsManager } from "../../../events/init.js";
 
 let reqAnForImage = null;
 

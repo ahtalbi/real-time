@@ -7,6 +7,7 @@ export class EventsManager {
             if (!ele) return;
             let fn = this.#Events[ele.id];
             if (!fn) return;
+			
             fn(ele, e);
         });
     }

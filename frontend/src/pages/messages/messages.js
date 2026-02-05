@@ -1,5 +1,5 @@
 import { initFetchUsers } from "../home/utils/home_fetchUsers.js";
-import { showAlert } from "../../src/utils/alert.js";
+import { showAlert } from "../../utils/alert.js";
 
 const messagesByUser = new Map();
 let activeUserId = "";
