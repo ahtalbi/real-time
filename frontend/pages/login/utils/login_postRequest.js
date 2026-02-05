@@ -27,7 +27,7 @@ export function loginSendPost(form) {
             return res.json();
         })
         .then(res => {
-            if (res.success) { ClientRouter.navigate("/"); showAlert("Welcome Back 😁", 2000, "green"); }
+            if (res.success) {console.log(res) ; ClientRouter.navigate("/"); showAlert("Welcome Back 😁", 2000, "green"); }
             else if (res.error) showAlert(res.error);
         })
         .catch(err => { console.error(err); showAlert(err.message); });
