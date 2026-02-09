@@ -11,6 +11,16 @@ import { initPostsFetchObserver } from "./utils/home_fetchPosts.js";
 function initMessagesShortcut() {
 	GlobalEventsManager.click.RegisterEvent("messagesBtn", () => { ClientRouter.navigate("/messages") });
 	GlobalEventsManager.click.RegisterEvent("messagesFab", () => { ClientRouter.navigate("/messages") });
+	GlobalEventsManager.click.RegisterEvent("messageUserBtn", (ele) => {
+		const userId = ele.getAttribute("userid");
+		const nickname = ele.getAttribute("username");
+		if (!userId) {
+			ClientRouter.navigate("/messages");
+			return;
+		}
+		const query = new URLSearchParams({ to: userId, name: nickname || "" });
+		ClientRouter.navigate(`/messages?${query.toString()}`);
+	});
 }
 
 function initHome() {

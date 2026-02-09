@@ -1,5 +1,5 @@
 import { showAlert } from "../../../utils/alert.js";
-import { UserTemplate } from "./home_templates.js";
+import { UserTemplate } from "./messages_templates.js";
 
 let stateUsers = {
 	StartId: 0,

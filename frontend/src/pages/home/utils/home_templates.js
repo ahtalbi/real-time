@@ -113,7 +113,7 @@ export function commentTemplate(c) {
 export function UserTemplate(User) {
 	const tpl = document.createElement("template");
 	tpl.innerHTML = `<li class="row-between">
-    	<span><span class="dot ok"></span>${User.Nickname}</span>
+    	<span>${User.Nickname}</span>
 	</li>`;
 	return tpl.content.firstElementChild;
 }

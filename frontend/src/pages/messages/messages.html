@@ -19,26 +19,44 @@
 <div class="messages-page">
     <aside class="threads card">
         <h3 class="title">Messages</h3>
-        <ul class="list" data-friends-list data-friends-actions="message"></ul>
-        <button class="btn seemore ghost" type="button" data-see-more-users>See More...</button>
+        <ul class="list" id="FreindsList"></ul>
     </aside>
 
-    <section class="conversation card">
-        <header class="conversation-header">
+    <section id="card-messages" class="conversation card">
+        <div class="conversation-empty">
+            <div class="empty-icon" aria-hidden="true">💬</div>
+            <h2 class="empty-title">Select a user to start chatting</h2>
+            <p class="empty-subtitle">Choose someone from the list on the left and send your first message.</p>
+        </div>
+    </section>
+</div>
+
+<!-- <header class="conversation-header">
             <div class="row">
-                <div class="avatar sm" aria-hidden="true"></div>
+                <div class="avatar sm" id="conversationAvatar" aria-hidden="true"></div>
                 <div class="meta">
-                    <span class="name" data-conversation-name>Select a user</span>
-                    <span class="status" data-conversation-status>Ready when you are</span>
+                    <span class="name" id="conversationName">Select a user</span>
+                    <span class="status" id="conversationStatus">Ready when you are</span>
                 </div>
             </div>
         </header>
 
-        <div class="conversation-body" data-conversation-body></div>
+        <div class="conversation-body" id="conversationBody"></div>
 
-        <form class="composer" data-composer>
-            <input class="input" type="text" placeholder="Ecrire un message..." data-message-input disabled />
-            <button class="btn primary" type="submit" data-message-send disabled>Envoyer</button>
-        </form>
-    </section>
-</div>
+        <form class="composer" id="composerForm">
+            <input
+                class="input"
+                id="messageInput"
+                type="text"
+                placeholder="Ecrire un message..."
+                disabled
+            />
+            <button
+                class="btn primary"
+                id="sendMessageBtn"
+                type="submit"
+                disabled
+            >
+                Envoyer
+            </button>
+        </form> -->
