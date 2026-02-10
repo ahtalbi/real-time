@@ -19,7 +19,7 @@ export function fetchUsers() {
 				const data = await res.json();
 				throw new Error(
 					(data && data.error) ||
-						`HTTP ${res.status}, Failed to Get the users`,
+					`HTTP ${res.status}, Failed to Get the users`,
 				);
 			}
 			return res.json();
@@ -64,7 +64,13 @@ export function initFetchUsers() {
 	});
 	stateUsers.io.observe(observer);
 
-	window.addEventListener("DOMContentLoaded", () => {
+	const run = () => {
 		fetchUsers();
-	});
+	};
+
+	if (document.readyState === "loading") {
+		window.addEventListener("DOMContentLoaded", run);
+	} else {
+		run();
+	}
 }

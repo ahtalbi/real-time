@@ -1,10 +1,6 @@
 export class Router {
-	#Routes = Object.create(null);
-	
-	constructor(NavigationCustomBehaivor) {
-		this.custom = NavigationCustomBehaivor;
-	}
-	
+    #Routes = Object.create(null);
+
     on(path, handler) {
         this.#Routes[path] = handler;
         return this;
@@ -15,12 +11,15 @@ export class Router {
         return navigation.navigate(path, { history });
     }
 
-    listen(onError404, { autoFire = false } = {}) {
+    listen(onError404) {
         navigation.addEventListener("navigate", (event) => {
             let url = new URL(event.destination.url);
 
             event.intercept({
                 handler: () => {
+                    if (url.pathname === location.pathname && url.search !== location.search) {
+                        return;
+                    }
                     let fn = this.#Routes[url.pathname];
                     if (!fn) {
                         onError404();
@@ -30,10 +29,6 @@ export class Router {
                 }
             });
         });
-
-        if (autoFire) {
-            this.navigate(location.pathname, { history: "replace" });
-        }
 
         return this;
     }
