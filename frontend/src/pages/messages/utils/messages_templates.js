@@ -1,4 +1,5 @@
 import { GlobalEventsManager } from "../../../events/init.js";
+import { ClientRouter } from "../../../router.js";
 
 export function UserTemplate(User) {
 	const tpl = document.createElement("template");
@@ -10,9 +11,7 @@ export function UserTemplate(User) {
 	let el = tpl.content.firstElementChild;
 
 	GlobalEventsManager.click.RegisterEvent(`messageUserBtn-${User.ID}`, () => {
-		const container = document.getElementById("card-messages");
-		container.innerHTML = "";
-		container.appendChild(ConversationTemplate(User));
+		ClientRouter.navigate(`/messages?userId=${User.ID}`, { history: "replace" });
 	})
 
 	return el;
@@ -69,4 +68,14 @@ export function ConversationTemplate(User) {
 	})
 
 	return el;
+}
+
+export function NoConversationSelected() {
+	let tpl = document.createElement("template");
+	tpl.innerHTML = `<div class="conversation-empty">
+		<div class="empty-icon" aria-hidden="true">💬</div>
+		<h2 class="empty-title">Select a user to start chatting</h2>
+		<p class="empty-subtitle">Choose someone from the list on the left and send your first message.</p>
+	</div>`;
+	return tpl.content.firstElementChild;
 }

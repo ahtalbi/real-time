@@ -1,34 +1,31 @@
 import { showAlert } from "../../../utils/alert.js";
 import { UserTemplate } from "./messages_templates.js";
 
-let stateUsers = {
-	StartId: 0,
-	finish: false,
-	io: null,
-};
+export let stateUsers = {}
 
-export function fetchUsers() {
+async function fetchUsers() {
 	if (stateUsers.finish) return;
-	return fetch("http://localhost:3000/getusers", {
+	return await fetch("http://localhost:3000/getusers", {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({ startID: stateUsers.StartId }),
 	})
 		.then(async (res) => {
+			const data = await res.json();
 			if (!res.ok) {
-				const data = await res.json();
 				throw new Error(
 					(data && data.error) ||
 					`HTTP ${res.status}, Failed to Get the users`,
 				);
 			}
-			return res.json();
+			return data;
 		})
 		.then((res) => {
 			let arr = res.data;
 			let frag = document.createDocumentFragment();
 			for (let user of arr) {
 				frag.appendChild(UserTemplate(user));
+				stateUsers.Users[user.ID] = user;
 			}
 			let containerFreinds = document.getElementById("FreindsList");
 			containerFreinds.append(frag);
@@ -42,12 +39,11 @@ export function fetchUsers() {
 		});
 }
 
-export function initFetchUsers() {
-	stateUsers = {
-		StartId: 0,
-		finish: false,
-		io: null,
-	};
+export async function initFetchUsers() {
+	stateUsers.Users = {};
+	stateUsers.StartId = 0;
+	stateUsers.finish = false;
+	stateUsers.io = null;
 
 	let list = document.getElementById("FreindsList");
 	list.innerHTML = "";
@@ -58,19 +54,9 @@ export function initFetchUsers() {
 		observer.style.height = "1px";
 		list.parentElement?.appendChild(observer);
 	}
-
-	stateUsers.io = new IntersectionObserver(([entry]) => {
-		if (entry.isIntersecting) fetchUsers();
+	await fetchUsers();
+	stateUsers.io = new IntersectionObserver(async ([entry]) => {
+		if (entry.isIntersecting) await fetchUsers();
 	});
 	stateUsers.io.observe(observer);
-
-	const run = () => {
-		fetchUsers();
-	};
-
-	if (document.readyState === "loading") {
-		window.addEventListener("DOMContentLoaded", run);
-	} else {
-		run();
-	}
 }
