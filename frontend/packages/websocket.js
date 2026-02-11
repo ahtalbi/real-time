@@ -1,100 +1,192 @@
 class WebSocketManager {
     #ws = null;
     #url;
+
     #onOpen = [];
     #onMessage = [];
     #onClose = [];
     #onError = [];
+
     #reconnectAutomatically = true;
     #maxReconnectAttempts = 5;
-    #manualClose = false;
-    #baseDelayMs = null;
-    #maxDelayMs = 2000;
     #reconnectCount = 0;
 
-    constructor({ url, reconnectAutomatically = true, maxReconnectAttempts = 5, reconnectTimer, onOpen, onMessage, onClose, onError, onWebSocketUnsupported } = {}) {
+    #baseDelayMs = 500;
+    #maxDelayMs = 10000;
+    #reconnectTimer = null;
+
+    #manualClose = false;
+
+    constructor({
+        url,
+        reconnectAutomatically = true,
+        maxReconnectAttempts = 5,
+        reconnectTimer,
+        baseDelayMs,
+        maxDelayMs,
+        onOpen,
+        onMessage,
+        onClose,
+        onError,
+        onWebSocketUnsupported,
+    } = {}) {
         if (typeof WebSocket === "undefined") {
             if (typeof onWebSocketUnsupported === "function") {
                 onWebSocketUnsupported();
             }
-            throw new Error("WebSocket API is not available in your browser try to change or upgrade browser .");
+            throw new Error("WebSocket API is not available in this environment.");
         }
 
-        if (url) this.#url = url;
+        if (typeof url === "string") this.#url = url;
         if (typeof reconnectAutomatically === "boolean") this.#reconnectAutomatically = reconnectAutomatically;
-        if (maxReconnectAttempts && typeof maxReconnectAttempts === "number") this.#maxReconnectAttempts = maxReconnectAttempts;
-        if (reconnectTimer && typeof reconnectTimer === "number") this.#baseDelayMs = reconnectTimer;
+        if (typeof maxReconnectAttempts === "number" && maxReconnectAttempts >= 0) this.#maxReconnectAttempts = maxReconnectAttempts;
+        if (typeof reconnectTimer === "number" && reconnectTimer > 0) this.#baseDelayMs = reconnectTimer;
+        if (typeof baseDelayMs === "number" && baseDelayMs > 0) this.#baseDelayMs = baseDelayMs;
+        if (typeof maxDelayMs === "number" && maxDelayMs >= this.#baseDelayMs) this.#maxDelayMs = maxDelayMs;
+
         if (Array.isArray(onOpen)) this.#onOpen = onOpen;
         if (Array.isArray(onMessage)) this.#onMessage = onMessage;
         if (Array.isArray(onClose)) this.#onClose = onClose;
         if (Array.isArray(onError)) this.#onError = onError;
     }
 
-    onOpen(onOpen) { if (typeof onOpen === "function") this.#onOpen.push(onOpen); return this; }
-    onClose(onClose) { if (typeof onClose === "function") this.#onClose.push(onClose); return this; }
-    onMessage(onMessage) { if (typeof onMessage === "function") this.#onMessage.push(onMessage); return this; }
-    onError(onError) { if (typeof onError === "function") this.#onError.push(onError); return this; }
+    onOpen(handler) { if (typeof handler === "function") this.#onOpen.push(handler); return this; }
+    onClose(handler) { if (typeof handler === "function") this.#onClose.push(handler); return this; }
+    onMessage(handler) { if (typeof handler === "function") this.#onMessage.push(handler); return this; }
+    onError(handler) { if (typeof handler === "function") this.#onError.push(handler); return this; }
+
+    offOpen(handler) { this.#onOpen = this.#onOpen.filter((h) => h !== handler); return this; }
+    offClose(handler) { this.#onClose = this.#onClose.filter((h) => h !== handler); return this; }
+    offMessage(handler) { this.#onMessage = this.#onMessage.filter((h) => h !== handler); return this; }
+    offError(handler) { this.#onError = this.#onError.filter((h) => h !== handler); return this; }
 
     connect(url) {
-        url = url || this.#url;
-        if (!url || typeof url !== "string") throw new Error("Can't connect to this url the format should be ws://yourdomain/endpoint and be woking");
-        if (this.#ws) this.#ws = null;
-        this.#ws = new WebSocket(url);
+        const nextUrl = url || this.#url;
+        if (!this.#isValidWebSocketUrl(nextUrl)) {
+            throw new Error("Invalid WebSocket URL. Use ws:// or wss://.");
+        }
+
+        this.#url = nextUrl;
+        this.#manualClose = false;
+
+        if (this.#reconnectTimer) {
+            clearTimeout(this.#reconnectTimer);
+            this.#reconnectTimer = null;
+        }
+
+        if (this.#ws && (this.#ws.readyState === WebSocket.OPEN || this.#ws.readyState === WebSocket.CONNECTING)) {
+            this.#ws.onopen = null;
+            this.#ws.onmessage = null;
+            this.#ws.onclose = null;
+            this.#ws.onerror = null;
+            this.#ws.close();
+        }
+
+        this.#ws = new WebSocket(this.#url);
         this.#setupEventHandlers();
     }
 
-    #scheduleReconnect() {
-        if (this.#reconnectCount >= this.#maxReconnectAttempts) return;
-        if (this.#baseDelayMs) return;
-
-        const exp = Math.min(this.#baseDelayMs * 2 ** this.#reconnectCount, this.#maxDelayMs);
-        const jitter = Math.floor(Math.random() * 300);
-        const delay = exp + jitter;
-
-        this.#reconnectCount += 1;
-        this.#baseDelayMs = setTimeout(() => {
-            this.#baseDelayMs = null;
-            this.connect(this.#url);
-        }, delay);
-    }
-
-    #setupEventHandlers() {
-        this.#ws.onopen = (e) => { this.#onOpen.forEach(handler => handler(e)); };
-        this.#ws.onmessage = (e) => { this.#onMessage.forEach(handler => handler(e)); };
-        this.#ws.onclose = (e) => {
-            this.#onClose.forEach(handler => handler(e));
-            if (this.#reconnectAutomatically && !this.#manualClose) {
-                this.#scheduleReconnect();
-            }
-        };
-        this.#ws.onerror = (e) => { this.#onError.forEach(handler => handler(e)); };
-    }
-
-    close() {
+    close(code = 1000, reason = "Manual close") {
         this.#manualClose = true;
-        if (this.#maxDelayMs) {
-            clearTimeout(this.#maxDelayMs);
-            this.#maxDelayMs = null;
+
+        if (this.#reconnectTimer) {
+            clearTimeout(this.#reconnectTimer);
+            this.#reconnectTimer = null;
         }
-        this.#ws?.close();
+
+        if (this.#ws && (this.#ws.readyState === WebSocket.OPEN || this.#ws.readyState === WebSocket.CONNECTING)) {
+            this.#ws.close(code, reason);
+        }
     }
 
     send(data) {
-        this.#ws?.send(data);
+        if (!this.#ws || this.#ws.readyState !== WebSocket.OPEN) {
+            throw new Error("WebSocket is not open. Connect before sending data.");
+        }
+        this.#ws.send(data);
     }
 
-    removeeListeners(cleanArrays = false) {
+    removeListeners(cleanArrays = false) {
         if (cleanArrays) {
             this.#onOpen = [];
             this.#onMessage = [];
             this.#onClose = [];
             this.#onError = [];
         }
+
         if (this.#ws) {
             this.#ws.onopen = null;
             this.#ws.onclose = null;
             this.#ws.onmessage = null;
             this.#ws.onerror = null;
         }
+    }
+
+    #setupEventHandlers() {
+        if (!this.#ws) return;
+
+        this.#ws.onopen = (event) => {
+            this.#reconnectCount = 0;
+            this.#emit(this.#onOpen, event);
+        };
+
+        this.#ws.onmessage = (event) => {
+            this.#emit(this.#onMessage, event);
+        };
+
+        this.#ws.onclose = (event) => {
+            this.#emit(this.#onClose, event);
+            this.#ws = null;
+
+            if (this.#shouldReconnect(event)) {
+                this.#scheduleReconnect();
+            }
+        };
+
+        this.#ws.onerror = (event) => {
+            this.#emit(this.#onError, event);
+        };
+    }
+
+    #scheduleReconnect() {
+        if (!this.#url) return;
+        if (this.#reconnectTimer) return;
+        if (this.#reconnectCount >= this.#maxReconnectAttempts) return;
+
+        const exponentialDelay = Math.min(this.#baseDelayMs * (2 ** this.#reconnectCount), this.#maxDelayMs);
+        const addedTime = Math.floor(Math.random() * 300);
+        const reconnectDelay = exponentialDelay + addedTime;
+
+        this.#reconnectCount += 1;
+        this.#reconnectTimer = setTimeout(() => {
+            this.#reconnectTimer = null;
+            if (!this.#manualClose) {
+                this.connect(this.#url);
+            }
+        }, reconnectDelay);
+    }
+
+    #shouldReconnect(closeEvent) {
+        if (!this.#reconnectAutomatically) return false;
+        if (this.#manualClose) return false;
+        if (!closeEvent) return true;
+        if (closeEvent.code === 1000 || closeEvent.code === 1008) return false; // https://datatracker.ietf.org/doc/html/rfc6455#section-7.4.1
+
+        return true;
+    }
+
+    #emit(handlers, event) {
+        handlers.forEach((handler) => {
+            try {
+                handler(event);
+            } catch (_) {
+                
+            }
+        });
+    }
+
+    #isValidWebSocketUrl(url) {
+        if (typeof url !== "string" || url.length === 0) return false;
+        return /^wss?:\/\//.test(url);
     }
 }
