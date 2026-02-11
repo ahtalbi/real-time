@@ -1,4 +1,3 @@
-import { ClientRouter } from "../../../router.js";
 import { stateUsers } from "./messages_fetchUsers.js";
 import { ConversationTemplate, NoConversationSelected} from "./messages_templates.js";
 
@@ -8,7 +7,10 @@ export function initConversations() {
     let container = document.getElementById("card-messages");
     if (userId) {
         let user = stateUsers.Users[userId];
-        if (!user) ClientRouter.navigate("/messages", { history: "replace" });
+        if (!user) {
+            container.appendChild(NoConversationSelected());
+            return;
+        }
         container.appendChild(ConversationTemplate(user));
     } else {
         container.appendChild(NoConversationSelected());

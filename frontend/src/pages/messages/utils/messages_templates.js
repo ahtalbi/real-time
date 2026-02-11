@@ -79,3 +79,24 @@ export function NoConversationSelected() {
 	</div>`;
 	return tpl.content.firstElementChild;
 }
+
+export function MessageTemplate(ReciverOrSender) {
+	const tpl = document.createElement("template");
+
+	let type = "incoming";
+	let content = "";
+
+	if (typeof ReciverOrSender === "string") {
+		type = ReciverOrSender.toLowerCase() === "sender" ? "outgoing" : "incoming";
+	} else if (ReciverOrSender && typeof ReciverOrSender === "object") {
+		const side = (ReciverOrSender.side || ReciverOrSender.type || "").toLowerCase();
+		type = side === "sender" || side === "outgoing" ? "outgoing" : "incoming";
+		content = ReciverOrSender.content || ReciverOrSender.message || "";
+	}
+
+	tpl.innerHTML = `<div class="bubble ${type}"></div>`;
+	const el = tpl.content.firstElementChild;
+	el.textContent = content;
+
+	return el;
+}

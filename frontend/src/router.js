@@ -33,6 +33,6 @@ export async function HandleRoutes() {
 
             if (res.success && !route.auth) ClientRouter.navigate("/");
             else if (res.error && route.auth) ClientRouter.navigate("/login");
-            else ClientRouter.navigate(path);
+            else route.handler();
         })
 }

@@ -17,9 +17,6 @@ export class Router {
 
             event.intercept({
                 handler: () => {
-                    if (url.pathname === location.pathname && url.search !== location.search) {
-                        return;
-                    }
                     let fn = this.#Routes[url.pathname];
                     if (!fn) {
                         onError404();
