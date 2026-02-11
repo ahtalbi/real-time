@@ -125,26 +125,26 @@ class WebSocketManager {
     #setupEventHandlers() {
         if (!this.#ws) return;
 
-        this.#ws.onopen = (event) => {
+        this.#ws.onopen = (e) => {
             this.#reconnectCount = 0;
-            this.#emit(this.#onOpen, event);
+            this.#emit(this.#onOpen, e);
         };
 
-        this.#ws.onmessage = (event) => {
-            this.#emit(this.#onMessage, event);
+        this.#ws.onmessage = (e) => {
+            this.#emit(this.#onMessage, e);
         };
 
-        this.#ws.onclose = (event) => {
-            this.#emit(this.#onClose, event);
+        this.#ws.onclose = (e) => {
+            this.#emit(this.#onClose, e);
             this.#ws = null;
 
-            if (this.#shouldReconnect(event)) {
+            if (this.#shouldReconnect(e)) {
                 this.#scheduleReconnect();
             }
         };
 
-        this.#ws.onerror = (event) => {
-            this.#emit(this.#onError, event);
+        this.#ws.onerror = (e) => {
+            this.#emit(this.#onError, e);
         };
     }
 
@@ -175,13 +175,9 @@ class WebSocketManager {
         return true;
     }
 
-    #emit(handlers, event) {
+    #emit(handlers, e) {
         handlers.forEach((handler) => {
-            try {
-                handler(event);
-            } catch (_) {
-                
-            }
+            handler(e);
         });
     }
 
