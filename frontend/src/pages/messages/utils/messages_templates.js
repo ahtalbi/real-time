@@ -30,7 +30,9 @@ export function ConversationTemplate(User) {
             </div>
         </header>
 
-        <div class="conversation-body" id="conversationBody"></div>
+        <div class="conversation-body" id="conversationBody">
+			<div id="messages-observer"></div>
+		</div>
 
         <form class="composer" id="composerForm">
             <input

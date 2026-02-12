@@ -1,6 +1,7 @@
-class WebSocketManager {
+export class WebSocketManager {
     #ws = null;
     #url;
+    #state = "disconnected";
 
     #onOpen = [];
     #onMessage = [];
@@ -15,6 +16,10 @@ class WebSocketManager {
     #maxDelayMs = 10000;
     #reconnectTimer = null;
 
+    #retryProcessTimePeriod = 50;
+    #processTimer = null;
+    #messageQueue = [];
+
     #manualClose = false;
 
     constructor({
@@ -24,6 +29,7 @@ class WebSocketManager {
         reconnectTimer,
         baseDelayMs,
         maxDelayMs,
+        retryProcessTimePeriod,
         onOpen,
         onMessage,
         onClose,
@@ -43,6 +49,7 @@ class WebSocketManager {
         if (typeof reconnectTimer === "number" && reconnectTimer > 0) this.#baseDelayMs = reconnectTimer;
         if (typeof baseDelayMs === "number" && baseDelayMs > 0) this.#baseDelayMs = baseDelayMs;
         if (typeof maxDelayMs === "number" && maxDelayMs >= this.#baseDelayMs) this.#maxDelayMs = maxDelayMs;
+        if (typeof retryProcessTimePeriod === "number" && retryProcessTimePeriod > 0) this.#retryProcessTimePeriod = retryProcessTimePeriod;
 
         if (Array.isArray(onOpen)) this.#onOpen = onOpen;
         if (Array.isArray(onMessage)) this.#onMessage = onMessage;
@@ -60,6 +67,8 @@ class WebSocketManager {
     offMessage(handler) { this.#onMessage = this.#onMessage.filter((h) => h !== handler); return this; }
     offError(handler) { this.#onError = this.#onError.filter((h) => h !== handler); return this; }
 
+    getState() { return this.#state; }
+
     connect(url) {
         const nextUrl = url || this.#url;
         if (!this.#isValidWebSocketUrl(nextUrl)) {
@@ -68,6 +77,7 @@ class WebSocketManager {
 
         this.#url = nextUrl;
         this.#manualClose = false;
+        this.#state = "connecting";
 
         if (this.#reconnectTimer) {
             clearTimeout(this.#reconnectTimer);
@@ -84,14 +94,34 @@ class WebSocketManager {
 
         this.#ws = new WebSocket(this.#url);
         this.#setupEventHandlers();
+
+        return new Promise((resolve) => {
+            const onOpen = () => {
+                this.#ws.removeEventListener("error", onError);
+                resolve(true);
+            };
+            const onError = (e) => {
+                this.#ws.removeEventListener("open", onOpen);
+                resolve(false);
+            };
+
+            this.#ws.addEventListener("open", onOpen, { once: true });
+            this.#ws.addEventListener("error", onError, { once: true });
+        });
     }
 
     close(code = 1000, reason = "Manual close") {
         this.#manualClose = true;
+        this.#state = "disconnected";
 
         if (this.#reconnectTimer) {
             clearTimeout(this.#reconnectTimer);
             this.#reconnectTimer = null;
+        }
+
+        if (this.#processTimer) {
+            clearTimeout(this.#processTimer);
+            this.#processTimer = null;
         }
 
         if (this.#ws && (this.#ws.readyState === WebSocket.OPEN || this.#ws.readyState === WebSocket.CONNECTING)) {
@@ -100,10 +130,16 @@ class WebSocketManager {
     }
 
     send(data) {
-        if (!this.#ws || this.#ws.readyState !== WebSocket.OPEN) {
-            throw new Error("WebSocket is not open. Connect before sending data.");
+        const startProcessing = this.#messageQueue.length === 0;
+        this.#messageQueue.push(data);
+
+        if (!this.#ws && this.#url && !this.#manualClose) {
+            this.connect(this.#url).catch(() => {});
         }
-        this.#ws.send(data);
+
+        if (startProcessing) {
+            this.#processQueue();
+        }
     }
 
     removeListeners(cleanArrays = false) {
@@ -127,7 +163,9 @@ class WebSocketManager {
 
         this.#ws.onopen = (e) => {
             this.#reconnectCount = 0;
+            this.#state = "connected";
             this.#emit(this.#onOpen, e);
+            this.#processQueue();
         };
 
         this.#ws.onmessage = (e) => {
@@ -136,6 +174,7 @@ class WebSocketManager {
 
         this.#ws.onclose = (e) => {
             this.#emit(this.#onClose, e);
+            this.#state = "closed";
             this.#ws = null;
 
             if (this.#shouldReconnect(e)) {
@@ -146,6 +185,29 @@ class WebSocketManager {
         this.#ws.onerror = (e) => {
             this.#emit(this.#onError, e);
         };
+    }
+
+    #processQueue() {
+        if (this.#messageQueue.length === 0) return;
+
+        if (!this.#ws || this.#ws.readyState !== WebSocket.OPEN) {
+            if (this.#processTimer) return;
+            this.#processTimer = setTimeout(() => {
+                this.#processTimer = null;
+                this.#processQueue();
+            }, this.#retryProcessTimePeriod);
+            return;
+        }
+
+        while (this.#messageQueue.length > 0 && this.#ws && this.#ws.readyState === WebSocket.OPEN) {
+            const data = this.#messageQueue[0];
+            this.#ws.send(data);
+            this.#messageQueue.shift();
+        }
+
+        if (this.#messageQueue.length > 0) {
+            this.#processQueue();
+        }
     }
 
     #scheduleReconnect() {
@@ -161,7 +223,7 @@ class WebSocketManager {
         this.#reconnectTimer = setTimeout(() => {
             this.#reconnectTimer = null;
             if (!this.#manualClose) {
-                this.connect(this.#url);
+                this.connect(this.#url).catch(() => {});
             }
         }, reconnectDelay);
     }

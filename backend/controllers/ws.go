@@ -26,6 +26,7 @@ func (c *Controller) WebSocket(w http.ResponseWriter, r *http.Request) {
 	if er != nil {
 		return
 	}
+
 	c.Ws.Connection(conn, r, c, user)
 }
 
