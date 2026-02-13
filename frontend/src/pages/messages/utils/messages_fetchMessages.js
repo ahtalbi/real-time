@@ -21,7 +21,7 @@ export function initFetchMessages(receiverID) {
 	stateMessages.topObserver = topObserver;
 
 	if (stateMessages.io) stateMessages.io.disconnect();
-		stateMessages.io = new IntersectionObserver(([entry]) => {
+	stateMessages.io = new IntersectionObserver(([entry]) => {
 		if (entry.isIntersecting) {
 			fetchMessages();
 		}
@@ -50,9 +50,7 @@ function fetchMessages() {
 
 export function renderMessagesHistory(messages) {
 	let body = document.getElementById("conversationBody");
-	let observer = document.getElementById("messages-observer");
 	let isFirstBatch = stateMessages.StartID === 0;
-
 	let beforeHeight = body.scrollHeight;
 
 	if (!Array.isArray(messages) || messages.length === 0) {
@@ -61,20 +59,23 @@ export function renderMessagesHistory(messages) {
 		return;
 	}
 
-	messages.sort((a, b) => {
-		const ta = Date.parse(a.CreatedAt || "") || 0;
-		const tb = Date.parse(b.CreatedAt || "") || 0;
-		return ta - tb;
-	});
+	let orderedMessages = [...messages].reverse();
+	let fragment = document.createDocumentFragment();
 
-	for (let message of messages) {
+	for (let message of orderedMessages) {
 		let side = message.SenderID === stateMessages.receiverID ? "incoming" : "outgoing";
-		let bubble = MessageTemplate(side, message.Content);
-		if (isFirstBatch) {
-			body.appendChild(bubble);
+		let bubble = MessageTemplate(side, message.Content || "", message.CreatedAt);
+		fragment.appendChild(bubble);
+	}
+
+	if (isFirstBatch) {
+		body.appendChild(fragment);
+	} else {
+		let firstBubble = body.querySelector(".bubble");
+		if (firstBubble) {
+			body.insertBefore(fragment, firstBubble);
 		} else {
-			let anchor = body.querySelector(".bubble:last-of-type");
-			body.insertBefore(bubble, anchor || (observer?.nextSibling || null));
+			body.appendChild(fragment);
 		}
 	}
 
@@ -83,6 +84,7 @@ export function renderMessagesHistory(messages) {
 	if (!stateMessages.finish && stateMessages.io && stateMessages.topObserver) {
 		stateMessages.io.observe(stateMessages.topObserver);
 	}
+
 	if (isFirstBatch) {
 		body.scrollTop = body.scrollHeight;
 	} else {
@@ -94,10 +96,8 @@ export function renderMessagesHistory(messages) {
 
 export function renderSingleMessage(message) {
 	let body = document.getElementById("conversationBody");
-	if (!body || !message) return;
-
 	let side = message.SenderID === stateMessages.receiverID ? "incoming" : "outgoing";
-	let bubble = MessageTemplate(side, message.Content || "");
+	let bubble = MessageTemplate(side, message.Content, message.CreatedAt);
 	body.appendChild(bubble);
 	toggleScrollBottomButton(!isNearBottom(body));
 }

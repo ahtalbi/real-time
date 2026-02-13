@@ -68,7 +68,7 @@ export function ConversationTemplate(User) {
 
 	GlobalEventsManager.submit.RegisterEvent(`composerForm`, (e) => {
 		let message = e.messageInput.value;
-		conversation.append(MessageTemplate("me", message));
+		conversation.append(MessageTemplate("me", message, new Date().toISOString()));
 		conversation.scrollTop = conversation.scrollHeight;
 		socket.send(JSON.stringify({
 			"type": "message",
@@ -93,14 +93,50 @@ export function NoConversationSelected() {
 	return tpl.content.firstElementChild;
 }
 
-export function MessageTemplate(ReciverOrSender, content) {
+export function MessageTemplate(ReciverOrSender, content, createdAt) {
 	const side = String(ReciverOrSender || "").toLowerCase();
 	const outgoing = side === "sender" || side === "outgoing" || side === "me" || side === "self";
+	const { displayDate, isoDate } = formatMessageDate(createdAt);
 
 	const tpl = document.createElement("template");
-	tpl.innerHTML = `<div class="bubble ${outgoing ? "outgoing" : "incoming"}"></div>`;
+	tpl.innerHTML = `
+		<div class="bubble ${outgoing ? "outgoing" : "incoming"}">
+			<p class="bubble-content"></p>
+			<time class="bubble-date"></time>
+		</div>`;
 
 	const el = tpl.content.firstElementChild;
-	el.textContent = String(content || "");
+	el.querySelector(".bubble-content").textContent = String(content || "");
+	const dateEl = el.querySelector(".bubble-date");
+	dateEl.textContent = displayDate;
+	if (isoDate) {
+		dateEl.setAttribute("datetime", isoDate);
+	}
 	return el;
+}
+
+function formatMessageDate(dateValue) {
+	const fallback = new Date();
+	let parsed = fallback;
+	let fromInput = false;
+
+	if (typeof dateValue === "string" && dateValue.trim()) {
+		const normalized = dateValue.includes("T") ? dateValue : dateValue.replace(" ", "T");
+		const candidate = new Date(normalized);
+		if (!Number.isNaN(candidate.getTime())) {
+			parsed = candidate;
+			fromInput = true;
+		}
+	}
+
+	return {
+		displayDate: parsed.toLocaleString(undefined, {
+		year: "numeric",
+		month: "short",
+		day: "2-digit",
+		hour: "2-digit",
+		minute: "2-digit",
+		}),
+		isoDate: fromInput ? parsed.toISOString() : null,
+	};
 }
