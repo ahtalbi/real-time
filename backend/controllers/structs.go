@@ -61,6 +61,7 @@ type UserWS struct {
 	RateLimit *RateLimiter
 	Mu        *sync.Mutex
 	UserInfo  *models.User
+	CloseOnce sync.Once
 }
 
 // sent a ping message to the client every periode of time to keep the connection alive
@@ -82,12 +83,14 @@ func (u *UserWS) SendPingMessageEveryPeriodeOfTime() {
 
 // this function remove the user websocket from the map and close the connection
 func (u *UserWS) RemoveUserWS(ws *WS, userID string, conn *websocket.Conn) {
-	ws.Mu.Lock()
-	delete(ws.Clients, userID)
-	ws.Mu.Unlock()
+	u.CloseOnce.Do(func() {
+		ws.Mu.Lock()
+		delete(ws.Clients, userID)
+		ws.Mu.Unlock()
 
-	close(u.Chan)
-	conn.Close()
+		close(u.Chan)
+		conn.Close()
+	})
 }
 
 // write messages to the client
@@ -121,6 +124,44 @@ func (ws *WS) Broadcast(msg map[string]interface{}) {
 			default:
 			}
 		case "get_users_chat", "get_messages":
+		}
+	}
+}
+
+// return online users list excluding the provided user id
+func (ws *WS) OnlineUsersFor(excludeUserID string) []map[string]string {
+	ws.Mu.RLock()
+	defer ws.Mu.RUnlock()
+
+	onlineUsers := make([]map[string]string, 0, len(ws.Clients))
+	for id, u := range ws.Clients {
+		if id == excludeUserID {
+			continue
+		}
+		onlineUsers = append(onlineUsers, map[string]string{
+			"id":       u.UserInfo.ID,
+			"nickname": u.UserInfo.Nickname,
+		})
+	}
+	return onlineUsers
+}
+
+// send refreshed online users to all connected clients
+func (ws *WS) BroadcastOnlineUsers() {
+	ws.Mu.RLock()
+	clients := make(map[string]*UserWS, len(ws.Clients))
+	for id, client := range ws.Clients {
+		clients[id] = client
+	}
+	ws.Mu.RUnlock()
+
+	for currentID, client := range clients {
+		select {
+		case client.Chan <- map[string]interface{}{
+			"type": "onlineUsers",
+			"data": ws.OnlineUsersFor(currentID),
+		}:
+		default:
 		}
 	}
 }

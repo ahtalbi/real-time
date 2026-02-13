@@ -38,7 +38,11 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 	user := c.Ws.Clients[USER.ID]
 	c.Ws.Mu.Unlock()
 
-	defer user.RemoveUserWS(ws, USER.ID, conn)
+	ws.BroadcastOnlineUsers()
+	defer func() {
+		user.RemoveUserWS(ws, USER.ID, conn)
+		ws.BroadcastOnlineUsers()
+	}()
 	go user.Write()
 	WSkeepalive(conn)
 	user.SendPingMessageEveryPeriodeOfTime()
@@ -136,22 +140,10 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 			}
 		// case of get online users
 		case "online_users":
-			ws.Mu.Lock()
-			onlineUsers := []map[string]string{}
-			for id, u := range ws.Clients {
-				if id != USER.ID {
-					onlineUsers = append(onlineUsers, map[string]string{
-						"id":       u.UserInfo.ID,
-						"nickname": u.UserInfo.Nickname,
-					})
-				}
-			}
-			ws.Mu.Unlock()
-
 			select {
 			case user.Chan <- map[string]interface{}{
 				"type": "onlineUsers",
-				"data": onlineUsers,
+				"data": ws.OnlineUsersFor(USER.ID),
 			}:
 			default:
 			}
