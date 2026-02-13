@@ -233,6 +233,11 @@
   color: #fff;
 }
 
+.typing-indicator {
+  font-style: italic;
+  opacity: 0.9;
+}
+
 .composer {
   display: flex;
   gap: 10px;

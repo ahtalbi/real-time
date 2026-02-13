@@ -58,7 +58,13 @@ export function ConversationTemplate(User) {
 
 	let input = el.querySelector("#messageInput");
 	input.addEventListener("input", (e) => {
-		console.log(e.target.value);
+		const value = String(e.target.value || "");
+		if (!value.trim()) return;
+		socket.send(JSON.stringify({
+			type: "typing",
+			receiverID: User.ID,
+			Status: "typing",
+		}));
 	});
 
 	let conversation = el.querySelector("#conversationBody");
@@ -68,6 +74,8 @@ export function ConversationTemplate(User) {
 
 	GlobalEventsManager.submit.RegisterEvent(`composerForm`, (e) => {
 		let message = e.messageInput.value;
+		if (!String(message || "").trim()) return;
+
 		conversation.append(MessageTemplate("me", message, new Date().toISOString()));
 		conversation.scrollTop = conversation.scrollHeight;
 		socket.send(JSON.stringify({

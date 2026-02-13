@@ -11,6 +11,8 @@ export let socket = new WebSocketManager({
     onClose: [(e) => { console.log(e) }],
 })
 
+let typingIndicatorTimer = null;
+
 export async function initConversations() {
     let ok = await socket.connect();
     if (!ok) {
@@ -54,8 +56,46 @@ function onMessage(res) {
             renderMessagesHistory(res.data);
             break;
         case "message":
+            removeTypingIndicator();
             renderSingleMessage(res.message || res.data);
+            break;
+        case "typing":
+            if (res.from !== getActiveConversationUserId()) break;
+            showTypingIndicator();
             break;
             
     }
+}
+
+function getActiveConversationUserId() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get("userId");
+}
+
+function showTypingIndicator() {
+    const body = document.getElementById("conversationBody");
+    if (!body) return;
+
+    removeTypingIndicator();
+
+    const indicator = document.createElement("div");
+    indicator.id = "typingIndicator";
+    indicator.className = "bubble incoming typing-indicator";
+    indicator.textContent = "Typing...";
+    body.appendChild(indicator);
+    body.scrollTop = body.scrollHeight;
+
+    typingIndicatorTimer = setTimeout(() => {
+        removeTypingIndicator();
+    }, 1200);
+}
+
+function removeTypingIndicator() {
+    if (typingIndicatorTimer) {
+        clearTimeout(typingIndicatorTimer);
+        typingIndicatorTimer = null;
+    }
+
+    const indicator = document.getElementById("typingIndicator");
+    if (indicator) indicator.remove();
 }
