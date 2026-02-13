@@ -1,22 +1,41 @@
 export class PageLoader {
     constructor() {}
 
-    async fileExists(url) {
+    async fileExists(url, type = "") {
         try {
-            let res = await fetch(url, { cache: "no-cache" });
-            return res.ok;
+            const res = await fetch(url, { method: "HEAD", cache: "no-cache" });
+            if (!res.ok) return false;
+
+            const ct = (res.headers.get("content-type") || "").toLowerCase();
+            switch (type) {
+                case "js":
+                    return ct.includes("javascript");
+                case "css":
+                    return ct.includes("text/css");
+                default:
+                    return true;
+            }
         } catch {
             return false;
         }
     }
 
-    async loadPageScript(src) {
-        let old = document.querySelector('script[data-page-script="1"]');
-        if (old) old.remove();
+    async loadPageHtml(root, base, pageName) {
+        const res = await fetch(`${base}${pageName}/${pageName}.html`, { cache: "no-cache" });
+        if (!res.ok) throw new Error("404");
+        root.innerHTML = await res.text();
+    }
 
-        let s = document.createElement("script");
+    async loadPageScript(base, pageName) {
+        const src = `${base}${pageName}/${pageName}.js`;
+        if (!(await this.fileExists(src, "js"))) return;
+
+        document.querySelectorAll("script[data-page-script]").forEach((s) => s.remove());
+
+        const s = document.createElement("script");
         s.type = "module";
         s.src = `${src}?v=${Date.now()}`;
+        s.dataset.pageScript = pageName;
 
         document.body.appendChild(s);
         await new Promise((r, e) => {
@@ -25,17 +44,29 @@ export class PageLoader {
         });
     }
 
+    async loadPageCss(base, pageName) {
+        const href = `${base}${pageName}/${pageName}.css`;
+        if (!(await this.fileExists(href, "css"))) return;
+
+        document.querySelectorAll("link[data-page-css]").forEach((l) => l.remove());
+
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = `${href}?v=${Date.now()}`;
+        link.dataset.pageCss = pageName;
+        document.head.appendChild(link);
+
+        await new Promise((r, e) => {
+            link.onload = r;
+            link.onerror = e;
+        });
+    }
+
     async renderPage(pageName, root) {
-        let base = `/src/pages/${pageName}/${pageName}`;
-    
-        let html = await fetch(base + ".html", { cache: "no-cache" });
-        if (!html.ok) throw new Error("404");
-        
-        root.innerHTML = "";
-        root.innerHTML = await html.text();
-    
-        if (await this.fileExists(base + ".js")) {
-            await this.loadPageScript(base + ".js");
-        }
+        const base = "/src/pages/";
+
+        await this.loadPageHtml(root, base, pageName);
+        await this.loadPageScript(base, pageName);
+        await this.loadPageCss(base, pageName);
     }
 }

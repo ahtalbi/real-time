@@ -1,10 +1,7 @@
 import { stateUsers } from "./messages_fetchUsers.js";
 import { ConversationTemplate, NoConversationSelected } from "./messages_templates.js";
 import { WebSocketManager } from "../../../../packages/websocket.js";
-
-let converstionState = {
-    io: null,
-}
+import { initFetchMessages, renderMessagesHistory, renderSingleMessage } from "./messages_fetchMessages.js";
 
 export let socket = new WebSocketManager({
     url: "ws://localhost:3000/ws",
@@ -30,7 +27,7 @@ export async function initConversations() {
             return;
         }
         container.appendChild(ConversationTemplate(user));
-        socket.send(`{"type": "messages_history", "receiverID": "${userId}", "StartID": 0} `)
+        initFetchMessages(userId, socket);
     } else {
         container.appendChild(NoConversationSelected());
     }
@@ -54,21 +51,10 @@ function onMessage(res) {
             });
             break;
         case "messages_history":
-            const conversationBody = document.getElementById("conversationBody");
-            const selectedUserId = new URLSearchParams(window.location.search).get("userId");
-
-            for (let message of res.data) {
-                const bubble = document.createElement("div");
-                const incoming = message.SenderID === selectedUserId;
-                bubble.className = `bubble ${incoming ? "incoming" : "outgoing"}`;
-                bubble.textContent = message.Content || "";
-                conversationBody.append(bubble);
-            }
-
-            conversationBody.scrollTop = conversationBody.scrollHeight;
+            renderMessagesHistory(res.data);
             break;
         case "message":
-            console.log(res.data);
+            renderSingleMessage(res.message || res.data);
             break;
             
     }

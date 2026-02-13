@@ -607,8 +607,8 @@ func (r *Repo) GetMessagesHistoryBetweenTwoUsers(senderID, receiverID string, of
         SELECT sender_id, receiver_id, content, created_at 
         FROM messages
         WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)
-        ORDER BY created_at ASC
-        LIMIT 50 OFFSET ?`,
+        ORDER BY created_at DESC
+        LIMIT 10 OFFSET ?`,
 		senderID, receiverID, receiverID, senderID, offset)
 	if er != nil {
 		return nil, er

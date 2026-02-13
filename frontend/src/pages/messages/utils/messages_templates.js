@@ -34,6 +34,7 @@ export function ConversationTemplate(User) {
         <div class="conversation-body" id="conversationBody">
 			<div id="messages-observer"></div>
 		</div>
+		<button class="scroll-bottom-btn" id="scrollBottomBtn" type="button">↓ Scroll to the bottom</button>
 
         <form class="composer" id="composerForm">
             <input
@@ -61,9 +62,14 @@ export function ConversationTemplate(User) {
 	});
 
 	let conversation = el.querySelector("#conversationBody");
+	GlobalEventsManager.click.RegisterEvent("scrollBottomBtn", () => {
+		conversation.scrollTop = conversation.scrollHeight;
+	});
+
 	GlobalEventsManager.submit.RegisterEvent(`composerForm`, (e) => {
 		let message = e.messageInput.value;
 		conversation.append(MessageTemplate("me", message));
+		conversation.scrollTop = conversation.scrollHeight;
 		socket.send(JSON.stringify({
 			"type": "message",
 			"message": {
