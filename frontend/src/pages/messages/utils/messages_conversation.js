@@ -39,7 +39,7 @@ export async function initConversations() {
 function onMessage(res) {
     res = JSON.parse(res.data);
     console.log(res);
-    
+
     switch (res.type) {
         case "onlineUsers":
             let onlineUsers = new Map();
@@ -54,7 +54,22 @@ function onMessage(res) {
             });
             break;
         case "messages_history":
-            console.log(res);
+            const conversationBody = document.getElementById("conversationBody");
+            const selectedUserId = new URLSearchParams(window.location.search).get("userId");
+
+            for (let message of res.data) {
+                const bubble = document.createElement("div");
+                const incoming = message.SenderID === selectedUserId;
+                bubble.className = `bubble ${incoming ? "incoming" : "outgoing"}`;
+                bubble.textContent = message.Content || "";
+                conversationBody.append(bubble);
+            }
+
+            conversationBody.scrollTop = conversationBody.scrollHeight;
             break;
+        case "message":
+            console.log(res.data);
+            break;
+            
     }
 }

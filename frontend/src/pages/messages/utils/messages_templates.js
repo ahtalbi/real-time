@@ -1,5 +1,6 @@
 import { GlobalEventsManager } from "../../../events/init.js";
 import { ClientRouter } from "../../../router.js";
+import { socket } from "./messages_conversation.js";
 
 export function UserTemplate(User) {
 	const tpl = document.createElement("template");
@@ -37,6 +38,7 @@ export function ConversationTemplate(User) {
         <form class="composer" id="composerForm">
             <input
                 class="input"
+				name="messageInput"
                 id="messageInput"
                 type="text"
                 placeholder="Ecrire un message..."
@@ -58,21 +60,18 @@ export function ConversationTemplate(User) {
 		console.log(e.target.value);
 	});
 
-	GlobalEventsManager.submit.RegisterEvent(`composerForm`, () => {
-		const input = document.getElementById("messageInput");
-		const msg = input.value.trim();
-		if (!msg) return;
-
-		const body = document.getElementById("conversationBody");
-		if (body) {
-			const bubble = document.createElement("div");
-			bubble.className = "bubble outgoing";
-			bubble.textContent = msg;
-			body.appendChild(bubble);
-			body.scrollTop = body.scrollHeight;
-		}
-
-		input.value = "";
+	let conversation = el.querySelector("#conversationBody");
+	GlobalEventsManager.submit.RegisterEvent(`composerForm`, (e) => {
+		let message = e.messageInput.value;
+		conversation.append(MessageTemplate("me", message));
+		socket.send(JSON.stringify({
+			"type": "message",
+			"message": {
+				"Content": message,
+				"ReceiverID": User.ID,
+			}
+		}))
+		e.messageInput.value = "";
 	})
 
 	return el;
