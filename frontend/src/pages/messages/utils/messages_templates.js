@@ -4,7 +4,7 @@ import { ClientRouter } from "../../../router.js";
 export function UserTemplate(User) {
 	const tpl = document.createElement("template");
 	tpl.innerHTML = `<li class="row-between" userid="${User.ID}" username="${User.Nickname}">
-    	<span>${User.Nickname}</span>
+    	<span><span id="onOff" class="dot"></span>${User.Nickname}</span>
 		<button class="btn sm" id="messageUserBtn-${User.ID}" type="button" userid="${User.ID}" username="${User.Nickname}">Message</button>
 	</li>`;
 
@@ -53,9 +53,15 @@ export function ConversationTemplate(User) {
 
 	let el = tpl.content;
 
-	GlobalEventsManager.submit.RegisterEvent(`sendMessageBtn`, () => {
+	let input = el.querySelector("#messageInput");
+	input.addEventListener("input", (e) => {
+		console.log(e.target.value);
+	});
+
+	GlobalEventsManager.submit.RegisterEvent(`composerForm`, () => {
 		const input = document.getElementById("messageInput");
-		const msg = input.value;
+		const msg = input.value.trim();
+		if (!msg) return;
 
 		const body = document.getElementById("conversationBody");
 		if (body) {
@@ -82,23 +88,14 @@ export function NoConversationSelected() {
 	return tpl.content.firstElementChild;
 }
 
-export function MessageTemplate(ReciverOrSender) {
+export function MessageTemplate(ReciverOrSender, content) {
+	const side = String(ReciverOrSender || "").toLowerCase();
+	const outgoing = side === "sender" || side === "outgoing" || side === "me" || side === "self";
+
 	const tpl = document.createElement("template");
+	tpl.innerHTML = `<div class="bubble ${outgoing ? "outgoing" : "incoming"}"></div>`;
 
-	let type = "incoming";
-	let content = "";
-
-	if (typeof ReciverOrSender === "string") {
-		type = ReciverOrSender.toLowerCase() === "sender" ? "outgoing" : "incoming";
-	} else if (ReciverOrSender && typeof ReciverOrSender === "object") {
-		const side = (ReciverOrSender.side || ReciverOrSender.type || "").toLowerCase();
-		type = side === "sender" || side === "outgoing" ? "outgoing" : "incoming";
-		content = ReciverOrSender.content || ReciverOrSender.message || "";
-	}
-
-	tpl.innerHTML = `<div class="bubble ${type}"></div>`;
 	const el = tpl.content.firstElementChild;
-	el.textContent = content;
-
+	el.textContent = String(content || "");
 	return el;
 }

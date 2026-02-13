@@ -9,7 +9,7 @@ let converstionState = {
 export let socket = new WebSocketManager({
     url: "ws://localhost:3000/ws",
     onOpen: [(e) => { console.log(e) }],
-    onMessage: [(e) => { console.log(e) }],
+    onMessage: [onMessage],
     onError: [(e) => { console.log(e) }],
     onClose: [(e) => { console.log(e) }],
 })
@@ -30,8 +30,31 @@ export async function initConversations() {
             return;
         }
         container.appendChild(ConversationTemplate(user));
-        converstionState.io
+        socket.send(`{"type": "messages_history", "receiverID": "${userId}", "StartID": 0} `)
     } else {
         container.appendChild(NoConversationSelected());
+    }
+}
+
+function onMessage(res) {
+    res = JSON.parse(res.data);
+    console.log(res);
+    
+    switch (res.type) {
+        case "onlineUsers":
+            let onlineUsers = new Map();
+            for (let obj of res.data) {
+                onlineUsers.set(obj.id, obj);
+            }
+            let freindsList = document.getElementById("FreindsList");
+
+            Array.from(freindsList.children).forEach(e => {
+                const span = e.querySelector("#onOff");
+                span.classList.toggle("ok", onlineUsers.has(e.getAttribute("userid")));
+            });
+            break;
+        case "messages_history":
+            console.log(res);
+            break;
     }
 }
