@@ -61,26 +61,23 @@
                         placeholder="What you want to (ask | share) today?" />
                 </div>
 
-                <div class="row-between" style="margin-top:12px;">
-                    <div class="row" style="gap:10px;">
-                        <select name="category" class="input" style="max-width:220px;" required>
-                            <option value="" disabled selected>Select category</option>
-                            <option value="Science">Science</option>
-                            <option value="Technology">Technology</option>
-                            <option value="Mathematics">Mathematics</option>
-                            <option value="Languages">Languages</option>
-                            <option value="Humanities">Humanities</option>
-                            <option value="Personal Development">Personal Development</option>
-                        </select>
-
-                        <button class="btn" type="button">Link</button>
-                        <button class="btn" type="button">Challenge</button>
-                    </div>
-
-                    <button class="btn primary" type="submit" >Post</button>
+                <div class="row-between categories-row">
+                <div class="row categories-list">
+                  <label><input type="checkbox" name="categories" value="Science"> Science</label>
+                  <label><input type="checkbox" name="categories" value="Technology"> Technology</label>
+                  <label><input type="checkbox" name="categories" value="Mathematics"> Mathematics</label>
+                  <label><input type="checkbox" name="categories" value="Languages"> Languages</label>
+                  <label><input type="checkbox" name="categories" value="Humanities"> Humanities</label>
+                  <label><input type="checkbox" name="categories" value="Personal Development"> Personal Development</label>
                 </div>
-            </form>
-        </div>
+                
+                <button class="btn primary" type="submit">Post</button>
+                <div>
+                    
+                </form>
+            </div>
+            <button class="btn" type="button">Link</button>
+             <button class="btn" type="button">Challenge</button>
     </main>
 
     <!-- Right Sidebar -->

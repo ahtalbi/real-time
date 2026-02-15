@@ -24,7 +24,6 @@ async function fetchPosts() {
 	}
 
 	let data = await res.json();
-
 	if (!res.ok) {
 		if (data && data.error === "no posts") {
 			statePosts.finish = false;
