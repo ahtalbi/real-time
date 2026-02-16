@@ -1,5 +1,5 @@
-import { ClientRouter } from "../../../src/router.js";
-import { showAlert } from "../../../src/utils/alert.js";
+import { ClientRouter } from "./../../../router.js";
+import { showAlert } from "./../../../utils/alert.js";
 import { validateUserInfos } from "./register_validateRegisterForm.js";
 
 export function registerSendPost(form) {

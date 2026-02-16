@@ -28,6 +28,7 @@ export class PageLoader {
 
     async loadPageScript(base, pageName) {
         const src = `${base}${pageName}/${pageName}.js`;
+        
         if (!(await this.fileExists(src, "js"))) return;
 
         document.querySelectorAll("script[data-page-script]").forEach((s) => s.remove());
@@ -64,7 +65,7 @@ export class PageLoader {
 
     async renderPage(pageName, root) {
         const base = "/src/pages/";
-
+        
         await this.loadPageHtml(root, base, pageName);
         await this.loadPageScript(base, pageName);
         await this.loadPageCss(base, pageName);
