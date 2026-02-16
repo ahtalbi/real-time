@@ -37,7 +37,7 @@ func (c *Controller) CreatePost(w http.ResponseWriter, r *http.Request) {
 	post.CategoryType = r.FormValue("CategoryType")
 
 	// check if the post content is correct and the category exists in the DB
-	id, er := c.DB.IsCategoryCorrect(post.CategoryType)
+	ids, er := c.DB.IsCategoryCorrect(post.CategoryType)
 	if er != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(fmt.Sprintf(`{"error":"%s"}`, er.Error())))
@@ -51,7 +51,7 @@ func (c *Controller) CreatePost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// insert the post into the DB
-	post, er = c.DB.InsertPostDB(userID, post, id)
+	post, er = c.DB.InsertPostDB(userID, post, ids)
 	if er != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(fmt.Sprintf(`{"error":"%s"}`, er.Error())))

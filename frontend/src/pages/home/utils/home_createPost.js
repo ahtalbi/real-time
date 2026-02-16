@@ -7,9 +7,10 @@ export function initCreatePost() {
 
 	GlobalEventsManager.submit.RegisterEvent("postCreate", async (form) => {
 		const content = form.elements.content.value.trim();
-		const categoryType = form.elements.category.value;
-		if (content.length < 1 || content.length > 60) {
-			showAlert("the length of the post should be between 1 and 60");
+		const catsCheched = form.querySelectorAll('input[name="categories"]:checked');
+		const categoryType = Array.from(catsCheched).map(cb => cb.value).join(",");
+		if (content.length < 1 || content.length > 600) {
+			showAlert("the length of the post should be between 1 and 600");
 			return;
 		}
 
@@ -26,6 +27,7 @@ export function initCreatePost() {
 			data = await res.json();
 			if (!res.ok) return showAlert(data?.error || `HTTP ${res.status}`);
 			if (data?.error) return showAlert(data.error);
+
 		} catch {
 			showAlert("Server unreachable");
 			return;

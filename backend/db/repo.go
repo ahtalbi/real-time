@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 
 	"rtf/config"
@@ -134,13 +136,22 @@ func (r *Repo) CheckSessionExistance(req *http.Request) (models.User, error) {
 	return user, nil
 }
 
-func (r *Repo) InsertPostDB(userID string, post models.Post, categoryID int) (models.Post, error) {
+func (r *Repo) InsertPostDB(userID string, post models.Post, categoryIDs []int) (models.Post, error) {
 	id := uuid.NewString()
 	t := time.Now().Format("2006-01-02 15:04:05")
 
+	IDS := ""
+	for _, categoryID := range categoryIDs {
+		IDS += strconv.Itoa(categoryID) + ","
+	}
+
+	if len(IDS) > 0 {
+		IDS = IDS[:len(IDS)-1]
+	}
+
 	_, err := r.Db.Exec(
 		`INSERT INTO posts(id, user_id, category_id, content, url_image, created_at) VALUES (?, ?, ?, ?, ?, ?)`,
-		id, userID, categoryID, post.Content, post.ImageURL, t,
+		id, userID, IDS, post.Content, post.ImageURL, t,
 	)
 	if err != nil {
 		return post, errors.New("SERVER ERROR")
@@ -152,19 +163,39 @@ func (r *Repo) InsertPostDB(userID string, post models.Post, categoryID int) (mo
 }
 
 // this check if the categories exists in DB,  it return the categories id & bool, bool type is false in case of an element not exist, true otherwise
-func (r *Repo) IsCategoryCorrect(category string) (int, error) {
+func (r *Repo) IsCategoryCorrect(category string) ([]int, error) {
 	if len(category) == 0 {
-		return 0, errors.New("post category is required")
+		return nil, errors.New("post category is required")
 	}
-	var id int
-	err := r.Db.QueryRow(
-		"SELECT id FROM categories WHERE category_name = ?",
-		category,
-	).Scan(&id)
-	if err != nil {
-		return 0, errors.New("invalid category")
+
+	categories := strings.Split(category, ",")
+	seen := make(map[string]bool)
+	var ids []int
+
+	for _, c := range categories {
+		c = strings.TrimSpace(c)
+
+		if seen[c] {
+			return nil, errors.New("duplicate category")
+		}
+		seen[c] = true
+
+		var id int
+		err := r.Db.QueryRow(
+			"SELECT id FROM categories WHERE category_name = ?",
+			c,
+		).Scan(&id)
+		if err != nil {
+			return nil, errors.New("invalid category")
+		}
+
+		ids = append(ids, id)
 	}
-	return id, nil
+	if len(ids) == 0 {
+		return nil, errors.New("invalid category")
+	}
+
+	return ids, nil
 }
 
 // insert comment into the DB
@@ -390,23 +421,37 @@ func (r *Repo) Get10PostComments(postid string, offset int) ([]models.Comment, i
 
 // this func get the categories related to the post from DB
 func (r *Repo) GetPostCategory(postID string) (string, error) {
-	var category string
+	var categoryIDs string
 
-	err := r.Db.QueryRow(`
-		SELECT categories.category_name
-		FROM posts
-		JOIN categories ON categories.id = posts.category_id
-		WHERE posts.id = ?`, postID).Scan(&category)
+	// get "1,2,3"
+	err := r.Db.QueryRow(`SELECT category_id FROM posts WHERE id = ?`, postID).Scan(&categoryIDs)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return "", errors.New("category not exists")
+			return "", errors.New("post not exists")
 		}
 		return "", errors.New("SERVER ERROR")
 	}
-	return category, nil
+
+	ids := strings.Split(categoryIDs, ",")
+	categories := []string{}
+
+	// get categories name
+	for _, id := range ids {
+		id = strings.TrimSpace(id)
+		var name string
+		err := r.Db.QueryRow(`SELECT category_name FROM categories WHERE id = ?`, id).Scan(&name)
+		if err != nil {
+			return "", errors.New("invalid category")
+		}
+		categories = append(categories, name)
+	}
+
+	res := strings.Join(categories, ",")
+
+	return res, nil
 }
 
-// get the reaction (likes/disclikes) from DB
+// get the reaction (likes/dislikes) from DB
 func (r *Repo) getPostReactions(postID string) (int, int, error) {
 	var likes, dislikes int
 
