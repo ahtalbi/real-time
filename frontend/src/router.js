@@ -31,7 +31,7 @@ export async function HandleRoutes() {
             let path = window.location.pathname;
 
             let route = routes[path];
-            if (!route) { console.log("hello"); on404(); return };
+            if (!route) { on404(); return };
 
             if (res.success && !route.auth) ClientRouter.navigate("/");
             else if (res.error && route.auth) ClientRouter.navigate("/login");

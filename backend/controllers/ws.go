@@ -111,7 +111,8 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 			if er != nil {
 				continue
 			}
-
+			break
+			
 		// case of typing status
 		case "typing":
 			receiverID, ok := Data["receiverID"].(string)

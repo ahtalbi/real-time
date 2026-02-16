@@ -1,10 +1,12 @@
 import { showAlert } from "../../../utils/alert.js";
+import { socket } from "../../../utils/ws.js";
 import { UserTemplate } from "./messages_templates.js";
 
 export let stateUsers = {}
 
 async function fetchUsers() {
 	if (stateUsers.finish) return;
+	socket.send(JSON.stringify({type:"users_info_for_user"}))
 	return await fetch("http://localhost:3000/getusers", {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
