@@ -6,8 +6,13 @@ export class Router {
         return this;
     }
 
-    navigate(path, { history = "push" } = {}) {
+    navigate(path, { history } = {}) {
         path = path.startsWith("/") ? path : "/" + path;
+        
+        if (!history) {
+            history = window.history.length > 1 ? "push" : "replace";
+        }
+
         return navigation.navigate(path, { history });
     }
 

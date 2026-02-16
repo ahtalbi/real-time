@@ -1,6 +1,6 @@
 import { GlobalEventsManager } from "../../../events/init.js";
 import { ClientRouter } from "../../../router.js";
-import { socket } from "./messages_conversation.js";
+import { socket } from "../../../utils/ws.js";
 
 export function UserTemplate(User) {
 	const tpl = document.createElement("template");

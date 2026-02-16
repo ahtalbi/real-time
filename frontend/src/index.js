@@ -1,7 +1,7 @@
 import { InitGlobalEventManager } from "./events/init.js";
 import { HandleRoutes } from "./router.js";
 
-function main() {
+async function main() {
   InitGlobalEventManager();
   HandleRoutes();
 }

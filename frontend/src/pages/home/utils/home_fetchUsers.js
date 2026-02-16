@@ -1,5 +1,6 @@
 import { showAlert } from "../../../utils/alert.js";
 import { UserTemplate } from "./home_templates.js";
+import { socket } from "../../../utils/ws.js";
 
 let stateUsers = {
 	StartId: 0,
@@ -7,9 +8,9 @@ let stateUsers = {
 	io: null,
 };
 
-export function fetchUsers() {
+export async function fetchUsers() {
 	if (stateUsers.finish) return;
-	return fetch("http://localhost:3000/getusers", {
+	return await fetch("http://localhost:3000/getusers", {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({ startID: stateUsers.StartId }),
@@ -58,13 +59,13 @@ export function initFetchUsers() {
 		observer.style.height = "1px";
 		list.parentElement?.appendChild(observer);
 	}
-
+	
 	stateUsers.io = new IntersectionObserver(([entry]) => {
-		if (entry.isIntersecting) fetchUsers();
+		if (entry.isIntersecting) {fetchUsers(); socket.send(JSON.stringify({ type: "online_users" }))};
 	});
 	stateUsers.io.observe(observer);
-
-	window.addEventListener("DOMContentLoaded", () => {
-		fetchUsers();
+	window.addEventListener("DOMContentLoaded",async () => {
+		await fetchUsers();
+		socket.send(JSON.stringify({ type: "online_users" }));
 	});
 }

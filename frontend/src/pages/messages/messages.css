@@ -285,6 +285,11 @@
   background: #000;
 }
 
+#freinds-observer{
+  height: 1;
+  width: 30px;
+}
+
 @media (max-width: 900px) {
   .messages-page {
     grid-template-columns: 1fr;

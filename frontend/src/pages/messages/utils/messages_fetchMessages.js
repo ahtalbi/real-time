@@ -1,4 +1,4 @@
-import { socket } from "./messages_conversation.js";
+import { socket } from "../../../utils/ws.js";
 import { MessageTemplate } from "./messages_templates.js";
 
 export let stateMessages = {
@@ -96,6 +96,12 @@ export function renderMessagesHistory(messages) {
 
 export function renderSingleMessage(message) {
 	let body = document.getElementById("conversationBody");
+	const urlParams = new URLSearchParams(window.location.search);
+    let userId = urlParams.get("userId");
+	let currentUser = JSON.parse(localStorage.getItem("rtf_user"));
+	console.log(currentUser);
+	
+	if (message.SenderID === userId) {console.log(JSON.stringify({type: "message_read_in_place", senderID: message.SenderID, receiverID: currentUser.ID})) ; socket.send(JSON.stringify({type: "message_read_in_place", senderID: message.SenderID, receiverID: currentUser.ID}))}
 	let side = message.SenderID === stateMessages.receiverID ? "incoming" : "outgoing";
 	let bubble = MessageTemplate(side, message.Content, message.CreatedAt);
 	body.appendChild(bubble);

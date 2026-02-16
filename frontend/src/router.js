@@ -1,5 +1,6 @@
 import { PageLoader } from "../packages/loader.js";
 import { Router } from "../packages/router.js";
+import { socket } from "./utils/ws.js";
 
 export let ClientRouter = new Router();
 
@@ -13,23 +14,24 @@ export async function HandleRoutes() {
     };
 
     let routes = {
-        "/":         { "auth": true,  "handler": () => loader.renderPage("home", app) },
-        "/login":    { "auth": false, "handler": () => loader.renderPage("login", app) },
+        "/": { "auth": true, "handler": () => loader.renderPage("home", app) },
+        "/login": { "auth": false, "handler": () => loader.renderPage("login", app) },
         "/register": { "auth": false, "handler": () => loader.renderPage("register", app) },
-        "/messages": { "auth": true,  "handler": () => loader.renderPage("messages", app) },
+        "/messages": { "auth": true, "handler": () => loader.renderPage("messages", app) },
     };
 
     for (let route in routes) {
         ClientRouter.on(route, routes[route].handler);
     }
     ClientRouter.listen(on404);
-
+    
     fetch("http://localhost:3000/hassession")
         .then(res => res.json())
-        .then(res => {
+        .then(async res => {
             let path = window.location.pathname;
+
             let route = routes[path];
-            if (!route) {console.log("hello"); on404(); return};
+            if (!route) { console.log("hello"); on404(); return };
 
             if (res.success && !route.auth) ClientRouter.navigate("/");
             else if (res.error && route.auth) ClientRouter.navigate("/login");
