@@ -95,6 +95,22 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 				default:
 				}
 			}
+			break
+
+		// case of receiving and reading message in place
+		case "message_read_in_place":
+			_, ok := Data["receiverID"].(string)
+			if !ok {
+				continue
+			}
+			senderID, ok := Data["senderID"].(string)
+			if !ok {
+				continue
+			}
+			er = c.DB.SetMessageRead(senderID, USER.ID)
+			if er != nil {
+				continue
+			}
 
 		// case of typing status
 		case "typing":
@@ -120,6 +136,7 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 				default:
 				}
 			}
+			break
 
 		// case of get users for chat
 		case "get_users_chat":
@@ -138,6 +155,7 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 			}:
 			default:
 			}
+			break
 		// case of get online users
 		case "online_users":
 			select {
@@ -147,7 +165,28 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 			}:
 			default:
 			}
+			break
+		case "users_info_for_user":
 
+			usersinfo, er := c.DB.GetUsersInfoFor(USER.ID)
+			if er != nil {
+				continue
+			}
+			for i, u := range usersinfo {
+				if _, ok := c.Ws.Clients[u.ID]; ok {
+					usersinfo[i].IsOnline = true
+				}
+			}
+
+			select {
+			case user.Chan <- map[string]interface{}{
+				"type": "users_info_for_user",
+				"data": usersinfo,
+			}:
+			default:
+			}
+
+			break
 		// case of get messages between two users
 		case "messages_history":
 			receiverID, ok := Data["receiverID"].(string)
@@ -173,6 +212,7 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 			}:
 			default:
 			}
+			break
 
 		default:
 		}

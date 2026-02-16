@@ -51,10 +51,11 @@ type Comment struct {
 
 // messages
 type Message struct {
-	ID         string
+	ID         int
 	SenderID   string
 	ReceiverID string
 	Content    string
+	IsNotRead  int
 	CreatedAt  string
 
 	SenderNickname   string
@@ -68,4 +69,15 @@ type Reaction struct {
 	Type            int
 	UserID          int
 	CreatedAt       string
+}
+
+// this is for the ws
+type UserInfo struct {
+	ID                     string
+	Nickname               string
+	Firstname              string
+	Lastname               string
+	LastMessage            Message
+	NumberOfUnreadMessages int
+	IsOnline               bool
 }
