@@ -9,6 +9,8 @@ export const reactionEmojiByType = {
 };
 
 export function postTemplate(p) {
+
+ p.CategoryType = p.CategoryType.replace(/,/g, ", ");
 	const reactionsTotal = Number.isInteger(p.NbrOfReactions)
 		? p.NbrOfReactions
 		: 0;
@@ -22,6 +24,7 @@ export function postTemplate(p) {
     <div class="avatar sm" aria-hidden="true"></div>
     <div>
       <h3 class="post-title">${p.AutherName}</h3>
+      <h1 class="muted">${p.CategoryType}</h1>
       <p class="muted">${p.CreatedAt}</p>
     </div>
   </header>

@@ -116,7 +116,7 @@ func (c *Controller) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.SetCookie(w, &http.Cookie{
-		Name:  "session_id",
+		Name:  "",
 		Value: "",
 		Path:  "/",
 	})

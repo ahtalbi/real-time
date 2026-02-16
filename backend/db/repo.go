@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -150,10 +151,11 @@ func (r *Repo) InsertPostDB(userID string, post models.Post, categoryIDs []int) 
 	}
 
 	_, err := r.Db.Exec(
-		`INSERT INTO posts(id, user_id, category_id, content, url_image, created_at) VALUES (?, ?, ?, ?, ?, ?)`,
+		`INSERT INTO posts(id, user_id, category_ids, content, url_image, created_at) VALUES (?, ?, ?, ?, ?, ?)`,
 		id, userID, IDS, post.Content, post.ImageURL, t,
 	)
 	if err != nil {
+		fmt.Println("here", err)
 		return post, errors.New("SERVER ERROR")
 	}
 
@@ -424,7 +426,7 @@ func (r *Repo) GetPostCategory(postID string) (string, error) {
 	var categoryIDs string
 
 	// get "1,2,3"
-	err := r.Db.QueryRow(`SELECT category_id FROM posts WHERE id = ?`, postID).Scan(&categoryIDs)
+	err := r.Db.QueryRow(`SELECT category_ids FROM posts WHERE id = ?`, postID).Scan(&categoryIDs)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return "", errors.New("post not exists")
