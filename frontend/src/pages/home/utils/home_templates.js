@@ -113,11 +113,3 @@ export function commentTemplate(c) {
 </li>`;
 }
 
-export function UserTemplate(User) {
-	const tpl = document.createElement("template");
-	tpl.innerHTML = `<li  userid="${User.ID}" class="row-between">
-    	<span><span id="onOff" class="dot"></span>${User.Nickname}</span>
-      <a href="/messages?userId=${User.ID}"><button class="btn">message</button></a>
-	</li>`;
-	return tpl.content.firstElementChild;
-}

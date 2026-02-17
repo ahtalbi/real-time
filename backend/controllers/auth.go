@@ -49,6 +49,10 @@ func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate, private")
+	w.Header().Set("Pragma", "no-cache")
+	w.Header().Set("Expires", "0")
+
 	var user models.User
 	defer r.Body.Close()
 
@@ -101,6 +105,9 @@ func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
 // logout handler set user session from the DB to null and  return JSON response with (error or success)
 func (c *Controller) Logout(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate, private")
+	w.Header().Set("Pragma", "no-cache")
+	w.Header().Set("Expires", "0")
 
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -123,21 +130,17 @@ func (c *Controller) Logout(w http.ResponseWriter, r *http.Request) {
 
 	err := c.DB.DisconnectUser(userID)
 	if err != nil {
+		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err.Error())))
 		return
 	}
-
 	c.Ws.Mu.Lock()
-	conns, ok := c.Ws.Clients[userID]
+	_, ok = c.Ws.Clients[userID]
 	if ok {
-		for _, u := range conns {
-			u.RemoveUserWS(c.Ws, userID, u.Con)
-		}
 		delete(c.Ws.Clients, userID)
 	}
 	c.Ws.Mu.Unlock()
-
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(`{"success": "Logged out successfully"}`))
 }

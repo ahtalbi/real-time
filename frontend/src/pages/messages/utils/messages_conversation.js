@@ -16,6 +16,9 @@ export async function initConversations() {
             container.appendChild(NoConversationSelected());
             return;
         }
+        let currentUser = JSON.parse(localStorage.getItem("rtf_user"));
+        socket.send(JSON.stringify({ type: "message_read_in_place", senderID: userId, receiverID: currentUser.ID }));
+        socket.send(JSON.stringify({ type: "users_info_for_user" }));
         container.appendChild(ConversationTemplate(user));
         initFetchMessages(userId, socket);
     } else {

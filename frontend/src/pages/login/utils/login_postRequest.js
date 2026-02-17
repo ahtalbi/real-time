@@ -1,5 +1,6 @@
 import { ClientRouter } from "../../../router.js";
 import { showAlert } from "../../../utils/alert.js";
+import { socket } from "../../../utils/ws.js";
 import { validateLogin } from "./login_validateLoginForm.js";
 
 export function loginSendPost(form) {
@@ -36,6 +37,7 @@ export function loginSendPost(form) {
                 }
                 ClientRouter.navigate("/");
                 showAlert("Welcome Back", 2000, "green");
+                socket.send(JSON.stringify({ type: "users_info_for_user", for_all_users: true }));
             } else if (res.error) {
                 showAlert(res.error);
             }

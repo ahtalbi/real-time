@@ -100,8 +100,7 @@ export function renderSingleMessage(message) {
 	if (message.SenderID !== userId) return;
 	let body = document.getElementById("conversationBody");
 	let currentUser = JSON.parse(localStorage.getItem("rtf_user"));
-	console.log(userId, currentUser);
-	if (message.SenderID === userId) {socket.send(JSON.stringify({type: "message_read_in_place", senderID: message.SenderID, receiverID: currentUser.ID}))}
+	socket.send(JSON.stringify({type: "message_read_in_place", senderID: message.SenderID, receiverID: currentUser.ID}));
 	let side = message.SenderID === stateMessages.receiverID ? "incoming" : "outgoing";
 	let bubble = MessageTemplate(side, message.Content, message.CreatedAt);
 	body.appendChild(bubble);

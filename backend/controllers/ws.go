@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"rtf/config"
@@ -14,6 +15,10 @@ import (
 // switch to WS
 func (c *Controller) WebSocket(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	w.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate, private")
+	w.Header().Set("Pragma", "no-cache")
+	w.Header().Set("Expires", "0")
 
 	user, er := c.DB.CheckSessionExistance(r)
 	if er != nil {
@@ -99,6 +104,7 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 					}
 				}
 			}
+
 			break
 
 		// case of receiving and reading message in place
@@ -145,28 +151,9 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 			}
 			break
 
-		// case of get users for chat
-		case "get_users_chat":
-			startID, ok := Data["StartID"].(float64)
-			if !ok {
-				startID = 0
-			}
-			users, er := c.DB.GetUsersForChatInOrder(USER.ID, int(startID))
-			if er != nil {
-				continue
-			}
-			select {
-			case user.Chan <- map[string]interface{}{
-				"type": "users_chat",
-				"data": users,
-			}:
-			default:
-			}
-			break
-
 		case "users_info_for_user":
-
-			usersinfo, er := c.DB.GetUsersInfoFor(USER.ID)
+			_, ok := Data["for_all_users"].(bool)
+			usersinfo, er := c.DB.GetUsersInfoFor(USER.ID, ok)
 			if er != nil {
 				continue
 			}
@@ -174,6 +161,21 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 				if _, ok := c.Ws.Clients[u.ID]; ok {
 					usersinfo[i].IsOnline = true
 				}
+			}
+			fmt.Println(usersinfo)
+			if ok {
+				for _, client := range ws.Clients {
+					for _, u := range client {
+						select {
+						case u.Chan <- map[string]interface{}{
+							"type": "users_info_for_user",
+							"data": usersinfo,
+						}:
+						default:
+						}
+					}
+				}
+				break
 			}
 
 			select {

@@ -6,7 +6,7 @@ export class Router {
         return this;
     }
 
-    navigate(path, { history } = {}) {
+    navigate(path, { history = "push"} = {}) {
         path = path.startsWith("/") ? path : "/" + path;
         
         if (!history) {

@@ -5,7 +5,7 @@ import { socket } from "../../../utils/ws.js";
 export function UserTemplate(User) {
 	const tpl = document.createElement("template");
 	tpl.innerHTML = `<li class="row-between" userid="${User.ID}" username="${User.Nickname}">
-    	<span><span id="onOff" class="dot"></span>${User.Nickname}</span>
+    	<span><span id="onOff" class="dot ${User.IsOnline ? "ok" : ""}"></span>${User.Nickname}<span>${User.NumberOfUnreadMessages}</span></span>
 		<button class="btn sm" id="messageUserBtn-${User.ID}" type="button" userid="${User.ID}" username="${User.Nickname}">Message</button>
 	</li>`;
 
@@ -139,11 +139,11 @@ function formatMessageDate(dateValue) {
 
 	return {
 		displayDate: parsed.toLocaleString(undefined, {
-		year: "numeric",
-		month: "short",
-		day: "2-digit",
-		hour: "2-digit",
-		minute: "2-digit",
+			year: "numeric",
+			month: "short",
+			day: "2-digit",
+			hour: "2-digit",
+			minute: "2-digit",
 		}),
 		isoDate: fromInput ? parsed.toISOString() : null,
 	};

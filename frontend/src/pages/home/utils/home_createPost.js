@@ -17,6 +17,7 @@ export function initCreatePost() {
 
 		let picture = document.getElementById("createpostImage");
 		const file = picture.files[0];
+		console.log(file);
 		
 		const formData = new FormData();
 		formData.append("Content", content);

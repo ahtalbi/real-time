@@ -537,7 +537,7 @@ func (r *Repo) Get100UsersFor(userID string, startID int) ([]models.User, error)
 }
 
 // get the users info with the last message for the message list
-func (r *Repo) GetUsersInfoFor(userID string) ([]models.UserInfo, error) {
+func (r *Repo) GetUsersInfoFor(userID string, forAll bool) ([]models.UserInfo, error) {
 	usersInfo := []models.UserInfo{}
 
 	rows, err := r.Db.Query(`SELECT id, nickname, firstname, lastname FROM users`)
@@ -553,8 +553,9 @@ func (r *Repo) GetUsersInfoFor(userID string) ([]models.UserInfo, error) {
 			return nil, errors.New("SERVER ERROR")
 		}
 
-		if u.ID != userID {
-
+		if  u.ID == userID && !forAll {
+			continue
+		}
 			// get the last message between them
 			var msg models.Message
 			err = r.Db.QueryRow(`
@@ -579,7 +580,7 @@ func (r *Repo) GetUsersInfoFor(userID string) ([]models.UserInfo, error) {
 			u.NumberOfUnreadMessages = count
 
 			usersInfo = append(usersInfo, u)
-		}
+		
 	}
 
 	if len(usersInfo) == 0 {
