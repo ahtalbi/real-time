@@ -128,13 +128,15 @@ func (c *Controller) Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.Ws.Mu.RLock()
-	userWS, ok := c.Ws.Clients[userID]
-	c.Ws.Mu.RUnlock()
+	c.Ws.Mu.Lock()
+	conns, ok := c.Ws.Clients[userID]
 	if ok {
-		userWS.RemoveUserWS(c.Ws, userID, userWS.Con)
+		for _, u := range conns {
+			u.RemoveUserWS(c.Ws, userID, u.Con)
+		}
+		delete(c.Ws.Clients, userID)
 	}
-	c.Ws.BroadcastOnlineUsers()
+	c.Ws.Mu.Unlock()
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(`{"success": "Logged out successfully"}`))

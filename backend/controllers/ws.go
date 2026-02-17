@@ -33,16 +33,18 @@ func (c *Controller) WebSocket(w http.ResponseWriter, r *http.Request) {
 // handle ws connection
 func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, USER models.User) {
 	// initialise the user ws
-	c.Ws.Mu.Lock()
-	c.Ws.Clients[USER.ID] = InitializeUserWS(conn, USER)
-	user := c.Ws.Clients[USER.ID]
-	c.Ws.Mu.Unlock()
+	newUser := InitializeUserWS(conn, USER)
 
-	ws.BroadcastOnlineUsers()
+	ws.Mu.Lock()
+	ws.Clients[USER.ID] = append(ws.Clients[USER.ID], newUser)
+	ws.Mu.Unlock()
+
+	user := newUser
+
 	defer func() {
 		user.RemoveUserWS(ws, USER.ID, conn)
-		ws.BroadcastOnlineUsers()
 	}()
+
 	go user.Write()
 	WSkeepalive(conn)
 	user.SendPingMessageEveryPeriodeOfTime()
@@ -87,12 +89,14 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 			Data["message"] = m
 
 			ws.Mu.Lock()
-			toUserWS, exist := ws.Clients[m.ReceiverID]
+			clients, exist := ws.Clients[m.ReceiverID]
 			ws.Mu.Unlock()
 			if exist {
-				select {
-				case toUserWS.Chan <- Data:
-				default:
+				for _, c := range clients {
+					select {
+					case c.Chan <- Data:
+					default:
+					}
 				}
 			}
 			break
@@ -112,7 +116,7 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 				continue
 			}
 			break
-			
+
 		// case of typing status
 		case "typing":
 			receiverID, ok := Data["receiverID"].(string)
@@ -125,16 +129,18 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 			}
 
 			ws.Mu.Lock()
-			toUserWS, exist := ws.Clients[receiverID]
+			clients, exist := ws.Clients[receiverID]
 			ws.Mu.Unlock()
 			if exist {
-				select {
-				case toUserWS.Chan <- map[string]interface{}{
-					"type":   "typing",
-					"from":   USER.ID,
-					"status": status, // status here is "start-typing" or "stop-typing"
-				}:
-				default:
+				for _, c := range clients {
+					select {
+					case c.Chan <- map[string]interface{}{
+						"type":   "typing",
+						"from":   USER.ID,
+						"status": status,
+					}:
+					default:
+					}
 				}
 			}
 			break
@@ -157,16 +163,7 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 			default:
 			}
 			break
-		// case of get online users
-		case "online_users":
-			select {
-			case user.Chan <- map[string]interface{}{
-				"type": "onlineUsers",
-				"data": ws.OnlineUsersFor(USER.ID),
-			}:
-			default:
-			}
-			break
+
 		case "users_info_for_user":
 
 			usersinfo, er := c.DB.GetUsersInfoFor(USER.ID)
