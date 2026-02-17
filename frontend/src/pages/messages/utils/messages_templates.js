@@ -4,10 +4,10 @@ import { socket } from "../../../utils/ws.js";
 
 export function UserTemplate(User) {
 	const tpl = document.createElement("template");
-	tpl.innerHTML = `<li class="row-between" userid="${User.ID}" username="${User.Nickname}">
-    	<span><span id="onOff" class="dot ${User.IsOnline ? "ok" : ""}"></span>${User.Nickname}<span>${User.NumberOfUnreadMessages}</span></span>
-		<button class="btn sm" id="messageUserBtn-${User.ID}" type="button" userid="${User.ID}" username="${User.Nickname}">Message</button>
-	</li>`;
+	tpl.innerHTML = `<li class="row-between" data-user-id="${User.ID}" data-username="${User.Nickname}">
+  		<span><span class="dot ${User.IsOnline ? "ok" : ""}"></span>${User.Nickname}<span>${User.NumberOfUnreadMessages}</span></span>
+  		<button class="btn sm" id="messageUserBtn-${User.ID}" type="button" data-userid="${User.ID}" data-username="${User.Nickname}">Message</button>
+		</li>`;
 
 	let el = tpl.content.firstElementChild;
 

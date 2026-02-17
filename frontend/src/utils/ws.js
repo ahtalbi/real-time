@@ -20,10 +20,8 @@ function onMessage(res) {
             let freindsList = document.getElementById("FreindsList");
             freindsList.innerHTML = "";
             for (let user of res.data) {
-                console.log(user.ID, JSON.parse(localStorage.getItem("rtf_user")).ID);
                 
                 if (user.ID === JSON.parse(localStorage.getItem("rtf_user")).ID) continue;
-                console.log(user.IsOnline);
                 
                 freindsList.append(UserTemplate(user));
             }
@@ -37,5 +35,17 @@ function onMessage(res) {
             if (res.from !== getActiveConversationUserId()) break;
             showTypingIndicator();
             break;
-    }
+        case "logout_success":
+            localStorage.removeItem("rtf_user");
+            ClientRouter.navigate("/login");
+            break;
+        case "user_offline":
+            const el = document.querySelector(`[data-user-id="${res.userID}"]`);
+            if (el) {
+              const dot = el.querySelector('.dot');
+              if (dot) dot.classList.remove('ok')
+            }
+            break;
+        
+              }
 }

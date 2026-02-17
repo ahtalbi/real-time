@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"rtf/config"
@@ -15,10 +14,6 @@ import (
 // switch to WS
 func (c *Controller) WebSocket(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-
-	w.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate, private")
-	w.Header().Set("Pragma", "no-cache")
-	w.Header().Set("Expires", "0")
 
 	user, er := c.DB.CheckSessionExistance(r)
 	if er != nil {
@@ -38,18 +33,14 @@ func (c *Controller) WebSocket(w http.ResponseWriter, r *http.Request) {
 // handle ws connection
 func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, USER models.User) {
 	// initialise the user ws
-	newUser := InitializeUserWS(conn, USER)
-
-	ws.Mu.Lock()
-	ws.Clients[USER.ID] = append(ws.Clients[USER.ID], newUser)
-	ws.Mu.Unlock()
-
-	user := newUser
+	c.Ws.Mu.Lock()
+	c.Ws.Clients[USER.ID] = InitializeUserWS(conn, USER)
+	user := c.Ws.Clients[USER.ID]
+	c.Ws.Mu.Unlock()
 
 	defer func() {
 		user.RemoveUserWS(ws, USER.ID, conn)
 	}()
-
 	go user.Write()
 	WSkeepalive(conn)
 	user.SendPingMessageEveryPeriodeOfTime()
@@ -94,17 +85,14 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 			Data["message"] = m
 
 			ws.Mu.Lock()
-			clients, exist := ws.Clients[m.ReceiverID]
+			toUserWS, exist := ws.Clients[m.ReceiverID]
 			ws.Mu.Unlock()
 			if exist {
-				for _, c := range clients {
-					select {
-					case c.Chan <- Data:
-					default:
-					}
+				select {
+				case toUserWS.Chan <- Data:
+				default:
 				}
 			}
-
 			break
 
 		// case of receiving and reading message in place
@@ -135,22 +123,39 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 			}
 
 			ws.Mu.Lock()
-			clients, exist := ws.Clients[receiverID]
+			toUserWS, exist := ws.Clients[receiverID]
 			ws.Mu.Unlock()
 			if exist {
-				for _, c := range clients {
-					select {
-					case c.Chan <- map[string]interface{}{
-						"type":   "typing",
-						"from":   USER.ID,
-						"status": status,
-					}:
-					default:
-					}
+				select {
+				case toUserWS.Chan <- map[string]interface{}{
+					"type":   "typing",
+					"from":   USER.ID,
+					"status": status, // status here is "start-typing" or "stop-typing"
+				}:
+				default:
 				}
 			}
 			break
 
+		// case of get users for chat
+		case "get_users_chat":
+			startID, ok := Data["StartID"].(float64)
+			if !ok {
+				startID = 0
+			}
+			users, er := c.DB.GetUsersForChatInOrder(USER.ID, int(startID))
+			if er != nil {
+				continue
+			}
+			select {
+			case user.Chan <- map[string]interface{}{
+				"type": "users_chat",
+				"data": users,
+			}:
+			default:
+			}
+			break
+		// case of get users info for the user and for all users if "for_all_users" is true
 		case "users_info_for_user":
 			_, ok := Data["for_all_users"].(bool)
 			usersinfo, er := c.DB.GetUsersInfoFor(USER.ID, ok)
@@ -160,19 +165,18 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 			for i, u := range usersinfo {
 				if _, ok := c.Ws.Clients[u.ID]; ok {
 					usersinfo[i].IsOnline = true
+				} else {
+					usersinfo[i].IsOnline = false
 				}
 			}
-			fmt.Println(usersinfo)
 			if ok {
 				for _, client := range ws.Clients {
-					for _, u := range client {
-						select {
-						case u.Chan <- map[string]interface{}{
-							"type": "users_info_for_user",
-							"data": usersinfo,
-						}:
-						default:
-						}
+					select {
+					case client.Chan <- map[string]interface{}{
+						"type": "users_info_for_user",
+						"data": usersinfo,
+					}:
+					default:
 					}
 				}
 				break
@@ -212,7 +216,27 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 			}:
 			default:
 			}
-			break
+
+		case "logout":
+			c.DB.DisconnectUser(USER.ID)
+
+			ws.Mu.RLock()
+			for _, client := range ws.Clients {
+				select {
+				case client.Chan <- map[string]interface{}{
+					"type":   "user_offline",
+					"userID": USER.ID,
+				}:
+				default:
+				}
+			}
+			ws.Mu.RUnlock()
+			select {
+			case user.Chan <- map[string]interface{}{"type": "logout_success"}:
+			default:
+			}
+			user.RemoveUserWS(ws, USER.ID, conn)
+			return
 
 		default:
 		}

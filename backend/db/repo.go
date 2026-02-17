@@ -538,56 +538,56 @@ func (r *Repo) Get100UsersFor(userID string, startID int) ([]models.User, error)
 
 // get the users info with the last message for the message list
 func (r *Repo) GetUsersInfoFor(userID string, forAll bool) ([]models.UserInfo, error) {
-	usersInfo := []models.UserInfo{}
+    usersInfo := []models.UserInfo{}
 
-	rows, err := r.Db.Query(`SELECT id, nickname, firstname, lastname FROM users`)
-	if err != nil {
-		return nil, errors.New("SERVER ERROR")
-	}
-	defer rows.Close()
+    rows, err := r.Db.Query(`SELECT id, nickname, firstname, lastname FROM users`)
+    if err != nil {
+        return nil, errors.New("SERVER ERROR")
+    }
+    defer rows.Close()
 
-	for rows.Next() {
-		var u models.UserInfo
-		err := rows.Scan(&u.ID, &u.Nickname, &u.Firstname, &u.Lastname)
-		if err != nil {
-			return nil, errors.New("SERVER ERROR")
-		}
+    for rows.Next() {
+        var u models.UserInfo
+        err := rows.Scan(&u.ID, &u.Nickname, &u.Firstname, &u.Lastname)
+        if err != nil {
+            return nil, errors.New("SERVER ERROR")
+        }
 
-		if  u.ID == userID && !forAll {
-			continue
-		}
-			// get the last message between them
-			var msg models.Message
-			err = r.Db.QueryRow(`
-			SELECT id, sender_id, receiver_id, content, is_NOT_read, created_at 
-			FROM messages 
-			WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)
-			ORDER BY created_at DESC 
-			LIMIT 1
-		`, userID, u.ID, u.ID, userID).Scan(&msg.ID, &msg.SenderID, &msg.ReceiverID, &msg.Content, &msg.IsNotRead, &msg.CreatedAt)
+        if  u.ID == userID && !forAll {
+            continue
+        }
+            // get the last message between them
+            var msg models.Message
+            err = r.Db.QueryRow(`
+            SELECT id, sender_id, receiver_id, content, is_NOT_read, created_at 
+            FROM messages 
+            WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)
+            ORDER BY created_at DESC 
+            LIMIT 1
+        `, userID, u.ID, u.ID, userID).Scan(&msg.ID, &msg.SenderID, &msg.ReceiverID, &msg.Content, &msg.IsNotRead, &msg.CreatedAt)
 
-			if err != nil && err != sql.ErrNoRows {
-				return nil, errors.New("SERVER ERROR")
-			}
-			u.LastMessage = msg
+            if err != nil && err != sql.ErrNoRows {
+                return nil, errors.New("SERVER ERROR")
+            }
+            u.LastMessage = msg
 
-			// calcul the number of messages not read from the other user
-			var count int
-			err = r.Db.QueryRow(` SELECT COUNT(*) FROM messages WHERE sender_id = ? AND receiver_id = ? AND is_NOT_read = 1`, u.ID, userID).Scan(&count)
-			if err != nil {
-				return nil, errors.New("SERVER ERROR")
-			}
-			u.NumberOfUnreadMessages = count
+            // calcul the number of messages not read from the other user
+            var count int
+            err = r.Db.QueryRow(` SELECT COUNT(*) FROM messages WHERE sender_id = ? AND receiver_id = ? AND is_NOT_read = 1`, u.ID, userID).Scan(&count)
+            if err != nil {
+                return nil, errors.New("SERVER ERROR")
+            }
+            u.NumberOfUnreadMessages = count
 
-			usersInfo = append(usersInfo, u)
-		
-	}
+            usersInfo = append(usersInfo, u)
+        
+    }
 
-	if len(usersInfo) == 0 {
-		return nil, errors.New("no user exists")
-	}
+    if len(usersInfo) == 0 {
+        return nil, errors.New("no user exists")
+    }
 
-	return usersInfo, nil
+    return usersInfo, nil
 }
 
 // get the user id based on the front id from DB

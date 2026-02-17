@@ -22,28 +22,9 @@ export function initLogoutMenu() {
 	});
 }
 
-export async function logout() {
-	await fetch("http://localhost:3000/logout", { method: "POST" })
-		.then(async (res) => {
-			if (!res.ok) {
-				const data = await res.json();
-				throw new Error(
-					(data && data.error) ||
-					`HTTP ${res.status}, Failed to logout`,
-				);
-			}
-			return res.json();
-		})
-		.then(() => {
-			showAlert("logout successfully", 2000, "green");
-			try {
-				localStorage.removeItem("rtf_user");
-			} catch {
-				showAlert("error in removing from local storage");
-			}
-			ClientRouter.navigate("/login");
-		})
-		.catch((err) => {
-			showAlert(err);
-		});
+export function logout() {
+    socket.send(JSON.stringify({ type: "logout" }));
+
+    localStorage.removeItem("rtf_user");
+    ClientRouter.navigate("/login");
 }

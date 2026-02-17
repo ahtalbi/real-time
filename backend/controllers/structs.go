@@ -21,7 +21,7 @@ type Controller struct {
 type WS struct {
 	Upgrader websocket.Upgrader
 	Mu       sync.RWMutex
-	Clients  map[string][]*UserWS
+	Clients  map[string]*UserWS
 }
 
 // rate limiter struct and methods for websocket messages
@@ -85,25 +85,13 @@ func (u *UserWS) SendPingMessageEveryPeriodeOfTime() {
 func (u *UserWS) RemoveUserWS(ws *WS, userID string, conn *websocket.Conn) {
 	u.CloseOnce.Do(func() {
 		ws.Mu.Lock()
-		conns := ws.Clients[userID]
-		nc := conns[:0]
-		for _, c := range conns {
-			if c != u {
-				nc = append(nc, c)
-			}
-		}
-		if len(nc) > 0 {
-			ws.Clients[userID] = nc
-		} else {
-			delete(ws.Clients, userID)
-		}
+		delete(ws.Clients, userID)
 		ws.Mu.Unlock()
 
 		close(u.Chan)
 		conn.Close()
 	})
 }
-
 
 // write messages to the client
 func (u *UserWS) Write() {
@@ -122,3 +110,39 @@ func (u *UserWS) Write() {
 		}
 	}
 }
+
+// broadcast message to all connected clients
+func (ws *WS) Broadcast(msg map[string]interface{}) {
+	ws.Mu.RLock()
+	defer ws.Mu.RUnlock()
+
+	for _, client := range ws.Clients {
+		switch msg["type"] {
+		case "message":
+			select {
+			case client.Chan <- msg:
+			default:
+			}
+		case "get_users_chat", "get_messages":
+		}
+	}
+}
+
+// return online users list excluding the provided user id
+func (ws *WS) OnlineUsersFor(excludeUserID string) []map[string]string {
+	ws.Mu.RLock()
+	defer ws.Mu.RUnlock()
+
+	onlineUsers := make([]map[string]string, 0, len(ws.Clients))
+	for id, u := range ws.Clients {
+		if id == excludeUserID {
+			continue
+		}
+		onlineUsers = append(onlineUsers, map[string]string{
+			"id":       u.UserInfo.ID,
+			"nickname": u.UserInfo.Nickname,
+		})
+	}
+	return onlineUsers
+}
+
