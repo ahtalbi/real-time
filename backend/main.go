@@ -48,7 +48,7 @@ func main() {
 	routes.Routes(mux, handler)
 
 	server := http.Server{
-		Addr:    ":3000",
+		Addr:    "0.0.0.0:3000",
 		Handler: mux,
 	}
 	fmt.Print("http://localhost:3000")

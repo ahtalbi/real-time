@@ -3,13 +3,25 @@ import { ClientRouter } from "../../../router.js";
 import { socket } from "../../../utils/ws.js";
 
 export function UserTemplate(User) {
+
+
+
 	const tpl = document.createElement("template");
 	tpl.innerHTML = `<li class="row-between" data-user-id="${User.ID}" data-username="${User.Nickname}">
-  		<span><span class="dot ${User.IsOnline ? "ok" : ""}"></span>${User.Nickname}<span>${User.NumberOfUnreadMessages}</span></span>
-  		<button class="btn sm" id="messageUserBtn-${User.ID}" type="button" data-userid="${User.ID}" data-username="${User.Nickname}">Message</button>
+  		<span><span class="dot ${User.IsOnline ? "ok" : ""}"></span>${User.Nickname}</span>
+  		<button class="btn sm" id="messageUserBtn-${User.ID}" type="button" data-userid="${User.ID}" data-username="${User.Nickname}">Message
+		<span class="nbr"></span>
+		</button>
+		
 		</li>`;
 
 	let el = tpl.content.firstElementChild;
+
+	let b = el.querySelector('.nbr');
+		if (Number(User.NumberOfUnreadMessages) > 0) {
+		    b.classList.add('nbr-of-unread-messages');
+		    b.textContent = User.NumberOfUnreadMessages;
+		}
 
 	GlobalEventsManager.click.RegisterEvent(`messageUserBtn-${User.ID}`, () => {
 		ClientRouter.navigate(`/messages?userId=${User.ID}`, { history: "replace" });

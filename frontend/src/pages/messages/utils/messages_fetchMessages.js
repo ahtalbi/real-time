@@ -17,6 +17,7 @@ export function initFetchMessages(receiverID) {
 	stateMessages.loading = false;
 
 	let body = document.getElementById("conversationBody");
+	if (!body) return;
 	let topObserver = document.getElementById("messages-observer");
 	stateMessages.topObserver = topObserver;
 
@@ -50,6 +51,7 @@ function fetchMessages() {
 
 export function renderMessagesHistory(messages) {
 	let body = document.getElementById("conversationBody");
+	  if (!body) return;
 	let isFirstBatch = stateMessages.StartID === 0;
 	let beforeHeight = body.scrollHeight;
 
@@ -99,6 +101,7 @@ export function renderSingleMessage(message) {
     let userId = urlParams.get("userId");
 	if (message.SenderID !== userId) return;
 	let body = document.getElementById("conversationBody");
+	 if (!body) return;
 	let currentUser = JSON.parse(localStorage.getItem("rtf_user"));
 	socket.send(JSON.stringify({type: "message_read_in_place", senderID: message.SenderID, receiverID: currentUser.ID}));
 	let side = message.SenderID === stateMessages.receiverID ? "incoming" : "outgoing";

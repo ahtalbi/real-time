@@ -3,7 +3,10 @@ import { HandleRoutes } from "./router.js";
 
 async function main() {
   InitGlobalEventManager();
-  HandleRoutes();
+  HandleRoutes();  
+  
+  const worker = new SharedWorker("worker.js");
+  worker.port.start();
 }
 
 main();

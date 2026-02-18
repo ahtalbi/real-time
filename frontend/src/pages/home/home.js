@@ -33,6 +33,7 @@ function initHome() {
 	initMessagesShortcut();
 	initFetchUsers();
 	initPostsFetchObserver();
+	document.getElementById("logo").addEventListener("click", () => { ClientRouter.navigate("/") });
 }
 
 initHome();

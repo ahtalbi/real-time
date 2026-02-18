@@ -1,6 +1,5 @@
 import { PageLoader } from "../packages/loader.js";
 import { Router } from "../packages/router.js";
-import { socket } from "./utils/ws.js";
 
 export let ClientRouter = new Router();
 
