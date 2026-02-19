@@ -1,6 +1,6 @@
 import { GlobalEventsManager } from "../../../events/init.js";
 import { ClientRouter } from "../../../router.js";
-import { socket } from "../../../utils/ws.js";
+import { socket, worker } from "../../../utils/ws.js";
 
 export function UserTemplate(User) {
 
@@ -88,8 +88,7 @@ export function ConversationTemplate(User) {
 		let message = e.messageInput.value;
 		if (!String(message || "").trim()) return;
 
-		conversation.append(MessageTemplate("me", message, new Date().toISOString()));
-		conversation.scrollTop = conversation.scrollHeight;
+		worker.port.postMessage({type: "message", message});
 		socket.send(JSON.stringify({
 			"type": "message",
 			"message": {

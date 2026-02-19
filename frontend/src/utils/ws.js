@@ -1,20 +1,21 @@
 import { getActiveConversationUserId, removeTypingIndicator, showTypingIndicator } from "../pages/messages/utils/messages_conversation.js";
 import { renderMessagesHistory, renderSingleMessage } from "../pages/messages/utils/messages_fetchMessages.js";
-import { UserTemplate } from "../pages/messages/utils/messages_templates.js";
+import { MessageTemplate, UserTemplate } from "../pages/messages/utils/messages_templates.js";
 import { WebSocketManager } from "./../../packages/websocket.js";
 import { stateUsers } from "../pages/messages/utils/messages_fetchUsers.js";
+
 export let socket = new WebSocketManager({
     url: "ws://localhost:3000/ws",
     onMessage: [onMessage],
 })
 
 
-let worker = new SharedWorker("./src/worker.js");
+export let worker = new SharedWorker("./src/worker.js");
 worker.port.start()
 
 function onMessage(res) {
     res = JSON.parse(res.data);
-    
+
     switch (res.type) {
         case "messages_history":
             renderMessagesHistory(res.data);
@@ -36,7 +37,7 @@ function onMessage(res) {
             // send to workers
             worker.port.postMessage(res.message);
 
-            socket.send(JSON.stringify({type: "users_info_for_user"}));
+            socket.send(JSON.stringify({ type: "users_info_for_user" }));
             break;
         case "typing":
             if (res.from !== getActiveConversationUserId()) break;
@@ -50,21 +51,22 @@ function onMessage(res) {
         case "user_offline":
             const el = document.querySelector(`[data-user-id="${res.userID}"]`);
             if (el) {
-              const dot = el.querySelector('.dot');
-              if (dot) dot.classList.remove('ok')
+                const dot = el.querySelector('.dot');
+                if (dot) dot.classList.remove('ok')
             }
             break;
-        
-              }
+    }
 }
 
-
-worker.port.onmessage = function(e) {
-
+worker.port.onmessage = function (e) {
+    if (e.data.type === "message") {
+        let conversation = document.querySelector("#conversationBody");
+        conversation.append(MessageTemplate("me", e.data.message, new Date().toISOString()));
+		conversation.scrollTop = conversation.scrollHeight;
+    }
     if (e.data == 'typing') {
         showTypingIndicator();
         return
     }
-        
     renderSingleMessage(e.data);
 }

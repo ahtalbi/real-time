@@ -5,7 +5,7 @@ async function main() {
   InitGlobalEventManager();
   HandleRoutes();  
   
-  const worker = new SharedWorker("worker.js");
+  const worker = new SharedWorker("./src/worker.js");
   worker.port.start();
 }
 
