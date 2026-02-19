@@ -1,4 +1,5 @@
 import { socket } from "../../../utils/ws.js";
+import { initFetchUsers } from "./messages_fetchUsers.js";
 import { MessageTemplate } from "./messages_templates.js";
 
 export let stateMessages = {
@@ -108,6 +109,8 @@ export function renderSingleMessage(message) {
 	let side = message.SenderID === stateMessages.receiverID ? "incoming" : "outgoing";
 	let bubble = MessageTemplate(side, message.Content, message.CreatedAt);
 	body.appendChild(bubble);
+	initFetchUsers();
+	
 	toggleScrollBottomButton(!isNearBottom(body));
 }
 

@@ -1,6 +1,7 @@
 import { GlobalEventsManager } from "../../../events/init.js";
 import { ClientRouter } from "../../../router.js";
 import { socket, worker } from "../../../utils/ws.js";
+import { initFetchUsers } from "./messages_fetchUsers.js";
 
 export function UserTemplate(User) {
 
@@ -97,6 +98,8 @@ export function ConversationTemplate(User) {
 			}
 		}))
 		e.messageInput.value = "";
+			initFetchUsers()
+		
 	})
 
 	return el;
