@@ -162,6 +162,7 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 			if er != nil {
 				continue
 			}
+			usersinfo = pkg.SortUsers(usersinfo)
 			for i, u := range usersinfo {
 				if _, ok := c.Ws.Clients[u.ID]; ok {
 					usersinfo[i].IsOnline = true

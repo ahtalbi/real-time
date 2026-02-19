@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"time"
 
 	"rtf/config"
@@ -16,6 +17,36 @@ import (
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
+
+// sort the users that we have a conversation with by the last message date and the rest of the users by their nickname
+func SortUsers(usersinfo []models.UserInfo) []models.UserInfo {
+	res := []models.UserInfo{}
+
+	conv := []models.UserInfo{}
+	vide := []models.UserInfo{}
+
+	for _, i := range usersinfo {
+		if i.LastMessage.ID >= 1 {
+			conv = append(conv, i)
+		} else {
+			vide = append(vide, i)
+		}
+	}
+
+	sort.Slice(conv, func(i, j int) bool {
+		t1, _ := time.Parse("2006-01-02 15:04:05", conv[i].LastMessage.CreatedAt)
+		t2, _ := time.Parse("2006-01-02 15:04:05", conv[j].LastMessage.CreatedAt)
+		return t1.After(t2)
+	})
+
+	sort.Slice(vide, func(i, j int) bool {
+		return vide[i].Nickname < vide[j].Nickname
+	})
+
+	res = append(res, conv...)
+	res = append(res, vide...)
+	return res
+}
 
 // this funcion check if the informations mutch the expected , any error found will be returned
 func AreUserInfosCorret(user models.User) error {
