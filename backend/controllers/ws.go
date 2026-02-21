@@ -158,20 +158,23 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 		// case of get users info for the user and for all users if "for_all_users" is true
 		case "users_info_for_user":
 			_, ok := Data["for_all_users"].(bool)
-			usersinfo, er := c.DB.GetUsersInfoFor(USER.ID, ok)
-			if er != nil {
-				continue
-			}
-			usersinfo = pkg.SortUsers(usersinfo)
-			for i, u := range usersinfo {
-				if _, ok := c.Ws.Clients[u.ID]; ok {
-					usersinfo[i].IsOnline = true
-				} else {
-					usersinfo[i].IsOnline = false
-				}
-			}
+
 			if ok {
 				for _, client := range ws.Clients {
+
+					usersinfo, er := c.DB.GetUsersInfoFor(client.UserInfo.ID, ok)
+					if er != nil {
+						continue
+					}
+					usersinfo = pkg.SortUsers(usersinfo)
+					for i, u := range usersinfo {
+						if _, ok := c.Ws.Clients[u.ID]; ok {
+							usersinfo[i].IsOnline = true
+						} else {
+							usersinfo[i].IsOnline = false
+						}
+					}
+
 					select {
 					case client.Chan <- map[string]interface{}{
 						"type": "users_info_for_user",
@@ -181,14 +184,27 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 					}
 				}
 				break
-			}
+			} else {
 
-			select {
-			case user.Chan <- map[string]interface{}{
-				"type": "users_info_for_user",
-				"data": usersinfo,
-			}:
-			default:
+				usersinfo, er := c.DB.GetUsersInfoFor(USER.ID, ok)
+				if er != nil {
+					continue
+				}
+				usersinfo = pkg.SortUsers(usersinfo)
+				for i, u := range usersinfo {
+					if _, ok := c.Ws.Clients[u.ID]; ok {
+						usersinfo[i].IsOnline = true
+					} else {
+						usersinfo[i].IsOnline = false
+					}
+				}
+				select {
+				case user.Chan <- map[string]interface{}{
+					"type": "users_info_for_user",
+					"data": usersinfo,
+				}:
+				default:
+				}
 			}
 
 			break

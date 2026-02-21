@@ -12,7 +12,6 @@ export async function initConversations() {
     socket.send(JSON.stringify({ type: "online_users" }));
     if (userId) {
         let user = stateUsers.Users[userId];
-        console.log(stateUsers.Users)
         if (!user) {
             container.appendChild(NoConversationSelected());
             return;

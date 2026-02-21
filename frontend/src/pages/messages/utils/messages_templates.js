@@ -1,23 +1,21 @@
 import { GlobalEventsManager } from "../../../events/init.js";
 import { ClientRouter } from "../../../router.js";
+import { showAlert } from "../../../utils/alert.js";
 import { socket, worker } from "../../../utils/ws.js";
 import { initFetchUsers } from "./messages_fetchUsers.js";
 
 export function UserTemplate(User) {
-
-
-
-	const tpl = document.createElement("template");
+	let tpl = document.createElement("template");
 	tpl.innerHTML = `<li class="row-between" data-user-id="${User.ID}" data-username="${User.Nickname}">
   		<span><span class="dot ${User.IsOnline ? "ok" : ""}"></span>${User.Nickname}</span>
   		<button class="btn sm" id="messageUserBtn-${User.ID}" type="button" data-userid="${User.ID}" data-username="${User.Nickname}">Message
 		<span class="nbr"></span>
 		</button>
-		
 		</li>`;
 
 	let el = tpl.content.firstElementChild;
-
+	console.log(el, User.NumberOfUnreadMessages);
+	
 	let b = el.querySelector('.nbr');
 		if (Number(User.NumberOfUnreadMessages) > 0) {
 		    b.classList.add('nbr-of-unread-messages');
@@ -32,7 +30,7 @@ export function UserTemplate(User) {
 }
 
 export function ConversationTemplate(User) {
-	const tpl = document.createElement("template");
+	let tpl = document.createElement("template");
 	tpl.innerHTML = `
 	<header class="conversation-header">
             <div class="row">
@@ -71,7 +69,7 @@ export function ConversationTemplate(User) {
 
 	let input = el.querySelector("#messageInput");
 	input.addEventListener("input", (e) => {
-		const value = String(e.target.value || "");
+		let value = String(e.target.value || "");
 		if (!value.trim()) return;
 		socket.send(JSON.stringify({
 			type: "typing",
@@ -88,6 +86,11 @@ export function ConversationTemplate(User) {
 	GlobalEventsManager.submit.RegisterEvent(`composerForm`, (e) => {
 		let message = e.messageInput.value;
 		if (!String(message || "").trim()) return;
+
+		if (message.length > 600) {
+			showAlert("the length of the message is more than 600");
+			return
+		} 
 
 		worker.port.postMessage({type: "message", message});
 		socket.send(JSON.stringify({
@@ -116,20 +119,20 @@ export function NoConversationSelected() {
 }
 
 export function MessageTemplate(ReciverOrSender, content, createdAt) {
-	const side = String(ReciverOrSender || "").toLowerCase();
-	const outgoing = side === "sender" || side === "outgoing" || side === "me" || side === "self";
-	const { displayDate, isoDate } = formatMessageDate(createdAt);
+	let side = String(ReciverOrSender || "").toLowerCase();
+	let outgoing = side === "sender" || side === "outgoing" || side === "me" || side === "self";
+	let { displayDate, isoDate } = formatMessageDate(createdAt);
 
-	const tpl = document.createElement("template");
+	let tpl = document.createElement("template");
 	tpl.innerHTML = `
 		<div class="bubble ${outgoing ? "outgoing" : "incoming"}">
 			<p class="bubble-content"></p>
 			<time class="bubble-date"></time>
 		</div>`;
 
-	const el = tpl.content.firstElementChild;
+	let el = tpl.content.firstElementChild;
 	el.querySelector(".bubble-content").textContent = String(content || "");
-	const dateEl = el.querySelector(".bubble-date");
+	let dateEl = el.querySelector(".bubble-date");
 	dateEl.textContent = displayDate;
 	if (isoDate) {
 		dateEl.setAttribute("datetime", isoDate);
@@ -138,13 +141,13 @@ export function MessageTemplate(ReciverOrSender, content, createdAt) {
 }
 
 function formatMessageDate(dateValue) {
-	const fallback = new Date();
+	let fallback = new Date();
 	let parsed = fallback;
 	let fromInput = false;
 
 	if (typeof dateValue === "string" && dateValue.trim()) {
-		const normalized = dateValue.includes("T") ? dateValue : dateValue.replace(" ", "T");
-		const candidate = new Date(normalized);
+		let normalized = dateValue.includes("T") ? dateValue : dateValue.replace(" ", "T");
+		let candidate = new Date(normalized);
 		if (!Number.isNaN(candidate.getTime())) {
 			parsed = candidate;
 			fromInput = true;

@@ -21,14 +21,9 @@ function onMessage(res) {
             renderMessagesHistory(res.data);
             break;
         case "users_info_for_user":
-            let usersList = document.getElementById("FreindsList");
-            usersList.innerHTML = "";
-            stateUsers.Users = {};
-            for (let user of res.data) {
-                stateUsers.Users[user.ID] = user;
-                if (user.ID === JSON.parse(localStorage.getItem("rtf_user")).ID) continue;
-                usersList.append(UserTemplate(user));
-            }
+            console.log("here : ", res.data);
+
+            worker.port.postMessage({ type: "users_info_for_user", data: res.data });
             break;
 
         case "message":
@@ -40,33 +35,49 @@ function onMessage(res) {
             socket.send(JSON.stringify({ type: "users_info_for_user" }));
             break;
         case "typing":
-            if (res.from !== getActiveConversationUserId()) break;
-            worker.port.postMessage('typing');
-            // showTypingIndicator();
+            worker.port.postMessage({ type: "typing", from: res.from });
             break;
         case "logout_success":
             localStorage.removeItem("rtf_user");
             ClientRouter.navigate("/login");
+            socket.send(JSON.stringify({ type: "users_info_for_user", for_all_users: true }));
             break;
         case "user_offline":
-            const el = document.querySelector(`[data-user-id="${res.userID}"]`);
-            if (el) {
-                const dot = el.querySelector('.dot');
-                if (dot) dot.classList.remove('ok')
-            }
+            worker.port.postMessage({ type: "user_offline", userID: res.userID })
             break;
     }
 }
 
 worker.port.onmessage = function (e) {
+    if (e.data.type === "user_offline") {
+        let el = document.querySelector(`[data-user-id="${e.data.userID}"]`);
+        if (el) {
+            let dot = el.querySelector('.dot');
+            if (dot) dot.classList.remove('ok');
+        }
+        return
+    }
+    if (e.data.type === "users_info_for_user") {
+        let usersList = document.getElementById("FreindsList");
+        usersList.innerHTML = "";
+        stateUsers.Users = {};
+        for (let user of e.data.data) {
+            stateUsers.Users[user.ID] = user;
+            if (user.ID === JSON.parse(localStorage.getItem("rtf_user")).ID) continue;
+            usersList.append(UserTemplate(user));
+        }
+        return
+    }
     if (e.data.type === "message") {
         let conversation = document.querySelector("#conversationBody");
         conversation.append(MessageTemplate("me", e.data.message, new Date().toISOString()));
-		conversation.scrollTop = conversation.scrollHeight;
+        conversation.scrollTop = conversation.scrollHeight;
     }
-    if (e.data == 'typing') {
-        showTypingIndicator();
-        return
+    if (e.data && e.data.type === "typing") {
+        if (e.data.from === getActiveConversationUserId()) {
+            showTypingIndicator();
+        }
+        return;
     }
     renderSingleMessage(e.data);
 }

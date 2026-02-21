@@ -6,7 +6,6 @@ export let stateMessages = {
 	receiverID: null,
 	StartID: 0,
 	finish: false,
-	loading: false,
 	io: null,
 	topObserver: null,
 };
@@ -15,10 +14,7 @@ export function initFetchMessages(receiverID) {
 	stateMessages.receiverID = receiverID;
 	stateMessages.StartID = 0;
 	stateMessages.finish = false;
-	stateMessages.loading = false;
-
 	let body = document.getElementById("conversationBody");
-	if (!body) return;
 	let topObserver = document.getElementById("messages-observer");
 	stateMessages.topObserver = topObserver;
 
@@ -29,17 +25,17 @@ export function initFetchMessages(receiverID) {
 		}
 	}, { root: body });
 	stateMessages.io.observe(topObserver);
+
 	body.addEventListener("scroll", () => {
 		toggleScrollBottomButton(!isNearBottom(body));
 	});
-	toggleScrollBottomButton(!isNearBottom(body));
 
+	toggleScrollBottomButton(!isNearBottom(body));
 	fetchMessages();
 }
 
 function fetchMessages() {
-	if (stateMessages.finish || stateMessages.loading) return;
-	stateMessages.loading = true;
+	if (stateMessages.finish) return;
 	if (stateMessages.io && stateMessages.topObserver) {
 		stateMessages.io.unobserve(stateMessages.topObserver);
 	}
@@ -52,17 +48,16 @@ function fetchMessages() {
 
 export function renderMessagesHistory(messages) {
 	let body = document.getElementById("conversationBody");
-	  if (!body) return;
 	let isFirstBatch = stateMessages.StartID === 0;
-	let beforeHeight = body.scrollHeight;
 
 	if (!Array.isArray(messages) || messages.length === 0) {
 		stateMessages.finish = true;
-		stateMessages.loading = false;
 		return;
 	}
 
 	let orderedMessages = [...messages].reverse();
+	console.log(orderedMessages);
+	
 	let fragment = document.createDocumentFragment();
 
 	for (let message of orderedMessages) {
@@ -88,29 +83,24 @@ export function renderMessagesHistory(messages) {
 		stateMessages.io.observe(stateMessages.topObserver);
 	}
 
-	if (isFirstBatch) {
-		body.scrollTop = body.scrollHeight;
-	} else {
-		let afterHeight = body.scrollHeight;
-		body.scrollTop += (afterHeight - beforeHeight);
-	}
+	body.scrollTop = body.scrollHeight;
 	toggleScrollBottomButton(!isNearBottom(body));
 }
 
 export function renderSingleMessage(message) {
 	const urlParams = new URLSearchParams(window.location.search);
-    let userId = urlParams.get("userId");
+	let userId = urlParams.get("userId");
 	if (message.SenderID !== userId) return;
 	let body = document.getElementById("conversationBody");
-	 if (!body) return;
+	if (!body) return;
 	let currentUser = JSON.parse(localStorage.getItem("rtf_user"));
-	socket.send(JSON.stringify({type: "message_read_in_place", senderID: message.SenderID, receiverID: currentUser.ID}));
-	socket.send(JSON.stringify({type: "users_info_for_user"}));
+	socket.send(JSON.stringify({ type: "message_read_in_place", senderID: message.SenderID, receiverID: currentUser.ID }));
+	socket.send(JSON.stringify({ type: "users_info_for_user" }));
 	let side = message.SenderID === stateMessages.receiverID ? "incoming" : "outgoing";
 	let bubble = MessageTemplate(side, message.Content, message.CreatedAt);
 	body.appendChild(bubble);
 	initFetchUsers();
-	
+
 	toggleScrollBottomButton(!isNearBottom(body));
 }
 
