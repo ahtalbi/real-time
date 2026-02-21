@@ -610,7 +610,7 @@ func (r *Repo) InsertMessage(msg map[string]interface{}) (models.Message, error)
 		SenderID:   senderID,
 		ReceiverID: receiverID,
 		Content:    content,
-		CreatedAt:  time.Now().Format("2006-01-02 15:04:05"),
+		CreatedAt:  time.Now().Format("2006-01-02 15:04:05.000000"),
 	}
 
 	res, er := r.Db.Exec("INSERT INTO messages(sender_id, receiver_id, content, is_NOT_read, created_at) VALUES (?, ?, ?, ?, ?)", m.SenderID, m.ReceiverID, m.Content, 1, m.CreatedAt)

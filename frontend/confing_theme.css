@@ -34,7 +34,6 @@ body {
     background-color: var(--bg-main);
 }
 
-/* ---------- cards ---------- */
 .card {
     background: var(--bg-surface);
     border-radius: 14px;
@@ -48,7 +47,6 @@ body {
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
 }
 
-/* ---------- buttons ---------- */
 .btn {
     padding: 8px 14px;
     border-radius: 10px;
@@ -85,7 +83,6 @@ body {
     align-items: center;
 }
 
-/* alert */
 #alert {
   position: fixed;
   top: 25px;

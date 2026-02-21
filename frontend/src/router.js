@@ -1,11 +1,10 @@
 import { PageLoader } from "../packages/loader.js";
 import { Router } from "../packages/router.js";
-import { socket } from "./utils/ws.js";
 
 export let ClientRouter = new Router();
 
 export async function HandleRoutes() {
-    let app = document.getElementById("app") ?? document.body;
+    let app = document.getElementById("app");
     let loader = new PageLoader();
     let on404 = () => {
         loader.renderPage("error", app).catch(() => {
@@ -24,7 +23,7 @@ export async function HandleRoutes() {
         ClientRouter.on(route, routes[route].handler);
     }
     ClientRouter.listen(on404);
-    
+
     fetch("http://localhost:3000/hassession")
         .then(res => res.json())
         .then(async res => {

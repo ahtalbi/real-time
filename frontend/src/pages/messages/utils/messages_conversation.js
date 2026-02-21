@@ -1,6 +1,6 @@
 import { stateUsers } from "./messages_fetchUsers.js";
 import { ConversationTemplate, NoConversationSelected } from "./messages_templates.js";
-import { initFetchMessages, renderMessagesHistory, renderSingleMessage } from "./messages_fetchMessages.js";
+import { initFetchMessages } from "./messages_fetchMessages.js";
 import { socket } from "../../../utils/ws.js";
 
 let typingIndicatorTimer = null;

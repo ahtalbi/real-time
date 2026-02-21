@@ -37,7 +37,7 @@ export function loginSendPost(form) {
                 }
                 ClientRouter.navigate("/");
                 showAlert("Welcome Back", 2000, "green");
-                socket.send(JSON.stringify({ type: "users_info_for_user", for_all_users: true }));
+                socket.send(JSON.stringify({ type: "users_info_for_user"}));
             } else if (res.error) {
                 showAlert(res.error);
             }
