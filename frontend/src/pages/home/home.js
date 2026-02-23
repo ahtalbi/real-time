@@ -1,4 +1,4 @@
-import { initCreatePost } from "./utils/home_createPost.js";
+import { initCreatePost, showcategoriesForCreatePost } from "./utils/home_createPost.js";
 import { initCreateComment, initToggleComments } from "./utils/home_comments.js";
 import { initReactions } from "./utils/home_reactions.js";
 import { initFetchUsers } from "./utils/home_fetchUsers.js";
@@ -24,6 +24,7 @@ function initMessagesShortcut() {
 }
 
 function initHome() {
+	showcategoriesForCreatePost()
 	initSetUserData();
 	initCreatePost();
 	initCreateComment();

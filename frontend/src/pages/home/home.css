@@ -1,5 +1,130 @@
 @import url("https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap");
 
+
+.composer {
+    padding: 10px;
+    border-radius: 18px;
+    background: var(--bg-surface);
+}
+
+.composer form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.composer .row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+}
+
+.textarea-wrapper {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.textarea-wrapper .input {
+    width: 100%;
+    resize: none;
+    box-sizing: border-box;
+    border-radius: 20px;
+    padding: 12px 90px 12px 16px; 
+    font-size: 14px;
+}
+
+.textarea-wrapper .file-label {
+    position: absolute;
+    right: 70px;
+    bottom: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 8px;
+    border-radius: 10px;
+    background: var(--bg-main);
+    cursor: pointer;
+    z-index: 2;
+}
+
+.file-label:hover {
+    background: var(--bg-surface);
+}
+
+
+.composer .btn.primary {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    padding: 6px 14px;
+    font-size: 13px;
+    border-radius: 14px;
+    white-space: nowrap;
+    z-index: 1;
+}
+
+.row-between.categories-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    max-height: 0;
+    overflow: hidden;
+    margin-top: 0;
+    transition: max-height 0.3s ease, opacity 0.3s ease, margin-top 0.3s ease;
+}
+
+.row-between.categories-row.is-open {
+    max-height: 200px;
+    margin-top: 6px;
+}
+
+.categories-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.categories-list input[type="checkbox"] {
+    display: none;
+}
+
+.categories-list label {
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--border-subtle);
+    background: var(--bg-main);
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.categories-list label:hover {
+    border-color: var(--accent-color);
+}
+
+.categories-list label:has(input:checked) {
+    background: var(--accent-color);
+    color: #fff;
+    border-color: var(--accent-color);
+}
+
+.input-file {
+    display: none;
+}
+
+#postCreate textarea.input {
+    resize: none;
+    overflow: hidden; 
+}
+
+#posts .card p {
+  white-space: pre-wrap;
+}
+
+/* -------------------------- */
 nav {
 	position: sticky;
 	top: 0;
@@ -374,7 +499,7 @@ h3 {
 	border: 1px solid var(--border-subtle);
 	padding: 10px 12px;
 	font-size: 14px;
-	background: var(--bg-main);
+	/* background: var(--bg-main); */
 	color: var(--text-primary);
 	outline: none;
 }
@@ -671,18 +796,3 @@ h3 {
 }
 
  
-/*  categories  */ 
-.categories-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  flex: 1;
-  align-items: center;
-}
-
-.categories-list label {
-  display: flex;
-  align-items: center;
-  font-size: 12px;
-  gap: 4px;
-}

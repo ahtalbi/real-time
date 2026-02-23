@@ -53,31 +53,35 @@
     </div>
 
     <main id="posts">
-        <div class="composer card">
+        <div class="composer">
             <form id="postCreate">
                 <div class="row">
-                    <div class="avatar sm" aria-hidden="true"></div>
-                    <input class="input" name="content" type="text"
-                        placeholder="What you want to (ask | share) today?" />
+                    <div class="avatar sm"></div>
+
+                    <div class="textarea-wrapper">
+                        <textarea class="input input-createpost" name="content"
+                            placeholder="What you want to (ask | share) today?"></textarea>
+                            <label for="createpostImage" class="file-label">📎</label>
+                            <button class="btn primary" type="submit">Post</button>
+                        </div>
+                        
+                        <input type="file" name="Image" id="createpostImage" class="input-file" />
                 </div>
 
                 <div class="row-between categories-row">
-                <div class="row categories-list">
-                  <label><input type="checkbox" name="categories" value="Science"> Science</label>
-                  <label><input type="checkbox" name="categories" value="Technology"> Technology</label>
-                  <label><input type="checkbox" name="categories" value="Mathematics"> Mathematics</label>
-                  <label><input type="checkbox" name="categories" value="Languages"> Languages</label>
-                  <label><input type="checkbox" name="categories" value="Humanities"> Humanities</label>
-                  <label><input type="checkbox" name="categories" value="Personal Development"> Personal Development</label>
+                    <div class="row categories-list">
+                        <label><input type="checkbox" name="categories" value="Science"> Science</label>
+                        <label><input type="checkbox" name="categories" value="Technology"> Technology</label>
+                        <label><input type="checkbox" name="categories" value="Mathematics"> Mathematics</label>
+                        <label><input type="checkbox" name="categories" value="Languages"> Languages</label>
+                        <label><input type="checkbox" name="categories" value="Humanities"> Humanities</label>
+                        <label><input type="checkbox" name="categories" value="Personal Development"> Personal
+                            Development</label>
+                    </div>
                 </div>
-                
-                <div><input type="file" name="Image" id="createpostImage"></div>
-                <button class="btn primary" type="submit">Post</button>
-                <div>
-                    
-                </form>
-            </div>
-            
+            </form>
+        </div>
+
     </main>
 
     <!-- Right Sidebar -->

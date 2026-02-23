@@ -18,6 +18,22 @@ export function escapeHTML(str) {
     .replace(/'/g, "&#039;");
 }
 
+function timeAgo(dateString) {
+  let date = new Date(dateString.replace(" ", "T"));
+  let sec = Math.floor((new Date() - date) / 1000);
+
+  let i = { year: 31536000, month: 2592000, day: 86400, hour: 3600, minute: 60};
+
+  for (let key in i) {
+    let value = Math.floor(sec / i[key]);
+    if (value >= 1) {
+      return `${value} ${key}${value > 1 ? "s" : ""} ago`;
+    }
+  }
+
+  return "Just now";
+}
+
 export function postTemplate(p) {
 
   p.CategoryType = p.CategoryType.replace(/,/g, ", ");
@@ -33,7 +49,7 @@ export function postTemplate(p) {
       <div>
         <h3 class="post-title">${escapeHTML(p.AutherName)}</h3>
         <h1 class="muted">${escapeHTML(p.CategoryType)}</h1>
-        <p class="muted">${escapeHTML(p.CreatedAt)}</p>
+        <p class="muted">${timeAgo(escapeHTML(p.CreatedAt))}</p>
       </div>
     </header>
   
@@ -121,7 +137,7 @@ export function commentTemplate(c) {
   <div class="comment-body">
     <div class="row-between">
       <strong class="comment-author">${c.AutherName}</strong>
-      <span class="muted comment-time">${c.CreatedAt}</span>
+      <span class="muted comment-time">${timeAgo(c.CreatedAt)}</span>
     </div>
     <p class="comment-text">${c.Content}</p>
     <div class="comment-actions">
