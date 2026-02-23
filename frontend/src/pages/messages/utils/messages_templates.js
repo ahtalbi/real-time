@@ -55,8 +55,7 @@ export function ConversationTemplate(User) {
                 id="messageInput"
                 type="text"
                 placeholder="Ecrire un message..."
-            />
-            </textarea>
+            /></textarea>
             <button
                 class="btn primary"
                 id="sendMessageBtn"

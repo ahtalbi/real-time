@@ -139,7 +139,7 @@ func (r *Repo) CheckSessionExistance(req *http.Request) (models.User, error) {
 
 func (r *Repo) InsertPostDB(userID string, post models.Post, categoryIDs []int) (models.Post, error) {
 	id := uuid.NewString()
-	t := time.Now().Format("2006-01-02 15:04:05")
+	t := time.Now().Format("2006-01-02 15:04:05.000000")
 
 	IDS := ""
 	for _, categoryID := range categoryIDs {

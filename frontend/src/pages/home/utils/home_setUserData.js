@@ -3,12 +3,12 @@ export function initSetUserData() {
     dataUser = JSON.parse(dataUser);
 
     let userNameH2 = document.getElementById("username");
-    userNameH2.textContent = dataUser.Firstname + " " + dataUser.Lastname;
+    userNameH2.textContent = dataUser.Nickname;
 
 	let imagePhoto = document.getElementById("profile");
-	imagePhoto.src = (dataUser.ProfileImage.Valid) ? dataUser.ProfileImage.String : "https://avatars.githubusercontent.com/u/128240067?v=4";
+	imagePhoto.src = (dataUser.ProfileImage.Valid) ? dataUser.ProfileImage.String : "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS2K1RhGUfKPoqfQRBcOKh85yJyf-5XILTo3Q&s";
 	imagePhoto = document.getElementById("avatar");
-	imagePhoto.src = (dataUser.ProfileImage.Valid) ? dataUser.ProfileImage.String : "https://avatars.githubusercontent.com/u/128240067?v=4";	
+	imagePhoto.src = (dataUser.ProfileImage.Valid) ? dataUser.ProfileImage.String : "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS2K1RhGUfKPoqfQRBcOKh85yJyf-5XILTo3Q&s";	
 }
 
 // {"ID":"55667366-7c61-4dac-994f-711263bcaba6",

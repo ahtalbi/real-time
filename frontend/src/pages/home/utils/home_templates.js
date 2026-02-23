@@ -60,7 +60,6 @@ export function postTemplate(p) {
           </figure>`
       : ""
     }
-    
     <footer class="post-foot">
       <div class="reactions"
            aria-label="Reactions"

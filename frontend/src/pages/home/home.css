@@ -637,6 +637,25 @@ h3 {
 	background: var(--highlight-terracotta);
 }
 
+.nbr-of-unread-messages {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 24px;
+  height: 24px;
+  padding: 0 8px;
+  margin-left: 8px;
+
+  background: #ff3b3b;
+  color: #fff;
+
+  font-size: 14px;
+  font-weight: 700;
+
+  border-radius: 999px;
+}
+
 #messagesFab {
 	position: fixed;
 	bottom: 14px;
