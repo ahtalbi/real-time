@@ -121,6 +121,7 @@
 }
 
 #posts .card p {
+  word-break: break-word;
   white-space: pre-wrap;
 }
 

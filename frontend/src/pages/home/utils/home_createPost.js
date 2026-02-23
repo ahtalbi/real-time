@@ -12,36 +12,38 @@ export function initCreatePost() {
 			showAlert("the length of the post should be between 1 and 600");
 			return;
 		}
-		
+
 		const catsCheched = form.querySelectorAll('input[name="categories"]:checked');
 		const categoryType = Array.from(catsCheched).map(cb => cb.value).join(",");
 
 		let picture = document.getElementById("createpostImage");
 		const file = picture.files[0];
-		
+
 		const formData = new FormData();
 		formData.append("Content", content);
 		formData.append("CategoryType", categoryType);
 		if (picture.files.length > 0) {
-    		formData.append("Image", file);
+			formData.append("Image", file);
 		}
 
 
 		let data = null;
 		try {
-			const res = await fetch("http://localhost:3000/createpost", {
+			let res = await fetch("http://localhost:3000/createpost", {
 				method: "POST",
 				body: formData,
 			});
+
+			if (!res.ok) {
+				let msg = await res.text();
+				return showAlert(msg);
+			}
+
 			data = await res.json();
-			if (!res.ok) return showAlert(data?.error || `HTTP ${res.status}`);
-			if (data?.error) return showAlert(data.error);
 
-		} catch {
-			showAlert("Server unreachable");
-			return;
+		} catch (e) {
+			showAlert(`Error: ${e.message}`);
 		}
-
 		const post = data?.post;
 		if (!Array.isArray(post.Comments)) post.Comments = [];
 
@@ -56,20 +58,20 @@ export function initCreatePost() {
 
 
 export function showcategoriesForCreatePost() {
-	
-const container = document.querySelector('.composer');
-const textarea = document.querySelector('#postCreate textarea[name="content"]');
-const categories = document.querySelector('.categories-row');
+
+	const container = document.querySelector('.composer');
+	const textarea = document.querySelector('#postCreate textarea[name="content"]');
+	const categories = document.querySelector('.categories-row');
 
 
-textarea.addEventListener('focus', () => {
-  categories.classList.add('is-open');
-});
+	textarea.addEventListener('focus', () => {
+		categories.classList.add('is-open');
+	});
 
-document.addEventListener('click', (e) => {
-  if (!container.contains(e.target)) {
-    categories.classList.remove('is-open');
-  }
-});
+	document.addEventListener('click', (e) => {
+		if (!container.contains(e.target)) {
+			categories.classList.remove('is-open');
+		}
+	});
 
 }

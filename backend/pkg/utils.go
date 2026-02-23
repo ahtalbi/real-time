@@ -4,11 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"path/filepath"
 	"regexp"
 	"sort"
+	"strings"
 	"time"
 
 	"rtf/config"
@@ -183,4 +185,46 @@ func SaveFile(r io.Reader, originalName string) string {
 	}
 
 	return name
+}
+
+func IsPictureFormatCorrect(file multipart.File, header *multipart.FileHeader) bool {
+	// check max size of the picture
+	if header.Size > 5<<20 {
+		return false
+	}
+
+	// format accepted
+	allowedTypes := map[string]bool{
+		"image/jpeg": true,
+		"image/png":  true,
+		"image/gif":  true,
+		"image/webp": true,
+	}
+
+	buf := make([]byte, 512)
+	_, er := file.Read(buf)
+	if er != nil {
+		return false
+	}
+	filetype := http.DetectContentType(buf)
+	if !allowedTypes[filetype] {
+		return false
+	}
+	file.Seek(0, io.SeekStart)
+
+	// check extension
+	ext := strings.ToLower(filepath.Ext(header.Filename))
+	allowedEx := map[string]bool{
+		".jpg":  true,
+		".jpeg": true,
+		".png":  true,
+		".gif":  true,
+		".webp": true,
+	}
+
+	if !allowedEx[ext] {
+		return false
+	}
+
+	return true
 }

@@ -25,7 +25,13 @@ func (c *Controller) CreatePost(w http.ResponseWriter, r *http.Request) {
 	// get the data from the front
 	var post models.Post
 	f, h, er := r.FormFile("Image")
+
 	if er == nil {
+		if !pkg.IsPictureFormatCorrect(f, h) {
+			http.Error(w, "picture size or type not authorized", http.StatusBadRequest)
+			return
+		}
+
 		defer f.Close()
 		filename := pkg.SaveFile(f, h.Filename)
 		if filename != "" {
