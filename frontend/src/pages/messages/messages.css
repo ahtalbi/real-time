@@ -443,7 +443,8 @@ nav h1 {
 .bubble-content {
   margin: 0;
   word-wrap: break-word;
-  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .bubble-date {

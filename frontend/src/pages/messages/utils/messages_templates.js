@@ -15,13 +15,13 @@ export function UserTemplate(User) {
 		</li>`;
 
 	let el = tpl.content.firstElementChild;
-	 
-	
+
+
 	let b = el.querySelector('.nbr');
-		if (Number(User.NumberOfUnreadMessages) > 0) {
-		    b.classList.add('nbr-of-unread-messages');
-		    b.textContent = User.NumberOfUnreadMessages;
-		}
+	if (Number(User.NumberOfUnreadMessages) > 0) {
+		b.classList.add('nbr-of-unread-messages');
+		b.textContent = User.NumberOfUnreadMessages;
+	}
 
 	GlobalEventsManager.click.RegisterEvent(`messageUserBtn-${User.ID}`, () => {
 		ClientRouter.navigate(`/messages?userId=${User.ID}`, { history: "replace" });
@@ -49,13 +49,14 @@ export function ConversationTemplate(User) {
 		<button class="scroll-bottom-btn" id="scrollBottomBtn" type="button">↓ Scroll to the bottom</button>
 
         <form class="composer" id="composerForm">
-            <input
+            <textarea
                 class="input"
 				name="messageInput"
                 id="messageInput"
                 type="text"
                 placeholder="Ecrire un message..."
             />
+            </textarea>
             <button
                 class="btn primary"
                 id="sendMessageBtn"
@@ -91,9 +92,9 @@ export function ConversationTemplate(User) {
 		if (message.length > 600) {
 			showAlert("the length of the message is more than 600");
 			return
-		} 
+		}
 
-		worker.port.postMessage({type: "message", message});
+		worker.port.postMessage({ type: "message", message });
 		socket.send(JSON.stringify({
 			"type": "message",
 			"message": {
@@ -102,8 +103,8 @@ export function ConversationTemplate(User) {
 			}
 		}))
 		e.messageInput.value = "";
-			initFetchUsers()
-		
+		initFetchUsers()
+
 	})
 
 	return el;
@@ -122,8 +123,8 @@ export function NoConversationSelected() {
 export function MessageTemplate(ReciverOrSender, content, createdAt) {
 	let side = String(ReciverOrSender || "").toLowerCase();
 	let outgoing = side === "sender" || side === "outgoing" || side === "me" || side === "self";
-	 
-	
+
+
 	let time = timeAgo(createdAt);
 
 	let tpl = document.createElement("template");
@@ -134,9 +135,9 @@ export function MessageTemplate(ReciverOrSender, content, createdAt) {
 		</div>`;
 
 	let el = tpl.content.firstElementChild;
-	 
+
 	console.log(escapeHTML(content))
-	
+
 	el.querySelector(".bubble-content").textContent = escapeHTML(content);
 	let dateEl = el.querySelector(".bubble-date");
 	dateEl.textContent = time;
