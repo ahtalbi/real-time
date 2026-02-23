@@ -8,9 +8,10 @@ export class Router {
 
     navigate(path, { history = "push"} = {}) {
         path = path.startsWith("/") ? path : "/" + path;
+        console.log(window.history.length);
         
-        if (!history) {
-            history = window.history.length > 1 ? "push" : "replace";
+        if (window.history.length <= 1) {
+            history = "replace";
         }
 
         return navigation.navigate(path, { history });

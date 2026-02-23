@@ -10,7 +10,6 @@ func Routes(mux *http.ServeMux, handler *Handler) {
 		"/createpost":     handler.Cntrlrs.CreatePost,
 		"/createreaction": handler.Cntrlrs.Reactions,
 		"/createcomment":  handler.Cntrlrs.CreateComment,
-		"/getusers":       handler.Cntrlrs.Getusers,
 		"/getposts":       handler.Cntrlrs.GetPosts,
 		"/getcomments":    handler.Cntrlrs.GetComments,
 	}

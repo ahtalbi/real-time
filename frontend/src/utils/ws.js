@@ -21,7 +21,7 @@ function onMessage(res) {
             renderMessagesHistory(res.data);
             break;
         case "users_info_for_user":
-            console.log("here : ", res.data);
+             
 
             worker.port.postMessage({ type: "users_info_for_user", data: res.data });
             break;

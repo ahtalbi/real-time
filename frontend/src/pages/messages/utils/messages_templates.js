@@ -2,6 +2,7 @@ import { GlobalEventsManager } from "../../../events/init.js";
 import { ClientRouter } from "../../../router.js";
 import { showAlert } from "../../../utils/alert.js";
 import { socket, worker } from "../../../utils/ws.js";
+import { escapeHTML, timeAgo } from "../../home/utils/home_templates.js";
 import { initFetchUsers } from "./messages_fetchUsers.js";
 
 export function UserTemplate(User) {
@@ -14,7 +15,7 @@ export function UserTemplate(User) {
 		</li>`;
 
 	let el = tpl.content.firstElementChild;
-	console.log(el, User.NumberOfUnreadMessages);
+	 
 	
 	let b = el.querySelector('.nbr');
 		if (Number(User.NumberOfUnreadMessages) > 0) {
@@ -121,7 +122,9 @@ export function NoConversationSelected() {
 export function MessageTemplate(ReciverOrSender, content, createdAt) {
 	let side = String(ReciverOrSender || "").toLowerCase();
 	let outgoing = side === "sender" || side === "outgoing" || side === "me" || side === "self";
-	let { displayDate, isoDate } = formatMessageDate(createdAt);
+	 
+	
+	let time = timeAgo(createdAt);
 
 	let tpl = document.createElement("template");
 	tpl.innerHTML = `
@@ -131,37 +134,11 @@ export function MessageTemplate(ReciverOrSender, content, createdAt) {
 		</div>`;
 
 	let el = tpl.content.firstElementChild;
-	el.querySelector(".bubble-content").textContent = String(content || "");
+	 
+	console.log(escapeHTML(content))
+	
+	el.querySelector(".bubble-content").textContent = escapeHTML(content);
 	let dateEl = el.querySelector(".bubble-date");
-	dateEl.textContent = displayDate;
-	if (isoDate) {
-		dateEl.setAttribute("datetime", isoDate);
-	}
+	dateEl.textContent = time;
 	return el;
-}
-
-function formatMessageDate(dateValue) {
-	let fallback = new Date();
-	let parsed = fallback;
-	let fromInput = false;
-
-	if (typeof dateValue === "string" && dateValue.trim()) {
-		let normalized = dateValue.includes("T") ? dateValue : dateValue.replace(" ", "T");
-		let candidate = new Date(normalized);
-		if (!Number.isNaN(candidate.getTime())) {
-			parsed = candidate;
-			fromInput = true;
-		}
-	}
-
-	return {
-		displayDate: parsed.toLocaleString(undefined, {
-			year: "numeric",
-			month: "short",
-			day: "2-digit",
-			hour: "2-digit",
-			minute: "2-digit",
-		}),
-		isoDate: fromInput ? parsed.toISOString() : null,
-	};
 }

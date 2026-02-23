@@ -18,11 +18,11 @@ export function escapeHTML(str) {
     .replace(/'/g, "&#039;");
 }
 
-function timeAgo(dateString) {
+export function timeAgo(dateString) {
   let date = new Date(dateString.replace(" ", "T"));
   let sec = Math.floor((new Date() - date) / 1000);
 
-  let i = { year: 31536000, month: 2592000, day: 86400, hour: 3600, minute: 60};
+  let i = { year: 31536000, month: 2592000, day: 86400, hour: 3600, minute: 60 , second: 1};
 
   for (let key in i) {
     let value = Math.floor(sec / i[key]);
@@ -125,9 +125,7 @@ export function postTemplate(p) {
 }
 
 export function commentTemplate(c) {
-  const reactionsTotal = Number.isInteger(c.NbrOfReactions)
-    ? c.NbrOfReactions
-    : 0;
+  const reactionsTotal = Number.isInteger(c.NbrOfReactions) ? c.NbrOfReactions : 0;
   const userReaction = Number.isInteger(c.UserReaction) ? c.UserReaction : -1;
   const mainEmoji = reactionEmojiByType[userReaction] || "👍";
   const selectedClass = userReaction >= 0 ? " is-selected" : "";
@@ -139,7 +137,7 @@ export function commentTemplate(c) {
       <strong class="comment-author">${c.AutherName}</strong>
       <span class="muted comment-time">${timeAgo(c.CreatedAt)}</span>
     </div>
-    <p class="comment-text">${c.Content}</p>
+    <p class="comment-text">${escapeHTML(c.Content)}</p>
     <div class="comment-actions">
       <div class="reactions" aria-label="Comment reactions" data-reaction-scope="COMMENT" data-reaction-id="${c.ID}" data-default-emoji="👍">
         <button class="btn reaction-btn xs${selectedClass}" type="button" data-reaction-toggle>${mainEmoji}</button>

@@ -39,17 +39,19 @@ async function fetchPosts() {
 		return;
 	}
 
-	const posts = document.getElementById("posts");
-
-	for (const post of data.posts) {
-		posts.insertAdjacentHTML("beforeend", postTemplate(post));
+	let posts = document.getElementById("posts");
+	let fo = document.getElementById("footer-observer");
+	for (let post of data.posts) {
+		let tm = document.createElement("div");
+		tm.innerHTML = postTemplate(post);
+		posts.insertBefore(tm.firstElementChild, fo);
 	}
 
 	statePosts.StartID += 10;
 }
 
 export function initPostsFetchObserver() {
-	const footer = document.getElementById("footer-observer");
+	let footer = document.getElementById("footer-observer");
 
 	statePosts.StartID = 0;
 	statePosts.finish = true;

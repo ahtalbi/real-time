@@ -788,11 +788,12 @@ h3 {
 }
 
 #footer-observer {
-	bottom: 0;
+	top: 0;
 	left: 0;
 	width: 1px;
 	height: 30px;
-	z-index: 999;
+	background: #000;
+	z-index: 99999999;
 }
 
  

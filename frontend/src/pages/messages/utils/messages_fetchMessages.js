@@ -56,7 +56,7 @@ export function renderMessagesHistory(messages) {
 	}
 
 	let orderedMessages = [...messages].reverse();
-	console.log(orderedMessages);
+	 
 	
 	let fragment = document.createDocumentFragment();
 

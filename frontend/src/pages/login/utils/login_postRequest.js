@@ -35,7 +35,7 @@ export function loginSendPost(form) {
                     showAlert("localStorage error");
                     return;
                 }
-                ClientRouter.navigate("/");
+                ClientRouter.navigate("/", {history: "replace"});
                 showAlert("Welcome Back", 2000, "green");
                 socket.send(JSON.stringify({ type: "users_info_for_user"}));
             } else if (res.error) {
