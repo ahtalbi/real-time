@@ -1,9 +1,9 @@
 import { ClientRouter } from "../../../router.js";
 import { showAlert } from "../../../utils/alert.js";
-import { socket } from "../../../utils/ws.js";
+import { socket, worker } from "../../../utils/ws.js";
 import { validateLogin } from "./login_validateLoginForm.js";
 
-export function loginSendPost(form) {
+export async function loginSendPost(form) {
     let payload = {
         Nickname: form.nickname.value.trim(),
         Password: form.password.value,
@@ -35,9 +35,9 @@ export function loginSendPost(form) {
                     showAlert("localStorage error");
                     return;
                 }
-                ClientRouter.navigate("/", {history: "replace"});
                 showAlert("Welcome Back", 2000, "green");
-                socket.send(JSON.stringify({ type: "users_info_for_user"}));
+                socket.send(JSON.stringify({ type: "users_info_for_user" }));
+                worker.port.postMessage({ type: "loggedIn" });
             } else if (res.error) {
                 showAlert(res.error);
             }

@@ -37,12 +37,12 @@ export function initCreatePost() {
 				let msg = await res.text();
 				return showAlert(msg);
 			}
-
+			
 			data = await res.json();
-
 		} catch (e) {
 			showAlert(`Error: ${e.message}`);
 		}
+		
 		const post = data?.post;
 		if (!Array.isArray(post.Comments)) post.Comments = [];
 
