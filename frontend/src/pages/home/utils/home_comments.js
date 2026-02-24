@@ -1,9 +1,10 @@
 import { showAlert } from "../../../utils/alert.js";
 import { GlobalEventsManager } from "../../../events/init.js";
 import { commentTemplate } from "./home_templates.js";
+import { throttle } from "../../../utils/throttle.js";
 
 export function initCreateComment() {
-	GlobalEventsManager.submit.RegisterEvent("comment-form", async (form) => {
+	GlobalEventsManager.submit.RegisterEvent("comment-form", throttle(async (form) => {
 		let postId = form.elements.PostId.value;
 		let content = form.elements.comment.value;
 		if (content.length < 1 || content.length > 60) {
@@ -31,7 +32,7 @@ export function initCreateComment() {
 		} catch (err) {
 			showAlert("Failed to post comment");
 		}
-	});
+	}, 1000));
 }
 
 export function initToggleComments() {

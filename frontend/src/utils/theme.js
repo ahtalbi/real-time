@@ -1,5 +1,6 @@
 const STORAGE_KEY = "theme";
 const DEFAULT_THEME = "light";
+let toggleBtn = null;
 
 function setTheme(theme) {
     document.documentElement.setAttribute("data-theme", theme);
@@ -21,13 +22,14 @@ function buildThemeToggle(initialTheme) {
     return btn;
 }
 
-export function initTheme() {
+function ensureThemeToggle() {
     const initialTheme = getInitialTheme();
-    setTheme(initialTheme);
-    
-    if (document.getElementById("theme-toggle")) return;
-    
-    const toggleBtn = buildThemeToggle(initialTheme);
+    if (toggleBtn) {
+        toggleBtn.textContent = initialTheme === "dark" ? "Light mode" : "Dark mode";
+        return toggleBtn;
+    }
+
+    toggleBtn = buildThemeToggle(initialTheme);
     toggleBtn.addEventListener("click", () => {
         const currentTheme = document.documentElement.getAttribute("data-theme");
         const nextTheme = currentTheme === "dark" ? "light" : "dark";
@@ -35,6 +37,21 @@ export function initTheme() {
         localStorage.setItem(STORAGE_KEY, nextTheme);
         toggleBtn.textContent = nextTheme === "dark" ? "Light mode" : "Dark mode";
     });
-    
-    document.body.appendChild(toggleBtn);
+    return toggleBtn;
+}
+
+export function mountThemeToggle(container = document.getElementById("actions")) {
+    const btn = ensureThemeToggle();
+    if (container) {
+        btn.classList.remove("is-floating");
+        container.prepend(btn);
+        return;
+    }
+    btn.classList.add("is-floating");
+    document.body.appendChild(btn);
+}
+
+export function initTheme() {
+    setTheme(getInitialTheme());
+    mountThemeToggle();
 }

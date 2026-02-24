@@ -1,22 +1,27 @@
 import { PageLoader } from "../packages/loader.js";
 import { Router } from "../packages/router.js";
+import { mountThemeToggle } from "./utils/theme.js";
 
 export let ClientRouter = new Router();
 
 export async function HandleRoutes() {
     let app = document.getElementById("app");
     let loader = new PageLoader();
+    let renderPage = async (pageName) => {
+        await loader.renderPage(pageName, app);
+        mountThemeToggle();
+    };
     let on404 = () => {
-        loader.renderPage("error", app).catch(() => {
+        renderPage("error").catch(() => {
             app.innerHTML = "<h1>404</h1>";
         });
     };
 
     let routes = {
-        "/": { "auth": true, "handler": () => loader.renderPage("home", app) },
-        "/login": { "auth": false, "handler": () => loader.renderPage("login", app) },
-        "/register": { "auth": false, "handler": () => loader.renderPage("register", app) },
-        "/messages": { "auth": true, "handler": () => loader.renderPage("messages", app) },
+        "/": { "auth": true, "handler": () => renderPage("home") },
+        "/login": { "auth": false, "handler": () => renderPage("login") },
+        "/register": { "auth": false, "handler": () => renderPage("register") },
+        "/messages": { "auth": true, "handler": () => renderPage("messages") },
     };
 
     for (let route in routes) {

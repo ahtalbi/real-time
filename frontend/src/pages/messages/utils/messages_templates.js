@@ -2,6 +2,7 @@ import { GlobalEventsManager } from "../../../events/init.js";
 import { ClientRouter } from "../../../router.js";
 import { showAlert } from "../../../utils/alert.js";
 import { socket, worker } from "../../../utils/ws.js";
+import { throttle } from "../../../utils/throttle.js";
 import { escapeHTML, timeAgo } from "../../home/utils/home_templates.js";
 import { initFetchUsers } from "./messages_fetchUsers.js";
 
@@ -84,12 +85,13 @@ export function ConversationTemplate(User) {
 		conversation.scrollTop = conversation.scrollHeight;
 	});
 
-	GlobalEventsManager.submit.RegisterEvent(`composerForm`, (e) => {
+	GlobalEventsManager.submit.RegisterEvent(`composerForm`, throttle((e) => {
 		let message = e.messageInput.value;
-		if (!String(message || "").trim()) return;
+		message = message.trim();
+		if (!message) return;
 
-		if (message.length > 600) {
-			showAlert("the length of the message is more than 600");
+		if (message.length < 1 && message.length > 600) {
+			showAlert("the length of the message need to be between 1 and 600");
 			return
 		}
 
@@ -104,7 +106,7 @@ export function ConversationTemplate(User) {
 		e.messageInput.value = "";
 		initFetchUsers()
 
-	})
+	}, 1000))
 
 	return el;
 }

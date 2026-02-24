@@ -114,10 +114,6 @@ body {
 }
 
 .theme-toggle {
-  position: fixed;
-  right: 16px;
-  bottom: 16px;
-  z-index: 9998;
   border: 1px solid var(--border-subtle);
   background: var(--toggle-bg);
   color: var(--text-primary);
@@ -130,6 +126,18 @@ body {
 
 .theme-toggle:hover {
   background: var(--bg-surface);
+}
+
+.theme-toggle.is-floating {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 9998;
+}
+
+#actions .theme-toggle {
+  position: static;
+  z-index: auto;
 }
 
 @keyframes alert-slide {

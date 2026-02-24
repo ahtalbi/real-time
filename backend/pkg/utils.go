@@ -152,7 +152,7 @@ func TheMessageFormatIsCorrect(data map[string]interface{}) bool {
 	if !ok {
 		return false
 	}
-	return len(content) > 0 && len(content) < 500 && len(receiverID) > 0 && len(receiverID) < 100
+	return len(content) > 0 && len(content) < 600 && len(receiverID) > 0 && len(receiverID) < 100
 }
 
 // this is a helper function return HTTP errors
