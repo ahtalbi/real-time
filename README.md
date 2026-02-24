@@ -2,8 +2,8 @@
 simple social platform with Go backend and static frontend.
 
 ## team
-- ahtalbi
 - iaboudou
+- ahtalbi
 
 ## Start the server
 Open a terminal in the backend/ folder and run the server.
