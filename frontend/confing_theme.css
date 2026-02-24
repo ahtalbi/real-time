@@ -8,10 +8,11 @@
     --highlight-terracotta: #C97C7C;
     --border-subtle: #DCD8C8;
     --reaction-menu-bg: rgba(239, 236, 225, 0.92);
+    --shadow-soft: rgba(0, 0, 0, 0.15);
+    --toggle-bg: #ffffff;
 }
 
-/* dark mode */
-/* :root {
+[data-theme="dark"] {
     --bg-main: #0f1117;
     --bg-surface: #161b22;
     --text-primary: #e6edf3;
@@ -20,7 +21,10 @@
     --accent-hover: #3b73d9;
     --highlight-terracotta: #ff7b72;
     --border-subtle: #2a2f3a;
-} */
+    --reaction-menu-bg: rgba(22, 27, 34, 0.92);
+    --shadow-soft: rgba(0, 0, 0, 0.35);
+    --toggle-bg: #1f2632;
+}
 
 * {
     margin: 0;
@@ -32,6 +36,7 @@ body {
     min-height: 100vh;
     font-family: "Lato", sans-serif;
     background-color: var(--bg-main);
+    color: var(--text-primary);
 }
 
 .card {
@@ -106,6 +111,25 @@ body {
   z-index: 9999;
 
   animation: alert-slide 0.25s ease;
+}
+
+.theme-toggle {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 9998;
+  border: 1px solid var(--border-subtle);
+  background: var(--toggle-bg);
+  color: var(--text-primary);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow: 0 6px 20px var(--shadow-soft);
+}
+
+.theme-toggle:hover {
+  background: var(--bg-surface);
 }
 
 @keyframes alert-slide {
