@@ -14,7 +14,7 @@ export class WebSocketManager {
 
     #baseDelayMs = 500;
     #maxDelayMs = 10000;
-    #reconnectTimer = null;
+    #reconnectTimeoutId = null;
 
     #retryProcessTimePeriod = 50;
     #processTimer = null;
@@ -26,7 +26,7 @@ export class WebSocketManager {
         url,
         reconnectAutomatically = true,
         maxReconnectAttempts = 5,
-        reconnectTimer,
+        reconnectTimeoutId,
         baseDelayMs,
         maxDelayMs,
         retryProcessTimePeriod,
@@ -46,7 +46,7 @@ export class WebSocketManager {
         if (typeof url === "string") this.#url = url;
         if (typeof reconnectAutomatically === "boolean") this.#reconnectAutomatically = reconnectAutomatically;
         if (typeof maxReconnectAttempts === "number" && maxReconnectAttempts >= 0) this.#maxReconnectAttempts = maxReconnectAttempts;
-        if (typeof reconnectTimer === "number" && reconnectTimer > 0) this.#baseDelayMs = reconnectTimer;
+        if (typeof reconnectTimeoutId === "number" && reconnectTimeoutId > 0) this.#baseDelayMs = reconnectTimeoutId;
         if (typeof baseDelayMs === "number" && baseDelayMs > 0) this.#baseDelayMs = baseDelayMs;
         if (typeof maxDelayMs === "number" && maxDelayMs >= this.#baseDelayMs) this.#maxDelayMs = maxDelayMs;
         if (typeof retryProcessTimePeriod === "number" && retryProcessTimePeriod > 0) this.#retryProcessTimePeriod = retryProcessTimePeriod;
@@ -79,9 +79,9 @@ export class WebSocketManager {
         this.#manualClose = false;
         this.#state = "connecting";
 
-        if (this.#reconnectTimer) {
-            clearTimeout(this.#reconnectTimer);
-            this.#reconnectTimer = null;
+        if (this.#reconnectTimeoutId) {
+            clearTimeout(this.#reconnectTimeoutId);
+            this.#reconnectTimeoutId = null;
         }
 
         if (this.#ws && (this.#ws.readyState === WebSocket.OPEN || this.#ws.readyState === WebSocket.CONNECTING)) {
@@ -114,9 +114,9 @@ export class WebSocketManager {
         this.#manualClose = true;
         this.#state = "disconnected";
 
-        if (this.#reconnectTimer) {
-            clearTimeout(this.#reconnectTimer);
-            this.#reconnectTimer = null;
+        if (this.#reconnectTimeoutId) {
+            clearTimeout(this.#reconnectTimeoutId);
+            this.#reconnectTimeoutId = null;
         }
 
         if (this.#processTimer) {
@@ -132,9 +132,9 @@ export class WebSocketManager {
     send(data) {
         const startProcessing = this.#messageQueue.length === 0;
         this.#messageQueue.push(data);
-
-        if (!this.#ws && this.#url && !this.#manualClose) {
-            this.connect(this.#url).catch(() => {});
+        
+        if (!this.#ws && !this.#manualClose) {
+            this.connect(this.#url);
         }
 
         if (startProcessing) {
@@ -193,6 +193,7 @@ export class WebSocketManager {
         if (!this.#ws || this.#ws.readyState !== WebSocket.OPEN) {
             if (this.#processTimer) return;
             this.#processTimer = setTimeout(() => {
+                clearTimeout(this.#processTimer);
                 this.#processTimer = null;
                 this.#processQueue();
             }, this.#retryProcessTimePeriod);
@@ -212,7 +213,7 @@ export class WebSocketManager {
 
     #scheduleReconnect() {
         if (!this.#url) return;
-        if (this.#reconnectTimer) return;
+        if (this.#reconnectTimeoutId) return;
         if (this.#reconnectCount >= this.#maxReconnectAttempts) return;
 
         const exponentialDelay = Math.min(this.#baseDelayMs * (2 ** this.#reconnectCount), this.#maxDelayMs);
@@ -220,8 +221,8 @@ export class WebSocketManager {
         const reconnectDelay = exponentialDelay + addedTime;
 
         this.#reconnectCount += 1;
-        this.#reconnectTimer = setTimeout(() => {
-            this.#reconnectTimer = null;
+        this.#reconnectTimeoutId = setTimeout(() => {
+            this.#reconnectTimeoutId = null;
             if (!this.#manualClose) {
                 this.connect(this.#url).catch(() => {});
             }

@@ -6,7 +6,7 @@ export class PageLoader {
             const res = await fetch(url, { method: "HEAD", cache: "no-cache" });
             if (!res.ok) return false;
 
-            const ct = (res.headers.get("content-type") || "").toLowerCase();
+            const ct = res.headers.get("content-type").toLowerCase();
             switch (type) {
                 case "js":
                     return ct.includes("javascript");
@@ -21,7 +21,7 @@ export class PageLoader {
     }
 
     async loadPageHtml(root, base, pageName) {
-        const res = await fetch(`${base}${pageName}/${pageName}.html`, { cache: "no-cache" });
+        const res = await fetch(`${base}${pageName}/${pageName}.html`);
         if (!res.ok) throw new Error("404");
         root.innerHTML = await res.text();
     }
@@ -47,6 +47,7 @@ export class PageLoader {
 
     async loadPageCss(base, pageName) {
         const href = `${base}${pageName}/${pageName}.css`;
+        
         if (!(await this.fileExists(href, "css"))) return;
 
         document.querySelectorAll("link[data-page-css]").forEach((l) => l.remove());

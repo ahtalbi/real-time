@@ -13,12 +13,11 @@ function initMessagesShortcut() {
 	GlobalEventsManager.click.RegisterEvent("messagesFab", () => { ClientRouter.navigate("/messages") });
 	GlobalEventsManager.click.RegisterEvent("messageUserBtn", (ele) => {
 		const userId = ele.getAttribute("userid");
-		const nickname = ele.getAttribute("username");
 		if (!userId) {
 			ClientRouter.navigate("/messages");
 			return;
 		}
-		const query = new URLSearchParams({ to: userId, name: nickname || "" });
+		const query = new URLSearchParams({ userId });
 		ClientRouter.navigate(`/messages?${query.toString()}`);
 	});
 }

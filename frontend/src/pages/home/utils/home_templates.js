@@ -35,7 +35,6 @@ export function timeAgo(dateString) {
 }
 
 export function postTemplate(p) {
-
   p.CategoryType = p.CategoryType.replace(/,/g, ", ");
   const reactionsTotal = Number.isInteger(p.NbrOfReactions) ? p.NbrOfReactions : 0;
   const userReaction = Number.isInteger(p.UserReaction) ? p.UserReaction : -1;

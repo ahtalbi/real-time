@@ -2,7 +2,6 @@ import { showAlert } from "../../../utils/alert.js";
 import { GlobalEventsManager } from "../../../events/init.js";
 import { postTemplate } from "./home_templates.js";
 
-
 export function initCreatePost() {
 	const posts = document.getElementById("posts");
 
@@ -55,14 +54,10 @@ export function initCreatePost() {
 	});
 }
 
-
-
 export function showcategoriesForCreatePost() {
-
 	const container = document.querySelector('.composer');
 	const textarea = document.querySelector('#postCreate textarea[name="content"]');
 	const categories = document.querySelector('.categories-row');
-
 
 	textarea.addEventListener('focus', () => {
 		categories.classList.add('is-open');
@@ -73,5 +68,4 @@ export function showcategoriesForCreatePost() {
 			categories.classList.remove('is-open');
 		}
 	});
-
 }

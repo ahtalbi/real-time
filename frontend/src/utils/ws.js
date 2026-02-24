@@ -7,11 +7,10 @@ import { stateUsers } from "../pages/messages/utils/messages_fetchUsers.js";
 export let socket = new WebSocketManager({
     url: "ws://localhost:3000/ws",
     onMessage: [onMessage],
-})
-
+});
 
 export let worker = new SharedWorker("./src/worker.js");
-worker.port.start()
+worker.port.start();
 
 function onMessage(res) {
     res = JSON.parse(res.data);
@@ -20,28 +19,27 @@ function onMessage(res) {
         case "messages_history":
             renderMessagesHistory(res.data);
             break;
+        
         case "users_info_for_user":
-             
-
             worker.port.postMessage({ type: "users_info_for_user", data: res.data });
             break;
-
+        
         case "message":
             removeTypingIndicator();
-            // renderSingleMessage(res.message);
-            // send to workers
             worker.port.postMessage(res.message);
-
             socket.send(JSON.stringify({ type: "users_info_for_user" }));
             break;
+        
         case "typing":
             worker.port.postMessage({ type: "typing", from: res.from });
             break;
+        
         case "logout_success":
             localStorage.removeItem("rtf_user");
             ClientRouter.navigate("/login");
             socket.send(JSON.stringify({ type: "users_info_for_user", for_all_users: true }));
             break;
+        
         case "user_offline":
             worker.port.postMessage({ type: "user_offline", userID: res.userID })
             break;
