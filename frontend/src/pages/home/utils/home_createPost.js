@@ -5,6 +5,14 @@ import { postTemplate } from "./home_templates.js";
 export function initCreatePost() {
 	const posts = document.getElementById("posts");
 
+	let picture = document.getElementById("createpostImage");
+	let input = document.getElementById("createpostImage");
+	input.addEventListener("change", function() {
+	  	if (picture.files.length > 0) {
+    		document.querySelector(".file-label").style.background = "#757575";
+  		}
+	});
+
 	GlobalEventsManager.submit.RegisterEvent("postCreate", async (form) => {
 		const content = form.elements.content.value.trim();
 		if (content.length < 1 || content.length > 600) {
@@ -15,7 +23,6 @@ export function initCreatePost() {
 		const catsCheched = form.querySelectorAll('input[name="categories"]:checked');
 		const categoryType = Array.from(catsCheched).map(cb => cb.value).join(",");
 
-		let picture = document.getElementById("createpostImage");
 		const file = picture.files[0];
 
 		const formData = new FormData();
