@@ -731,6 +731,10 @@ h3 {
 	align-items: center;
 }
 
+.comment-create .input {
+	color: black;
+}
+
 .comments-list {
 	list-style: none;
 	margin: 0;

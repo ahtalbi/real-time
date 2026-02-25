@@ -1,5 +1,6 @@
 const STORAGE_KEY = "theme";
 const DEFAULT_THEME = "light";
+let toggleBtn = null;
 
 function setTheme(theme) {
     document.documentElement.setAttribute("data-theme", theme);
@@ -17,24 +18,40 @@ function buildThemeToggle(initialTheme) {
     btn.type = "button";
     btn.className = "theme-toggle";
     btn.setAttribute("aria-label", "Toggle dark mode");
-    btn.textContent = initialTheme === "dark" ? "Light mode" : "Dark mode";
+    btn.textContent = initialTheme === "dark" ? "🌞" : "🌚";
     return btn;
 }
 
-export function initTheme() {
+function ensureThemeToggle() {
     const initialTheme = getInitialTheme();
-    setTheme(initialTheme);
-    
-    if (document.getElementById("theme-toggle")) return;
-    
-    const toggleBtn = buildThemeToggle(initialTheme);
+    if (toggleBtn) {
+        toggleBtn.textContent = initialTheme === "dark" ? "🌞" : "🌚";
+        return toggleBtn;
+    }
+
+    toggleBtn = buildThemeToggle(initialTheme);
     toggleBtn.addEventListener("click", () => {
         const currentTheme = document.documentElement.getAttribute("data-theme");
         const nextTheme = currentTheme === "dark" ? "light" : "dark";
         setTheme(nextTheme);
         localStorage.setItem(STORAGE_KEY, nextTheme);
-        toggleBtn.textContent = nextTheme === "dark" ? "Light mode" : "Dark mode";
+        toggleBtn.textContent = nextTheme === "dark" ? "🌞" : "🌚";
     });
-    
-    document.body.appendChild(toggleBtn);
+    return toggleBtn;
+}
+
+export function mountThemeToggle(container = document.getElementById("actions")) {
+    const btn = ensureThemeToggle();
+    if (container) {
+        btn.classList.remove("is-floating");
+        container.prepend(btn);
+        return;
+    }
+    btn.classList.add("is-floating");
+    document.body.appendChild(btn);
+}
+
+export function initTheme() {
+    setTheme(getInitialTheme());
+    mountThemeToggle();
 }
