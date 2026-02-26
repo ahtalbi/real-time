@@ -2,30 +2,24 @@ import { GlobalEventsManager } from "../../../events/init.js";
 import { reactionEmojiByType } from "./home_templates.js";
 
 export function initReactions() {
-	GlobalEventsManager.click.RegisterEvent(
-		"reaction-option",
-		async (option) => {
-			const type = Number(option.dataset.reactionType);
-			const wrapper = option.closest(".reactions");
-			const postOrCommentID = wrapper.dataset.reactionId;
-			const postOrComment = wrapper.dataset.reactionScope
-				.trim()
-				.toUpperCase();
-			const mainButton = wrapper.querySelector("[data-reaction-toggle]");
-			const totalEl = wrapper.querySelector(".reaction-total");
-			const nextEmoji = reactionEmojiByType[type] || "👍";
-			const isSameReaction =
-				mainButton.classList.contains("is-selected") &&
-				mainButton.textContent.trim() === nextEmoji;
+	GlobalEventsManager.click.RegisterEvent( "reaction-option", async (option) => {
+			let type = Number(option.dataset.reactionType);
+			let wrapper = option.closest(".reactions");
+			let postOrCommentID = wrapper.dataset.reactionId;
+			let postOrComment = wrapper.dataset.reactionScope.trim().toUpperCase();
+			let mainButton = wrapper.querySelector("[data-reaction-toggle]");
+			let totalEl = wrapper.querySelector(".reaction-total");
+			let nextEmoji = reactionEmojiByType[type] || "👍";
+			let isSameReaction = mainButton.classList.contains("is-selected") && mainButton.textContent.trim() === nextEmoji;
 
-			const payload = {
+			let payload = {
 				PostorcommentID: postOrCommentID,
 				PostOrComment: postOrComment,
 				Type: type,
 			};
 
 			try {
-				const res = await fetch(
+				let res = await fetch(
 					"http://localhost:3000/createreaction",
 					{
 						method: "POST",
@@ -34,7 +28,7 @@ export function initReactions() {
 					},
 				);
 
-				const data = await res.json();
+				let data = await res.json();
 
 				if (!res.ok) return console.error("reaction error:", data);
 				if (isSameReaction) {

@@ -115,7 +115,7 @@ body {
 
 .theme-toggle {
   position: fixed;
-  right: 16px;
+  left: 16px;
   bottom: 16px;
   z-index: 9998;
   border: 1px solid var(--border-subtle);
