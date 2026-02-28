@@ -53,6 +53,8 @@ type Comment struct {
 type Message struct {
 	ID         int
 	SenderID   string
+	SenderName string
+	ReceiverName string
 	ReceiverID string
 	Content    string
 	IsNotRead  int

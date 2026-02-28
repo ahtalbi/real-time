@@ -203,7 +203,7 @@ func (r *Repo) IsCategoryCorrect(category string) ([]int, error) {
 // insert comment into the DB
 func (r *Repo) InsertCommentDB(comment models.Comment) (models.Comment, error) {
 	id := uuid.NewString()
-	t := time.Now().Format("2006-01-02 15:04:05")
+	t := time.Now().Format("2006-01-02 15:04:05.000000")
 	_, er := r.Db.Exec(
 		"INSERT INTO comments (id, content, user_id, post_id, created_at) VALUES (?, ?, ?, ?, ?)", id, comment.Content, comment.UserID, comment.PostID, t,
 	)
@@ -538,27 +538,27 @@ func (r *Repo) Get100UsersFor(userID string, startID int) ([]models.User, error)
 
 // get the users info with the last message for the message list
 func (r *Repo) GetUsersInfoFor(userID string, forAll bool) ([]models.UserInfo, error) {
-    usersInfo := []models.UserInfo{}
+	usersInfo := []models.UserInfo{}
 
-    rows, err := r.Db.Query(`SELECT id, nickname, firstname, lastname FROM users`)
-    if err != nil {
-        return nil, errors.New("SERVER ERROR")
-    }
-    defer rows.Close()
+	rows, err := r.Db.Query(`SELECT id, nickname, firstname, lastname FROM users`)
+	if err != nil {
+		return nil, errors.New("SERVER ERROR")
+	}
+	defer rows.Close()
 
-    for rows.Next() {
-        var u models.UserInfo
-        err := rows.Scan(&u.ID, &u.Nickname, &u.Firstname, &u.Lastname)
-        if err != nil {
-            return nil, errors.New("SERVER ERROR")
-        }
+	for rows.Next() {
+		var u models.UserInfo
+		err := rows.Scan(&u.ID, &u.Nickname, &u.Firstname, &u.Lastname)
+		if err != nil {
+			return nil, errors.New("SERVER ERROR")
+		}
 
-        if  u.ID == userID && !forAll {
-            continue
-        }
-            // get the last message between them
-            var msg models.Message
-            err = r.Db.QueryRow(`
+		if u.ID == userID && !forAll {
+			continue
+		}
+		// get the last message between them
+		var msg models.Message
+		err = r.Db.QueryRow(`
             SELECT id, sender_id, receiver_id, content, is_NOT_read, created_at 
             FROM messages 
             WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)
@@ -566,28 +566,28 @@ func (r *Repo) GetUsersInfoFor(userID string, forAll bool) ([]models.UserInfo, e
             LIMIT 1
         `, userID, u.ID, u.ID, userID).Scan(&msg.ID, &msg.SenderID, &msg.ReceiverID, &msg.Content, &msg.IsNotRead, &msg.CreatedAt)
 
-            if err != nil && err != sql.ErrNoRows {
-                return nil, errors.New("SERVER ERROR")
-            }
-            u.LastMessage = msg
+		if err != nil && err != sql.ErrNoRows {
+			return nil, errors.New("SERVER ERROR")
+		}
+		u.LastMessage = msg
 
-            // calcul the number of messages not read from the other user
-            var count int
-            err = r.Db.QueryRow(` SELECT COUNT(*) FROM messages WHERE sender_id = ? AND receiver_id = ? AND is_NOT_read = 1`, u.ID, userID).Scan(&count)
-            if err != nil {
-                return nil, errors.New("SERVER ERROR")
-            }
-            u.NumberOfUnreadMessages = count
+		// calcul the number of messages not read from the other user
+		var count int
+		err = r.Db.QueryRow(` SELECT COUNT(*) FROM messages WHERE sender_id = ? AND receiver_id = ? AND is_NOT_read = 1`, u.ID, userID).Scan(&count)
+		if err != nil {
+			return nil, errors.New("SERVER ERROR")
+		}
+		u.NumberOfUnreadMessages = count
 
-            usersInfo = append(usersInfo, u)
-        
-    }
+		usersInfo = append(usersInfo, u)
 
-    if len(usersInfo) == 0 {
-        return nil, errors.New("no user exists")
-    }
+	}
 
-    return usersInfo, nil
+	if len(usersInfo) == 0 {
+		return nil, errors.New("no user exists")
+	}
+
+	return usersInfo, nil
 }
 
 // get the user id based on the front id from DB
@@ -621,6 +621,15 @@ func (r *Repo) InsertMessage(msg map[string]interface{}) (models.Message, error)
 	id, _ := res.LastInsertId()
 	m.ID = int(id)
 	m.IsNotRead = 1
+
+	m.SenderName, er = r.GetUserAuthernameByID(senderID)
+	if er != nil {
+		return models.Message{}, er
+	}
+	m.ReceiverName, er = r.GetUserAuthernameByID(receiverID)
+	if er != nil {
+		return models.Message{}, er
+	}
 
 	return m, nil
 }
@@ -732,6 +741,14 @@ func (r *Repo) GetMessagesHistoryBetweenTwoUsers(senderID, receiverID string, of
 	for rows.Next() {
 		m := models.Message{}
 		er := rows.Scan(&m.SenderID, &m.ReceiverID, &m.Content, &m.CreatedAt)
+		if er != nil {
+			continue
+		}
+		m.ReceiverName, er = r.GetUserAuthernameByID(m.ReceiverID)
+		if er != nil {
+			continue
+		}
+		m.SenderName, er = r.GetUserAuthernameByID(m.SenderID)
 		if er != nil {
 			continue
 		}

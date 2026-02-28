@@ -86,13 +86,21 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 
 			ws.Mu.Lock()
 			toUserWS, exist := ws.Clients[m.ReceiverID]
+			s, _ := ws.Clients[USER.ID]
 			ws.Mu.Unlock()
+
+			select {
+			case s.Chan <- Data:
+			default:
+			}
+			
 			if exist {
 				select {
 				case toUserWS.Chan <- Data:
 				default:
 				}
 			}
+
 			break
 
 		// case of receiving and reading message in place
