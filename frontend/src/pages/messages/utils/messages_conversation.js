@@ -6,7 +6,7 @@ import { socket } from "../../../utils/ws.js";
 let typingIndicatorTimer = null;
 
 export async function initConversations() {
-    const urlParams = new URLSearchParams(window.location.search);
+    let urlParams = new URLSearchParams(window.location.search);
     let userId = urlParams.get("userId");
     let container = document.getElementById("card-messages");
     socket.send(JSON.stringify({ type: "online_users" }));
@@ -27,17 +27,17 @@ export async function initConversations() {
 }
 
 export function getActiveConversationUserId() {
-    const urlParams = new URLSearchParams(window.location.search);
+    let urlParams = new URLSearchParams(window.location.search);
     return urlParams.get("userId");
 }
 
 export function showTypingIndicator() {
-    const body = document.getElementById("conversationBody");
+    let body = document.getElementById("conversationBody");
     if (!body) return;
 
     removeTypingIndicator();
 
-    const indicator = document.createElement("div");
+    let indicator = document.createElement("div");
     indicator.id = "typingIndicator";
     indicator.className = "bubble incoming typing-indicator";
     indicator.textContent = "Typing...";
@@ -55,6 +55,6 @@ export function removeTypingIndicator() {
         typingIndicatorTimer = null;
     }
 
-    const indicator = document.getElementById("typingIndicator");
+    let indicator = document.getElementById("typingIndicator");
     if (indicator) indicator.remove();
 }

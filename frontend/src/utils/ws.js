@@ -1,5 +1,5 @@
 import { getActiveConversationUserId, removeTypingIndicator, showTypingIndicator } from "../pages/messages/utils/messages_conversation.js";
-import { renderMessagesHistory, renderSingleMessage } from "../pages/messages/utils/messages_fetchMessages.js";
+import { renderMessagesHistory, stateMessages } from "../pages/messages/utils/messages_fetchMessages.js";
 import { MessageTemplate, UserTemplate } from "../pages/messages/utils/messages_templates.js";
 import { WebSocketManager } from "./../../packages/websocket.js";
 import { stateUsers } from "../pages/messages/utils/messages_fetchUsers.js";
@@ -27,8 +27,17 @@ function onMessage(res) {
 
         case "message":
             removeTypingIndicator();
-            worker.port.postMessage(res.message);
+            worker.port.postMessage({ type: "message", message: res.message });
             socket.send(JSON.stringify({ type: "users_info_for_user" }));
+            let urlParams = new URLSearchParams(window.location.search);
+            let userId = urlParams.get("userId");
+            let currentUser = JSON.parse(localStorage.getItem("rtf_user"));
+            if (userId) {
+                console.log(userId, currentUser.ID);
+                
+                socket.send(JSON.stringify({ type: "message_read_in_place", senderID: userId, receiverID: currentUser.ID }));
+            }
+            stateMessages.StartID++
             break;
 
         case "typing":
@@ -50,7 +59,7 @@ function onMessage(res) {
 worker.port.onmessage = function (e) {
     switch (e.data.type) {
         case "loggedIn":
-            ClientRouter.navigate("/", { history: "replace" }); 
+            ClientRouter.navigate("/", { history: "replace" });
         case "user_offline":
             let el = document.querySelector(`[data-user-id="${e.data.userID}"]`);
             if (el) {
@@ -60,6 +69,7 @@ worker.port.onmessage = function (e) {
             break;
         case "users_info_for_user":
             let usersList = document.getElementById("FreindsList");
+            if (!usersList) return;
             usersList.innerHTML = "";
             stateUsers.Users = {};
             for (let user of e.data.data) {
@@ -70,7 +80,8 @@ worker.port.onmessage = function (e) {
             break;
         case "message":
             let conversation = document.querySelector("#conversationBody");
-            conversation.append(MessageTemplate("me", e.data.message, new Date().toISOString()));
+            let message = e.data.message;
+            conversation.append(MessageTemplate(message.SenderID, message.Content, new Date().toISOString(), message.SenderName, message.ReceiverName));
             conversation.scrollTop = conversation.scrollHeight;
             break;
         case "typing":
@@ -79,5 +90,4 @@ worker.port.onmessage = function (e) {
             }
             break;
     }
-    renderSingleMessage(e.data);
 }

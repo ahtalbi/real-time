@@ -257,7 +257,7 @@ nav h1 {
   flex-direction: column;
   gap: 12px;
   max-height: 100vh;
-  overflow-y: scroll;
+  overflow-y: auto;
 }
 
 .threads .title {
@@ -519,6 +519,10 @@ nav h1 {
 #freinds-observer {
   height: 1;
   width: 30px;
+}
+
+.UserName {
+  font-size: 10px;
 }
 
 @media (max-width: 900px) {

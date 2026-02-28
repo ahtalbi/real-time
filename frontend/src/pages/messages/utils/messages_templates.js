@@ -2,7 +2,8 @@ import { GlobalEventsManager } from "../../../events/init.js";
 import { ClientRouter } from "../../../router.js";
 import { showAlert } from "../../../utils/alert.js";
 import { socket, worker } from "../../../utils/ws.js";
-import { escapeHTML, timeAgo } from "../../home/utils/home_templates.js";
+import { formatTime } from "../../home/utils/home_templates.js";
+import { stateMessages } from "./messages_fetchMessages.js";
 import { initFetchUsers } from "./messages_fetchUsers.js";
 
 export function UserTemplate(User) {
@@ -70,7 +71,7 @@ export function ConversationTemplate(User) {
 
 	let input = el.querySelector("#messageInput");
 	input.addEventListener("input", (e) => {
-		let value = String(e.target.value || "");
+		let value = e.target.value;
 		if (!value.trim()) return;
 		socket.send(JSON.stringify({
 			type: "typing",
@@ -85,25 +86,26 @@ export function ConversationTemplate(User) {
 	});
 
 	GlobalEventsManager.submit.RegisterEvent(`composerForm`, (e) => {
-		let message = e.messageInput.value;
-		if (!String(message || "").trim()) return;
+		let message = e.messageInput.value.trim();
+		if (!message) return;
 
 		if (message.length > 600) {
 			showAlert("the length of the message is more than 600");
 			return
 		}
 
-		worker.port.postMessage({ type: "message", message });
 		socket.send(JSON.stringify({
 			"type": "message",
 			"message": {
 				"Content": message,
 				"ReceiverID": User.ID,
 			}
-		}))
+		}));
 		e.messageInput.value = "";
-		initFetchUsers()
-
+		stateMessages.StartID++;
+		conversation.scrollTop = conversation.scrollHeight;
+		// ici
+		initFetchUsers();
 	})
 
 	return el;
@@ -119,25 +121,24 @@ export function NoConversationSelected() {
 	return tpl.content.firstElementChild;
 }
 
-export function MessageTemplate(ReciverOrSender, content, createdAt) {
-	let side = String(ReciverOrSender || "").toLowerCase();
-	let outgoing = side === "sender" || side === "outgoing" || side === "me" || side === "self";
-
-
-	let time = timeAgo(createdAt);
+export function MessageTemplate(senderID, content, createdAt, senderName = "", reciverName = "") {
+	let user = JSON.parse(localStorage.getItem("rtf_user"));
+	
+	let side = user.ID === senderID ? "outgoing" : "incoming";
+	let time = formatTime(createdAt);
 
 	let tpl = document.createElement("template");
 	tpl.innerHTML = `
-		<div class="bubble ${outgoing ? "outgoing" : "incoming"}">
+		<div class="bubble ${side}">
+			<p class="UserName">${senderName}</p>
 			<p class="bubble-content"></p>
 			<time class="bubble-date"></time>
 		</div>`;
 
 	let el = tpl.content.firstElementChild;
 
-	console.log(escapeHTML(content))
-
-	el.querySelector(".bubble-content").textContent = escapeHTML(content);
+	el.querySelector(".bubble-content").textContent = content.trim();
+	
 	let dateEl = el.querySelector(".bubble-date");
 	dateEl.textContent = time;
 	return el;

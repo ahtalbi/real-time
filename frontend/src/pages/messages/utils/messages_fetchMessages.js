@@ -1,5 +1,4 @@
 import { socket } from "../../../utils/ws.js";
-import { initFetchUsers } from "./messages_fetchUsers.js";
 import { MessageTemplate } from "./messages_templates.js";
 
 export let stateMessages = {
@@ -56,13 +55,10 @@ export function renderMessagesHistory(messages) {
 	}
 
 	let orderedMessages = [...messages].reverse();
-	 
-	
 	let fragment = document.createDocumentFragment();
 
 	for (let message of orderedMessages) {
-		let side = message.SenderID === stateMessages.receiverID ? "incoming" : "outgoing";
-		let bubble = MessageTemplate(side, message.Content || "", message.CreatedAt);
+		let bubble = MessageTemplate(message.SenderID, message.Content, message.CreatedAt,  message.SenderName, message.ReceiverName);
 		fragment.appendChild(bubble);
 	}
 
@@ -82,25 +78,11 @@ export function renderMessagesHistory(messages) {
 	if (!stateMessages.finish && stateMessages.io && stateMessages.topObserver) {
 		stateMessages.io.observe(stateMessages.topObserver);
 	}
-
-	body.scrollTop = body.scrollHeight;
-	toggleScrollBottomButton(!isNearBottom(body));
-}
-
-export function renderSingleMessage(message) {
-	const urlParams = new URLSearchParams(window.location.search);
-	let userId = urlParams.get("userId");
-	if (message.SenderID !== userId) return;
-	let body = document.getElementById("conversationBody");
-	if (!body) return;
-	let currentUser = JSON.parse(localStorage.getItem("rtf_user"));
-	socket.send(JSON.stringify({ type: "message_read_in_place", senderID: message.SenderID, receiverID: currentUser.ID }));
-	socket.send(JSON.stringify({ type: "users_info_for_user" }));
-	let side = message.SenderID === stateMessages.receiverID ? "incoming" : "outgoing";
-	let bubble = MessageTemplate(side, message.Content, message.CreatedAt);
-	body.appendChild(bubble);
-	initFetchUsers();
-
+	if (isFirstBatch) {
+		body.scrollTop = body.scrollHeight;
+	} else {
+		body.scrollTop = body.scrollTop + 10;
+	}
 	toggleScrollBottomButton(!isNearBottom(body));
 }
 

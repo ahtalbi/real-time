@@ -18,20 +18,9 @@ export function escapeHTML(str) {
     .replace(/'/g, "&#039;");
 }
 
-export function timeAgo(dateString) {
-  let date = new Date(dateString.replace(" ", "T"));
-  let sec = Math.floor((new Date() - date) / 1000);
-
-  let i = { year: 31536000, month: 2592000, day: 86400, hour: 3600, minute: 60 , second: 1};
-
-  for (let key in i) {
-    let value = Math.floor(sec / i[key]);
-    if (value >= 1) {
-      return `${value} ${key}${value > 1 ? "s" : ""} ago`;
-    }
-  }
-
-  return "Just now";
+export function formatTime(time) {
+  let n = new Date(time);
+  return `${n.getFullYear()}-${n.getMonth()+1}-${n.getDate()} ${n.getHours()}:${n.getMinutes()}:${n.getSeconds()}`;
 }
 
 export function postTemplate(p) {
@@ -48,7 +37,7 @@ export function postTemplate(p) {
       <div>
         <h3 class="post-title">${escapeHTML(p.AutherName)}</h3>
         <h1 class="muted">${escapeHTML(p.CategoryType)}</h1>
-        <p class="muted">${timeAgo(escapeHTML(p.CreatedAt))}</p>
+        <p class="muted">${formatTime(escapeHTML(p.CreatedAt))}</p>
       </div>
     </header>
   
@@ -133,7 +122,7 @@ export function commentTemplate(c) {
   <div class="comment-body">
     <div class="row-between">
       <strong class="comment-author">${c.AutherName}</strong>
-      <span class="muted comment-time">${timeAgo(c.CreatedAt)}</span>
+      <span class="muted comment-time">${formatTime(c.CreatedAt)}</span>
     </div>
     <p class="comment-text">${escapeHTML(c.Content)}</p>
     <div class="comment-actions">
