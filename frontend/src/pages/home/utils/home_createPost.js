@@ -3,14 +3,19 @@ import { GlobalEventsManager } from "../../../events/init.js";
 import { postTemplate } from "./home_templates.js";
 
 export function initCreatePost() {
-	const posts = document.getElementById("posts");
-
+	let posts = document.getElementById("posts");
 	let picture = document.getElementById("createpostImage");
-	let input = document.getElementById("createpostImage");
-	input.addEventListener("change", function() {
-	  	if (picture.files.length > 0) {
-    		document.querySelector(".file-label").style.background = "#757575";
-  		}
+	let img = document.getElementById('pic');
+
+	picture.addEventListener("change", function () {
+		if (picture.files.length > 0) {
+			let file = this.files[0];
+			img.src = URL.createObjectURL(file);
+			img.textContent = ''
+			img.style.backgroundImage = `url(${img.src})`;
+			img.style.backgroundSize = "cover";
+			img.style.backgroundPosition = "center";
+		}
 	});
 
 	GlobalEventsManager.submit.RegisterEvent("postCreate", async (form) => {
@@ -46,8 +51,15 @@ export function initCreatePost() {
 			}
 			
 			data = await res.json();
+
+			// reset createpost
+			img.textContent = '📎'
+			img.src = '';
+			img.style.backgroundImage = ``;
+			
 		} catch (e) {
 			showAlert(`Error: ${e.message}`);
+			return
 		}
 		
 		const post = data?.post;

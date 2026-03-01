@@ -36,6 +36,8 @@
 }
 
 .textarea-wrapper .file-label {
+	height: 2.2rem;
+	width: 2.2rem;
     position: absolute;
     right: 70px;
     bottom: 8px;
@@ -44,13 +46,8 @@
     justify-content: center;
     padding: 6px 8px;
     border-radius: 10px;
-    background: var(--bg-main);
     cursor: pointer;
     z-index: 2;
-}
-
-.file-label:hover {
-    background: var(--bg-surface);
 }
 
 

@@ -9,8 +9,9 @@ import (
 )
 
 type RateLimiter struct {
-	LastTime time.Time
-	Counter  int
+	LastTime    time.Time
+	Counter     int
+	TimeToUnban time.Time
 }
 
 type Handler struct {

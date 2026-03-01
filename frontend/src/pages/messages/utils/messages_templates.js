@@ -86,6 +86,7 @@ export function ConversationTemplate(User) {
 	});
 
 	GlobalEventsManager.submit.RegisterEvent(`composerForm`, (e) => {
+		console.log(e)
 		let message = e.messageInput.value.trim();
 		if (!message) return;
 

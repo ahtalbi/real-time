@@ -17,6 +17,11 @@ func (h *Handler) Middleware(next http.HandlerFunc) http.HandlerFunc {
 			w.Write([]byte(`{"error":"unauthorized"}`))
 			return
 		}
+		if len(user.ID) == 0 {
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte(`{"error":"unauthorized"}`))
+			return
+		}
 		ctx := context.WithValue(r.Context(), "userID", user.ID)
 		next(w, r.WithContext(ctx))
 	}

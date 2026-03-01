@@ -33,8 +33,6 @@ function onMessage(res) {
             let userId = urlParams.get("userId");
             let currentUser = JSON.parse(localStorage.getItem("rtf_user"));
             if (userId) {
-                console.log(userId, currentUser.ID);
-                
                 socket.send(JSON.stringify({ type: "message_read_in_place", senderID: userId, receiverID: currentUser.ID }));
             }
             stateMessages.StartID++

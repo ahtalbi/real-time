@@ -19,18 +19,8 @@ func Routes(mux *http.ServeMux, handler *Handler) {
 
 	// home page, login and register routes
 	LRroutes := map[string]http.HandlerFunc{
-		"/assets/":           handler.Cntrlrs.StaticsHandler,
-		"/componenets/":      handler.Cntrlrs.StaticsHandler,
-		"/pages/":            handler.Cntrlrs.StaticsHandler,
-		"/confing_theme.css": handler.Cntrlrs.StaticsHandler,
-		"/src/":              handler.Cntrlrs.StaticsHandler,
-		"/packages/":         handler.Cntrlrs.StaticsHandler,
-		"/pics/":             handler.Cntrlrs.ServePictures,
-
-		"/hassession":   handler.Cntrlrs.HasSession,
 		"/api/login":    handler.Cntrlrs.Login,
 		"/api/register": handler.Cntrlrs.Register,
-		"/":             handler.Cntrlrs.Home,
 	}
 	for path, h := range LRroutes {
 		mux.HandleFunc(path, handler.RateLimit(h))
@@ -39,6 +29,17 @@ func Routes(mux *http.ServeMux, handler *Handler) {
 	//
 	ws := map[string]http.HandlerFunc{
 		"/ws": handler.Cntrlrs.WebSocket,
+
+		"/assets/":           handler.Cntrlrs.StaticsHandler,
+		"/componenets/":      handler.Cntrlrs.StaticsHandler,
+		"/pages/":            handler.Cntrlrs.StaticsHandler,
+		"/confing_theme.css": handler.Cntrlrs.StaticsHandler,
+		"/src/":              handler.Cntrlrs.StaticsHandler,
+		"/packages/":         handler.Cntrlrs.StaticsHandler,
+		"/pics/":             handler.Cntrlrs.ServePictures,
+
+		"/hassession": handler.Cntrlrs.HasSession,
+		"/":           handler.Cntrlrs.Home,
 	}
 	for path, h := range ws {
 		mux.HandleFunc(path, h)
