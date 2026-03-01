@@ -12,7 +12,7 @@ export function initCreateComment() {
 		}
 
 		try {
-			let res = await fetch(`http://localhost:3000/createcomment`, {
+			let res = await fetch(`http://10.1.9.10:3000/createcomment`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ PostID: postId, Content: content }),
@@ -52,7 +52,7 @@ export function initToggleComments() {
 		let list = document.getElementById(`comments-list-${post.id}`);
 
 		try {
-			let res = await fetch(`http://localhost:3000/getcomments`, {
+			let res = await fetch(`http://10.1.9.10:3000/getcomments`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ PostID: post.id, Offset: list.children.length }),

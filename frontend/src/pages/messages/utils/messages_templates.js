@@ -1,7 +1,8 @@
 import { GlobalEventsManager } from "../../../events/init.js";
 import { ClientRouter } from "../../../router.js";
 import { showAlert } from "../../../utils/alert.js";
-import { socket, worker } from "../../../utils/ws.js";
+import { throttle} from "../../../utils/throttle.js";
+import { socket } from "../../../utils/ws.js";
 import { formatTime } from "../../home/utils/home_templates.js";
 import { stateMessages } from "./messages_fetchMessages.js";
 import { initFetchUsers } from "./messages_fetchUsers.js";
@@ -68,11 +69,18 @@ export function ConversationTemplate(User) {
 `;
 
 	let el = tpl.content;
+	let throttleSendMessage = throttle(sendMessage, 100);
 
 	let input = el.querySelector("#messageInput");
-	input.addEventListener("input", (e) => {
-		let value = e.target.value;
-		if (!value.trim()) return;
+	input.addEventListener("keydown", (e) => {
+		if (e.key === "Enter" && !e.shiftKey) {
+			e.preventDefault();
+			let value = input.value.trim();
+			if (!value) return;
+			if (throttleSendMessage(value) === "functionne not executed") return;
+			input.value = "";
+			return;
+		}
 		socket.send(JSON.stringify({
 			type: "typing",
 			receiverID: User.ID,
@@ -80,16 +88,8 @@ export function ConversationTemplate(User) {
 		}));
 	});
 
-	let conversation = el.querySelector("#conversationBody");
-	GlobalEventsManager.click.RegisterEvent("scrollBottomBtn", () => {
-		conversation.scrollTop = conversation.scrollHeight;
-	});
-
-	GlobalEventsManager.submit.RegisterEvent(`composerForm`, (e) => {
-		console.log(e)
-		let message = e.messageInput.value.trim();
+	function sendMessage(message) {
 		if (!message) return;
-
 		if (message.length > 600) {
 			showAlert("the length of the message is more than 600");
 			return
@@ -102,11 +102,20 @@ export function ConversationTemplate(User) {
 				"ReceiverID": User.ID,
 			}
 		}));
-		e.messageInput.value = "";
 		stateMessages.StartID++;
 		conversation.scrollTop = conversation.scrollHeight;
-		// ici
 		initFetchUsers();
+	}
+
+	let conversation = el.querySelector("#conversationBody");
+	GlobalEventsManager.click.RegisterEvent("scrollBottomBtn", () => {
+		conversation.scrollTop = conversation.scrollHeight;
+	});
+
+	GlobalEventsManager.submit.RegisterEvent(`composerForm`, (e) => {
+		let value = e.messageInput.value.trim();
+		if (throttleSendMessage(value) === "functionne not executed") return;
+		e.messageInput.value = "";
 	})
 
 	return el;
@@ -124,7 +133,7 @@ export function NoConversationSelected() {
 
 export function MessageTemplate(senderID, content, createdAt, senderName = "", reciverName = "") {
 	let user = JSON.parse(localStorage.getItem("rtf_user"));
-	
+
 	let side = user.ID === senderID ? "outgoing" : "incoming";
 	let time = formatTime(createdAt);
 
@@ -139,7 +148,7 @@ export function MessageTemplate(senderID, content, createdAt, senderName = "", r
 	let el = tpl.content.firstElementChild;
 
 	el.querySelector(".bubble-content").textContent = content.trim();
-	
+
 	let dateEl = el.querySelector(".bubble-date");
 	dateEl.textContent = time;
 	return el;

@@ -24,7 +24,7 @@ export async function HandleRoutes() {
     }
     ClientRouter.listen(on404);
 
-    fetch("http://localhost:3000/hassession")
+    fetch("http://10.1.9.10:3000/hassession")
         .then(res => res.json())
         .then(async res => {
             let path = window.location.pathname;

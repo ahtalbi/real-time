@@ -8,7 +8,10 @@ export function initSetUserData() {
 	let imagePhoto = document.getElementById("profile");
 	imagePhoto.src = (dataUser.ProfileImage.Valid) ? dataUser.ProfileImage.String : "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS2K1RhGUfKPoqfQRBcOKh85yJyf-5XILTo3Q&s";
 	imagePhoto = document.getElementById("avatar");
-	imagePhoto.src = (dataUser.ProfileImage.Valid) ? dataUser.ProfileImage.String : "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS2K1RhGUfKPoqfQRBcOKh85yJyf-5XILTo3Q&s";	
+	imagePhoto.src = (dataUser.ProfileImage.Valid) ? dataUser.ProfileImage.String : "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS2K1RhGUfKPoqfQRBcOKh85yJyf-5XILTo3Q&s";
+
+    let usernameContainer = document.getElementById("nickname");
+    usernameContainer.textContent = dataUser.Nickname;
 }
 
 // {"ID":"55667366-7c61-4dac-994f-711263bcaba6",

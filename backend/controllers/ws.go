@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"rtf/config"
@@ -38,6 +39,32 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 	user := c.Ws.Clients[USER.ID]
 	c.Ws.Mu.Unlock()
 
+	annonceusers := func() {
+		for _, client := range ws.Clients {
+
+			usersinfo, er := c.DB.GetUsersInfoFor(client.UserInfo.ID, true)
+			if er != nil {
+				continue
+			}
+			usersinfo = pkg.SortUsers(usersinfo)
+			for i, u := range usersinfo {
+				if _, ok := c.Ws.Clients[u.ID]; ok {
+					usersinfo[i].IsOnline = true
+				} else {
+					usersinfo[i].IsOnline = false
+				}
+			}
+
+			select {
+			case client.Chan <- map[string]interface{}{
+				"type": "users_info_for_user",
+				"data": usersinfo,
+			}:
+			default:
+			}
+		}
+	}
+
 	defer func() {
 		user.RemoveUserWS(ws, USER.ID, conn)
 	}()
@@ -48,6 +75,7 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 	for {
 		_, data, er := conn.ReadMessage()
 		if er != nil {
+			annonceusers()
 			break
 		}
 
@@ -68,6 +96,8 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 			if !ok || !pkg.TheMessageFormatIsCorrect(msgRaw) || len(content) > config.Max_Size_message {
 				continue
 			}
+
+			fmt.Println(content)
 
 			ws.Mu.Lock()
 			if !user.RateLimit.Check() {
@@ -93,7 +123,7 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 			case s.Chan <- Data:
 			default:
 			}
-			
+
 			if exist {
 				select {
 				case toUserWS.Chan <- Data:
@@ -168,29 +198,7 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 			_, ok := Data["for_all_users"].(bool)
 
 			if ok {
-				for _, client := range ws.Clients {
-
-					usersinfo, er := c.DB.GetUsersInfoFor(client.UserInfo.ID, ok)
-					if er != nil {
-						continue
-					}
-					usersinfo = pkg.SortUsers(usersinfo)
-					for i, u := range usersinfo {
-						if _, ok := c.Ws.Clients[u.ID]; ok {
-							usersinfo[i].IsOnline = true
-						} else {
-							usersinfo[i].IsOnline = false
-						}
-					}
-
-					select {
-					case client.Chan <- map[string]interface{}{
-						"type": "users_info_for_user",
-						"data": usersinfo,
-					}:
-					default:
-					}
-				}
+				annonceusers()
 				break
 			} else {
 

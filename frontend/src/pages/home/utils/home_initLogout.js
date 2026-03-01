@@ -1,7 +1,5 @@
-import { showAlert } from "../../../utils/alert.js";
-import { ClientRouter } from "../../../router.js";
 import { GlobalEventsManager } from "../../../events/init.js";
-import { socket } from "../../../utils/ws.js";
+import { socket, worker } from "../../../utils/ws.js";
 
 export function initLogoutMenu() {
 	GlobalEventsManager.click.RegisterEvent("profile", () => {
@@ -10,8 +8,8 @@ export function initLogoutMenu() {
 		menu.classList.toggle("is-open");
 	});
 
-	GlobalEventsManager.click.RegisterEvent("logoutBtn",async () => {
-		await logout();
+	GlobalEventsManager.click.RegisterEvent("logoutBtn", () => {
+		logout();
 		socket.send(JSON.stringify({ type: "users_info_for_user", for_all_users: true }));
 	});
 
@@ -24,7 +22,7 @@ export function initLogoutMenu() {
 
 export function logout() {
     socket.send(JSON.stringify({ type: "logout" }));
-
+	
     localStorage.removeItem("rtf_user");
-    ClientRouter.navigate("/login");
+	worker.port.postMessage({type: "logout"});
 }

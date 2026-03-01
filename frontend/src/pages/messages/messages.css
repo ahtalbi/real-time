@@ -482,6 +482,7 @@ nav h1 {
   border-radius: 10px;
   border: 1px solid var(--border-subtle);
   background: #fff;
+  resize: none;
 }
 
 .scroll-bottom-btn {
@@ -489,8 +490,8 @@ nav h1 {
   right: 16px;
   bottom: 74px;
   border: 1px solid var(--border-subtle);
+  color: black;
   background: #fff;
-  color: var(--text-primary);
   border-radius: 999px;
   padding: 6px 10px;
   font-size: 12px;

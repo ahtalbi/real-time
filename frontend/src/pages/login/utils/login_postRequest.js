@@ -1,4 +1,3 @@
-import { ClientRouter } from "../../../router.js";
 import { showAlert } from "../../../utils/alert.js";
 import { socket, worker } from "../../../utils/ws.js";
 import { validateLogin } from "./login_validateLoginForm.js";
@@ -15,7 +14,7 @@ export async function loginSendPost(form) {
         return;
     }
 
-    fetch("http://localhost:3000/api/login", {
+    fetch("http://10.1.9.10:3000/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)

@@ -3,7 +3,7 @@ export class PageLoader {
 
     async fileExists(url, type = "") {
         try {
-            const res = await fetch(url, { method: "HEAD", cache: "no-cache" });
+            const res = await fetch(url, { method: "HEAD", cache: "no-store" });
             if (!res.ok) return false;
 
             const ct = res.headers.get("content-type").toLowerCase();
@@ -21,7 +21,7 @@ export class PageLoader {
     }
 
     async loadPageHtml(root, base, pageName) {
-        const res = await fetch(`${base}${pageName}/${pageName}.html`);
+        const res = await fetch(`${base}${pageName}/${pageName}.html`, {cache: "no-store"});
         if (!res.ok) throw new Error("404");
         root.innerHTML = await res.text();
     }
@@ -68,7 +68,9 @@ export class PageLoader {
         const base = "/src/pages/";
         
         await this.loadPageHtml(root, base, pageName);
-        await this.loadPageScript(base, pageName);
-        await this.loadPageCss(base, pageName);
+        try {
+            await this.loadPageScript(base, pageName);
+            await this.loadPageCss(base, pageName);
+        } catch (e) {}
     }
 }

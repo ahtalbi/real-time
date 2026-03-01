@@ -29,6 +29,7 @@
 .textarea-wrapper .input {
     width: 100%;
     resize: none;
+	color: #111;
     box-sizing: border-box;
     border-radius: 20px;
     padding: 12px 90px 12px 16px; 

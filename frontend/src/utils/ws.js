@@ -6,12 +6,9 @@ import { stateUsers } from "../pages/messages/utils/messages_fetchUsers.js";
 import { ClientRouter } from "../router.js";
 
 export let socket = new WebSocketManager({
-    url: "ws://localhost:3000/ws",
+    url: "ws://10.1.9.10:3000/ws",
     onMessage: [onMessage],
 });
-
-export let worker = new SharedWorker("./src/worker.js");
-worker.port.start();
 
 function onMessage(res) {
     res = JSON.parse(res.data);
@@ -28,7 +25,6 @@ function onMessage(res) {
         case "message":
             removeTypingIndicator();
             worker.port.postMessage({ type: "message", message: res.message });
-            socket.send(JSON.stringify({ type: "users_info_for_user" }));
             let urlParams = new URLSearchParams(window.location.search);
             let userId = urlParams.get("userId");
             let currentUser = JSON.parse(localStorage.getItem("rtf_user"));
@@ -36,6 +32,7 @@ function onMessage(res) {
                 socket.send(JSON.stringify({ type: "message_read_in_place", senderID: userId, receiverID: currentUser.ID }));
             }
             stateMessages.StartID++
+            socket.send(JSON.stringify({ type: "users_info_for_user" }));
             break;
 
         case "typing":
@@ -54,10 +51,21 @@ function onMessage(res) {
     }
 }
 
+export let worker = new SharedWorker("./src/worker.js");
+worker.port.start();
+
+window.addEventListener("beforeunload", () => {
+    worker.port.postMessage({type: "disconnect"});
+});
+
 worker.port.onmessage = function (e) {
     switch (e.data.type) {
         case "loggedIn":
             ClientRouter.navigate("/", { history: "replace" });
+            break;
+        case "logout":
+            ClientRouter.navigate("/login", { history: "replace" });
+            break;
         case "user_offline":
             let el = document.querySelector(`[data-user-id="${e.data.userID}"]`);
             if (el) {

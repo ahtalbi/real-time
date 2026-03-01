@@ -11,8 +11,7 @@ export function initCreatePost() {
 		if (picture.files.length > 0) {
 			let file = this.files[0];
 			img.src = URL.createObjectURL(file);
-			img.textContent = ''
-			img.style.backgroundImage = `url(${img.src})`;
+			img.textContent = '';
 			img.style.backgroundSize = "cover";
 			img.style.backgroundPosition = "center";
 		}
@@ -40,7 +39,7 @@ export function initCreatePost() {
 
 		let data = null;
 		try {
-			let res = await fetch("http://localhost:3000/createpost", {
+			let res = await fetch("http://10.1.9.10:3000/createpost", {
 				method: "POST",
 				body: formData,
 			});
