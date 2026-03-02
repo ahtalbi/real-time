@@ -1,7 +1,7 @@
 import { stateUsers } from "./messages_fetchUsers.js";
 import { ConversationTemplate, NoConversationSelected } from "./messages_templates.js";
 import { initFetchMessages } from "./messages_fetchMessages.js";
-import { socket } from "../../../utils/ws.js";
+// import { socket } from "../../../utils/ws.js";
 
 let typingIndicatorTimer = null;
 
@@ -9,7 +9,7 @@ export async function initConversations() {
     let urlParams = new URLSearchParams(window.location.search);
     let userId = urlParams.get("userId");
     let container = document.getElementById("card-messages");
-    socket.send(JSON.stringify({ type: "online_users" }));
+    // socket.send(JSON.stringify({ type: "online_users" }));
     if (userId) {
         let user = stateUsers.Users[userId];
         if (!user) {
@@ -17,10 +17,10 @@ export async function initConversations() {
             return;
         }
         let currentUser = JSON.parse(localStorage.getItem("rtf_user"));
-        socket.send(JSON.stringify({ type: "message_read_in_place", senderID: userId, receiverID: currentUser.ID }));
-        socket.send(JSON.stringify({ type: "users_info_for_user" }));
+        // socket.send(JSON.stringify({ type: "message_read_in_place", senderID: userId, receiverID: currentUser.ID }));
+        // socket.send(JSON.stringify({ type: "users_info_for_user" }));
         container.appendChild(ConversationTemplate(user));
-        initFetchMessages(userId, socket);
+        initFetchMessages(userId);
     } else {
         container.appendChild(NoConversationSelected());
     }

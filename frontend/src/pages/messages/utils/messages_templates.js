@@ -2,7 +2,7 @@ import { GlobalEventsManager } from "../../../events/init.js";
 import { ClientRouter } from "../../../router.js";
 import { showAlert } from "../../../utils/alert.js";
 import { throttle} from "../../../utils/throttle.js";
-import { socket } from "../../../utils/ws.js";
+// import { socket } from "../../../utils/ws.js";
 import { formatTime } from "../../home/utils/home_templates.js";
 import { stateMessages } from "./messages_fetchMessages.js";
 import { initFetchUsers } from "./messages_fetchUsers.js";
@@ -81,11 +81,11 @@ export function ConversationTemplate(User) {
 			input.value = "";
 			return;
 		}
-		socket.send(JSON.stringify({
-			type: "typing",
-			receiverID: User.ID,
-			Status: "typing",
-		}));
+		// socket.send(JSON.stringify({
+		// 	type: "typing",
+		// 	receiverID: User.ID,
+		// 	Status: "typing",
+		// }));
 	});
 
 	function sendMessage(message) {
@@ -95,13 +95,13 @@ export function ConversationTemplate(User) {
 			return
 		}
 
-		socket.send(JSON.stringify({
-			"type": "message",
-			"message": {
-				"Content": message,
-				"ReceiverID": User.ID,
-			}
-		}));
+		// socket.send(JSON.stringify({
+		// 	"type": "message",
+		// 	"message": {
+		// 		"Content": message,
+		// 		"ReceiverID": User.ID,
+		// 	}
+		// }));
 		stateMessages.StartID++;
 		conversation.scrollTop = conversation.scrollHeight;
 		initFetchUsers();

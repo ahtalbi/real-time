@@ -39,7 +39,7 @@ export function initCreatePost() {
 
 		let data = null;
 		try {
-			let res = await fetch("http://10.1.9.10:3000/createpost", {
+			let res = await fetch("http://localhost:3000/createpost", {
 				method: "POST",
 				body: formData,
 			});
@@ -51,7 +51,6 @@ export function initCreatePost() {
 			
 			data = await res.json();
 
-			// reset createpost
 			img.textContent = '📎'
 			img.src = '';
 			img.style.backgroundImage = ``;
@@ -82,6 +81,8 @@ export function showcategoriesForCreatePost() {
 	});
 
 	document.addEventListener('click', (e) => {
+		console.log(e.target);
+		
 		if (!container.contains(e.target)) {
 			categories.classList.remove('is-open');
 		}

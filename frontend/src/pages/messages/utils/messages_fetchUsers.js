@@ -1,10 +1,10 @@
-import { socket } from "../../../utils/ws.js";
+import { worker } from "../../../utils/ws.js";
 
 export let stateUsers = {}
 
 async function fetchUsers() {
 	if (stateUsers.finish) return;
-	socket.send(JSON.stringify({type:"users_info_for_user"}))
+	// worker.port.postMessage({ type: "ws_users_info_for_user" });
 }
 
 export async function initFetchUsers() {
@@ -22,14 +22,14 @@ export async function initFetchUsers() {
 		observer.style.height = "1px";
 		list.parentElement?.appendChild(observer);
 	}
-	await fetchUsers();
-	// await for users to fetched
+
+	fetchUsers();
 	await new Promise((resolve) => {
-  		const check = () => {
-    	if (stateUsers.Users && Object.keys(stateUsers.Users).length > 0) return resolve();
-    	setTimeout(check, 50);
-  		};
-  		check();
+		const check = () => {
+			if (stateUsers.Users && Object.keys(stateUsers.Users).length > 0) return resolve();
+			setTimeout(check, 50);
+		};
+		check();
 	});
 	stateUsers.io = new IntersectionObserver(async ([entry]) => {
 		if (entry.isIntersecting) await fetchUsers();

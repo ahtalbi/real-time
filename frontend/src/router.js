@@ -1,8 +1,9 @@
 import { PageLoader } from "../packages/loader.js";
 import { Router } from "../packages/router.js";
 
+// variable global to use the router package
 export let ClientRouter = new Router();
-
+// this funcitone where we initlize and handler the routing of the front end
 export async function HandleRoutes() {
     let app = document.getElementById("app");
     let loader = new PageLoader();
@@ -24,7 +25,7 @@ export async function HandleRoutes() {
     }
     ClientRouter.listen(on404);
 
-    fetch("http://10.1.9.10:3000/hassession")
+    fetch("http://localhost:3000/hassession")
         .then(res => res.json())
         .then(async res => {
             let path = window.location.pathname;

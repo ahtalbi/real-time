@@ -1,4 +1,4 @@
-import { socket } from "../../../utils/ws.js";
+// import { socket } from "../../../utils/ws.js";
 import { MessageTemplate } from "./messages_templates.js";
 
 export let stateMessages = {
@@ -38,11 +38,11 @@ function fetchMessages() {
 	if (stateMessages.io && stateMessages.topObserver) {
 		stateMessages.io.unobserve(stateMessages.topObserver);
 	}
-	socket.send(JSON.stringify({
-		type: "messages_history",
-		receiverID: stateMessages.receiverID,
-		StartID: stateMessages.StartID,
-	}));
+	// socket.send(JSON.stringify({
+	// 	type: "messages_history",
+	// 	receiverID: stateMessages.receiverID,
+	// 	StartID: stateMessages.StartID,
+	// }));
 }
 
 export function renderMessagesHistory(messages) {

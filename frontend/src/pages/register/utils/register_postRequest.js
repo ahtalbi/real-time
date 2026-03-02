@@ -16,7 +16,7 @@ export function registerSendPost(form) {
     let err = validateUserInfos(payload);
     if (err) { showAlert(err); return }
 
-    fetch("http://10.1.9.10:3000/api/register", {
+    fetch("http://localhost:3000/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

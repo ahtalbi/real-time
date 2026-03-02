@@ -1,5 +1,5 @@
 import { showAlert } from "../../../utils/alert.js";
-import { socket, worker } from "../../../utils/ws.js";
+import { worker } from "../../../utils/ws.js";
 import { validateLogin } from "./login_validateLoginForm.js";
 
 export async function loginSendPost(form) {
@@ -14,7 +14,7 @@ export async function loginSendPost(form) {
         return;
     }
 
-    fetch("http://10.1.9.10:3000/api/login", {
+    fetch("http://localhost:3000/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
@@ -35,8 +35,8 @@ export async function loginSendPost(form) {
                     return;
                 }
                 showAlert("Welcome Back", 2000, "green");
-                socket.send(JSON.stringify({ type: "users_info_for_user" }));
-                worker.port.postMessage({ type: "loggedIn" });
+                // socket.send(JSON.stringify({ type: "users_info_for_user" }));
+                worker.port.postMessage({ type: "shw_loggedIn" });
             } else if (res.error) {
                 showAlert(res.error);
             }

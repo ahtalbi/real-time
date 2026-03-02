@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"rtf/config"
@@ -86,7 +85,7 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 
 		switch Data["type"] {
 		// case of new message received or sent
-		case "message":
+		case "ws_message":
 			msgRaw, ok := Data["message"].(map[string]interface{})
 			if !ok {
 				continue
@@ -96,8 +95,6 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 			if !ok || !pkg.TheMessageFormatIsCorrect(msgRaw) || len(content) > config.Max_Size_message {
 				continue
 			}
-
-			fmt.Println(content)
 
 			ws.Mu.Lock()
 			if !user.RateLimit.Check() {
@@ -134,7 +131,7 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 			break
 
 		// case of receiving and reading message in place
-		case "message_read_in_place":
+		case "ws_message_read_in_place":
 			_, ok := Data["receiverID"].(string)
 			if !ok {
 				continue
@@ -150,7 +147,7 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 			break
 
 		// case of typing status
-		case "typing":
+		case "ws_typing":
 			receiverID, ok := Data["receiverID"].(string)
 			if !ok {
 				continue
@@ -166,7 +163,7 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 			if exist {
 				select {
 				case toUserWS.Chan <- map[string]interface{}{
-					"type":   "typing",
+					"type":   "ws_typing",
 					"from":   USER.ID,
 					"status": status, // status here is "start-typing" or "stop-typing"
 				}:
@@ -176,7 +173,7 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 			break
 
 		// case of get users for chat
-		case "get_users_chat":
+		case "ws_get_users_chat":
 			startID, ok := Data["StartID"].(float64)
 			if !ok {
 				startID = 0
@@ -187,14 +184,14 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 			}
 			select {
 			case user.Chan <- map[string]interface{}{
-				"type": "users_chat",
+				"type": "ws_get_users_chat",
 				"data": users,
 			}:
 			default:
 			}
 			break
 		// case of get users info for the user and for all users if "for_all_users" is true
-		case "users_info_for_user":
+		case "ws_users_info_for_user":
 			_, ok := Data["for_all_users"].(bool)
 
 			if ok {
@@ -216,7 +213,7 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 				}
 				select {
 				case user.Chan <- map[string]interface{}{
-					"type": "users_info_for_user",
+					"type": "ws_users_info_for_user",
 					"data": usersinfo,
 				}:
 				default:
@@ -225,7 +222,7 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 
 			break
 		// case of get messages between two users
-		case "messages_history":
+		case "ws_messages_history":
 			receiverID, ok := Data["receiverID"].(string)
 			if !ok {
 				continue
@@ -244,13 +241,13 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 
 			select {
 			case user.Chan <- map[string]interface{}{
-				"type": "messages_history",
+				"type": "ws_messages_history",
 				"data": msgs,
 			}:
 			default:
 			}
 
-		case "logout":
+		case "ws_logout":
 			c.DB.DisconnectUser(USER.ID)
 
 			ws.Mu.RLock()
@@ -265,7 +262,7 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 			}
 			ws.Mu.RUnlock()
 			select {
-			case user.Chan <- map[string]interface{}{"type": "logout_success"}:
+			case user.Chan <- map[string]interface{}{"type": "ws_logout"}:
 			default:
 			}
 			user.RemoveUserWS(ws, USER.ID, conn)

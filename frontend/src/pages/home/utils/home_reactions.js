@@ -20,7 +20,7 @@ export function initReactions() {
 
 			try {
 				let res = await fetch(
-					"http://10.1.9.10:3000/createreaction",
+					"http://localhost:3000/createreaction",
 					{
 						method: "POST",
 						headers: { "Content-Type": "application/json" },

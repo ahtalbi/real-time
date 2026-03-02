@@ -12,7 +12,7 @@ async function fetchPosts() {
 
 	let res;
 	try {
-		res = await fetch("http://10.1.9.10:3000/getposts", {
+		res = await fetch("http://localhost:3000/getposts", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ offset: statePosts.StartID }),
