@@ -3,7 +3,6 @@ package db
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -155,7 +154,6 @@ func (r *Repo) InsertPostDB(userID string, post models.Post, categoryIDs []int) 
 		id, userID, IDS, post.Content, post.ImageURL, t,
 	)
 	if err != nil {
-		fmt.Println("here", err)
 		return post, errors.New("SERVER ERROR")
 	}
 
@@ -387,7 +385,6 @@ func (r *Repo) Get10PostComments(postid string, offset int) ([]models.Comment, i
 	if er != nil {
 		return nil, 0, er
 	}
-	// fmt.Println(t, postid)
 
 	rows, er := r.Db.Query(` SELECT id, user_id, content, created_at FROM comments WHERE post_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`, postid, config.COMMENTS_FETCH_LIMIT, offset)
 	if er != nil {

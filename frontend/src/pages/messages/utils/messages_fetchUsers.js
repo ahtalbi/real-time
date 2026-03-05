@@ -4,7 +4,7 @@ export let stateUsers = {}
 
 async function fetchUsers() {
 	if (stateUsers.finish) return;
-	// worker.port.postMessage({ type: "ws_users_info_for_user" });
+	worker.port.postMessage({ type: "ws_users_info_for_user", for_all_users: true });
 }
 
 export async function initFetchUsers() {

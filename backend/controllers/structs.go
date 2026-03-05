@@ -65,7 +65,7 @@ type UserWS struct {
 }
 
 // sent a ping message to the client every periode of time to keep the connection alive
-func (u *UserWS) SendPingMessageEveryPeriodeOfTime() {
+func (u *UserWS) SendPingMessageEveryPeriodeOfTime(fn func(), ws *WS) {
 	t := time.NewTicker(config.Ping)
 	go func() {
 		defer t.Stop()
@@ -75,6 +75,8 @@ func (u *UserWS) SendPingMessageEveryPeriodeOfTime() {
 			er := u.Con.WriteMessage(websocket.PingMessage, nil)
 			u.Mu.Unlock()
 			if er != nil {
+				// u.RemoveUserWS(ws, u.UserInfo.ID)
+				// fn()
 				return
 			}
 		}
@@ -82,14 +84,13 @@ func (u *UserWS) SendPingMessageEveryPeriodeOfTime() {
 }
 
 // this function remove the user websocket from the map and close the connection
-func (u *UserWS) RemoveUserWS(ws *WS, userID string, conn *websocket.Conn) {
+func (u *UserWS) RemoveUserWS(ws *WS, userID string) {
 	u.CloseOnce.Do(func() {
 		ws.Mu.Lock()
 		delete(ws.Clients, userID)
-		ws.Mu.Unlock()
-
 		close(u.Chan)
-		conn.Close()
+		_ = u.Con.Close()
+		ws.Mu.Unlock()
 	})
 }
 
@@ -110,39 +111,3 @@ func (u *UserWS) Write() {
 		}
 	}
 }
-
-// broadcast message to all connected clients
-func (ws *WS) Broadcast(msg map[string]interface{}) {
-	ws.Mu.RLock()
-	defer ws.Mu.RUnlock()
-
-	for _, client := range ws.Clients {
-		switch msg["type"] {
-		case "message":
-			select {
-			case client.Chan <- msg:
-			default:
-			}
-		case "get_users_chat", "get_messages":
-		}
-	}
-}
-
-// return online users list excluding the provided user id
-func (ws *WS) OnlineUsersFor(excludeUserID string) []map[string]string {
-	ws.Mu.RLock()
-	defer ws.Mu.RUnlock()
-
-	onlineUsers := make([]map[string]string, 0, len(ws.Clients))
-	for id, u := range ws.Clients {
-		if id == excludeUserID {
-			continue
-		}
-		onlineUsers = append(onlineUsers, map[string]string{
-			"id":       u.UserInfo.ID,
-			"nickname": u.UserInfo.Nickname,
-		})
-	}
-	return onlineUsers
-}
-

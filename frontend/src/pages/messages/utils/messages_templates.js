@@ -1,11 +1,11 @@
 import { GlobalEventsManager } from "../../../events/init.js";
 import { ClientRouter } from "../../../router.js";
 import { showAlert } from "../../../utils/alert.js";
-import { throttle} from "../../../utils/throttle.js";
-// import { socket } from "../../../utils/ws.js";
+import { throttle } from "../../../utils/throttle.js";
 import { formatTime } from "../../home/utils/home_templates.js";
 import { stateMessages } from "./messages_fetchMessages.js";
 import { initFetchUsers } from "./messages_fetchUsers.js";
+import { worker } from "../../../utils/ws.js";
 
 export function UserTemplate(User) {
 	let tpl = document.createElement("template");
@@ -81,11 +81,11 @@ export function ConversationTemplate(User) {
 			input.value = "";
 			return;
 		}
-		// socket.send(JSON.stringify({
-		// 	type: "typing",
-		// 	receiverID: User.ID,
-		// 	Status: "typing",
-		// }));
+		worker.port.postMessage({
+			type: "ws_typing",
+			receiverID: User.ID,
+			Status: "typing",
+		});
 	});
 
 	function sendMessage(message) {
@@ -95,13 +95,14 @@ export function ConversationTemplate(User) {
 			return
 		}
 
-		// socket.send(JSON.stringify({
-		// 	"type": "message",
-		// 	"message": {
-		// 		"Content": message,
-		// 		"ReceiverID": User.ID,
-		// 	}
-		// }));
+		worker.port.postMessage({
+			type: "ws_message",
+			message: {
+				Content: message,
+				ReceiverID: User.ID,
+			},
+		});
+		worker.port.postMessage({type: "ws_users_info_for_user"});
 		stateMessages.StartID++;
 		conversation.scrollTop = conversation.scrollHeight;
 		initFetchUsers();

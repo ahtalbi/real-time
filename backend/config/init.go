@@ -12,9 +12,9 @@ const (
 
 // ping pong
 const (
-	Pong                    = 60 * time.Second // if no pong come from the client in 60 sec, conn will be dead
-	Ping                    = 50 * time.Second
-	Try_write               = 10 * time.Second // attemps to write before 10 sec, otherwise close conn
+	Pong                    = 15 * time.Second // if no pong come from the client in 60 sec, conn will be dead
+	Ping                    = 10 * time.Second
+	Try_write               = 8 * time.Second // attemps to write before 10 sec, otherwise close conn
 	MESSAGE_SIZE_READ_LIMIT = 512              // message limit is 512 bytes
 )
 

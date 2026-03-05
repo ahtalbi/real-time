@@ -13,7 +13,7 @@ function broadcastToTabs(msg) {
 
 // =============================================
 // init web socket 
-// =============================================
+// ============================================= ico
 function initWebSocket() {
   if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) return;
   let url = "ws://localhost:3000/ws";
@@ -36,6 +36,8 @@ function initWebSocket() {
         socket.close();
         broadcastToTabs({ type: "shw_logout", message: data.data });
         break;
+      case "ws_messages_history":
+        broadcastToTabs({ type: "shw_users_info_for_user", message: data.data });
     }
   };
   socket.onopen = () => {

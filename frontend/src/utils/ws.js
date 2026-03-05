@@ -11,8 +11,19 @@ export let worker = new SharedWorker("./src/worker.js");
 worker.port.start();
 
 window.addEventListener("beforeunload", () => {
-    worker.port.postMessage({ type: "disconnect" });
-})
+    sessionStorage.setItem("rtf_reloading", "1");
+});
+
+window.addEventListener("pageshow", () => {
+    sessionStorage.removeItem("rtf_reloading");
+});
+
+window.addEventListener("unload", () => {
+    const isReloading = sessionStorage.getItem("rtf_reloading") === "1";
+    if (isReloading) return;
+
+    worker.port.postMessage({type: "disconnect"});
+});
 
 worker.port.onmessage = function (e) {
     switch (e.data.type) {
