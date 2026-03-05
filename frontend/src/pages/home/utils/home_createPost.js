@@ -81,8 +81,6 @@ export function showcategoriesForCreatePost() {
 	});
 
 	document.addEventListener('click', (e) => {
-		console.log(e.target);
-		
 		if (!container.contains(e.target)) {
 			categories.classList.remove('is-open');
 		}

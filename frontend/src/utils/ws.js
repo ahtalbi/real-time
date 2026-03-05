@@ -1,32 +1,22 @@
 import { getActiveConversationUserId, showTypingIndicator } from "../pages/messages/utils/messages_conversation.js";
 import { MessageTemplate, UserTemplate } from "../pages/messages/utils/messages_templates.js";
-import { stateUsers } from "../pages/messages/utils/messages_fetchUsers.js";
+import { renderMessagesHistory } from "../pages/messages/utils/messages_fetchMessages.js";
 import { ClientRouter } from "../router.js";
-
 
 // =================================================================
 // shared worker
 // =================================================================
 export let worker = new SharedWorker("./src/worker.js");
+export let stateUsers = {
+    Users: {},
+};
 worker.port.start();
-
-window.addEventListener("beforeunload", () => {
-    sessionStorage.setItem("rtf_reloading", "1");
-});
-
-window.addEventListener("pageshow", () => {
-    sessionStorage.removeItem("rtf_reloading");
-});
-
-window.addEventListener("unload", () => {
-    const isReloading = sessionStorage.getItem("rtf_reloading") === "1";
-    if (isReloading) return;
-
-    worker.port.postMessage({type: "disconnect"});
-});
 
 worker.port.onmessage = function (e) {
     switch (e.data.type) {
+        case "tab_uuid":
+            sessionStorage.setItem("tab_uuid", e.data.uuid);
+            break;
         case "shw_loggedIn":
             ClientRouter.navigate("/", { history: "replace" });
             break;
@@ -50,12 +40,30 @@ worker.port.onmessage = function (e) {
                 if (user.ID === JSON.parse(localStorage.getItem("rtf_user")).ID) continue;
                 usersList.append(UserTemplate(user));
             }
+            window.dispatchEvent(new CustomEvent("users:updated"));
             break;
         case "shw_message":
             let conversation = document.querySelector("#conversationBody");
+            if (!conversation) return;
             let message = e.data.message;
+            let urlParams = new URLSearchParams(window.location.search);
+            let userId = urlParams.get("userId");
             conversation.append(MessageTemplate(message.SenderID, message.Content, new Date().toISOString(), message.SenderName, message.ReceiverName));
             conversation.scrollTop = conversation.scrollHeight;
+            if (message.SenderID !== userId) return;
+            let currentUser = JSON.parse(localStorage.getItem("rtf_user"));
+            let user = stateUsers.Users[userId];
+            if (user) {
+                worker.port.postMessage({
+                    type: "ws_message_read_in_place",
+                    senderID: userId,
+                    receiverID: currentUser.ID,
+                });
+                worker.port.postMessage({ type: "ws_users_info_for_user", for_all_users: true});
+            }
+            break;
+        case "shw_messages_history":
+            renderMessagesHistory(e.data.message);
             break;
         case "shw_typing":
             if (e.data.from === getActiveConversationUserId()) {
@@ -64,48 +72,3 @@ worker.port.onmessage = function (e) {
             break;
     }
 }
-
-// =================================================================
-// websocket
-// =================================================================
-
-// function onMessage(res) {
-//     res = JSON.parse(res.data);
-
-//     switch (res.type) {
-//         case "messages_history":
-//             renderMessagesHistory(res.data);
-//             break;
-
-//         case "users_info_for_user":
-//             worker.port.postMessage({ type: "users_info_for_user", data: res.data });
-//             break;
-
-//         case "message":
-//             removeTypingIndicator();
-//             worker.port.postMessage({ type: "message", message: res.message });
-//             let urlParams = new URLSearchParams(window.location.search);
-//             let userId = urlParams.get("userId");
-//             let currentUser = JSON.parse(localStorage.getItem("rtf_user"));
-//             if (userId) {
-//                 socket.send(JSON.stringify({ type: "message_read_in_place", senderID: userId, receiverID: currentUser.ID }));
-//             }
-//             stateMessages.StartID++
-//             socket.send(JSON.stringify({ type: "users_info_for_user" }));
-//             break;
-
-//         case "typing":
-//             worker.port.postMessage({ type: "typing", from: res.from });
-//             break;
-
-//         case "logout_success":
-//             localStorage.removeItem("rtf_user");
-//             ClientRouter.navigate("/login");
-//             socket.send(JSON.stringify({ type: "users_info_for_user", for_all_users: true }));
-//             break;
-
-//         case "user_offline":
-//             worker.port.postMessage({ type: "user_offline", userID: res.userID })
-//             break;
-//     }
-// }

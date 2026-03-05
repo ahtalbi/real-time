@@ -38,10 +38,14 @@ function fetchMessages() {
 	if (stateMessages.io && stateMessages.topObserver) {
 		stateMessages.io.unobserve(stateMessages.topObserver);
 	}
+	let tabUuid = sessionStorage.getItem("tab_uuid");
+	console.log(tabUuid);
+	
 	worker.port.postMessage({
 		type: "ws_messages_history",
 		receiverID: stateMessages.receiverID,
 		StartID: stateMessages.StartID,
+		tab_uuid: tabUuid,
 	});
 }
 
@@ -58,7 +62,7 @@ export function renderMessagesHistory(messages) {
 	let fragment = document.createDocumentFragment();
 
 	for (let message of orderedMessages) {
-		let bubble = MessageTemplate(message.SenderID, message.Content, message.CreatedAt,  message.SenderName, message.ReceiverName);
+		let bubble = MessageTemplate(message.SenderID, message.Content, message.CreatedAt, message.SenderName, message.ReceiverName);
 		fragment.appendChild(bubble);
 	}
 

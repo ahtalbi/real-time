@@ -102,7 +102,7 @@ export function ConversationTemplate(User) {
 				ReceiverID: User.ID,
 			},
 		});
-		worker.port.postMessage({type: "ws_users_info_for_user"});
+		worker.port.postMessage({type: "ws_users_info_for_user", for_all_users: true});
 		stateMessages.StartID++;
 		conversation.scrollTop = conversation.scrollHeight;
 		initFetchUsers();

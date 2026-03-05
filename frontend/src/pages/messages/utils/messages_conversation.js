@@ -1,7 +1,6 @@
-import { stateUsers } from "./messages_fetchUsers.js";
 import { ConversationTemplate, NoConversationSelected } from "./messages_templates.js";
 import { initFetchMessages } from "./messages_fetchMessages.js";
-import { worker } from "../../../utils/ws.js";
+import { stateUsers, worker } from "../../../utils/ws.js";
 
 let typingIndicatorTimer = null;
 
@@ -9,6 +8,7 @@ export async function initConversations() {
     let urlParams = new URLSearchParams(window.location.search);
     let userId = urlParams.get("userId");
     let container = document.getElementById("card-messages");
+    container.innerHTML = "";
     if (userId) {
         let user = stateUsers.Users[userId];
         if (!user) {
@@ -21,7 +21,7 @@ export async function initConversations() {
             senderID: userId,
             receiverID: currentUser.ID,
         });
-        worker.port.postMessage({ type: "ws_users_info_for_user" });
+        worker.port.postMessage({ type: "ws_users_info_for_user", for_all_users: true });
         container.appendChild(ConversationTemplate(user));
         initFetchMessages(userId);
     } else {

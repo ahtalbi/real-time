@@ -1,19 +1,25 @@
 // =============================================
 // sates
 // =============================================
-let tabs = new Set();
+let tabs = new Map();
 let socket = null;
 
 // =============================================
 // borad cast to all tabs
 // =============================================
-function broadcastToTabs(msg) {
+function broadcastToTabs(msg, tab_uuid = null) {
+  console.log(msg , tab_uuid);
+  
+  if (tabs.get(tab_uuid)) {
+    tabs.get(tab_uuid).postMessage(msg);
+    return;
+  }
   tabs.forEach(tab => tab.postMessage(msg));
 }
 
 // =============================================
 // init web socket 
-// ============================================= ico
+// =============================================
 function initWebSocket() {
   if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) return;
   let url = "ws://localhost:3000/ws";
@@ -29,7 +35,7 @@ function initWebSocket() {
       case "ws_message":
         broadcastToTabs({ type: "shw_message", message: data.message });
         break;
-      case "users_info_for_user":
+      case "ws_users_info_for_user":
         broadcastToTabs({ type: "shw_users_info_for_user", message: data.data });
         break;
       case "ws_logout":
@@ -37,9 +43,18 @@ function initWebSocket() {
         broadcastToTabs({ type: "shw_logout", message: data.data });
         break;
       case "ws_messages_history":
-        broadcastToTabs({ type: "shw_users_info_for_user", message: data.data });
+        broadcastToTabs({ type: "shw_messages_history", message: data.data }, data.tab_uuid);
+        break;
+      case "ws_typing":
+        broadcastToTabs({ type: "shw_typing", from: data.from });
+        break;
+      case "ws_user_offline":
+        broadcastToTabs({ type: "shw_user_offline", userID: data.userID });
+        break;
     }
   };
+
+  
   socket.onopen = () => {
     flushPending();
   };
@@ -56,17 +71,19 @@ function flushPending() {
     socket.send(JSON.stringify(pending.shift()));
   }
 }
+
 onconnect = (e) => {
   const port = e.ports[0];
   port.start();
-  tabs.add(port);
-  console.log("on add", tabs.size);
+  let uuid = crypto.randomUUID();
+  tabs.set(uuid, port);
 
+  port.postMessage({type: "tab_uuid", uuid: uuid});
   port.onmessage = async (payload) => {
     payload = payload.data;
     if (payload.type === "disconnect") {
       port.close();
-      tabs.delete(port);
+      tabs.delete(uuid);
       if (tabs.size === 0) {
         try {
           const res = await fetch("http://localhost:3000/logout", {
@@ -75,15 +92,16 @@ onconnect = (e) => {
           });
 
           if (!res.ok) throw new Error(`Logout failed: ${res.status}`);
-
           localStorage.removeItem("rtf_user");
-          worker.port.postMessage({ type: "shw_logout" });
-        } catch {
-
-        }
+          broadcastToTabs({ type: "shw_logout" });
+        } catch {}
       }
-    };
+      return;
+    }
+    if (!payload || typeof payload.type !== "string") return;
+
     const match = /^[a-z]+_/.exec(payload.type);
+    if (!match) return;
     const prefix = match[0];
     switch (prefix) {
       case "ws_":
@@ -103,7 +121,7 @@ onconnect = (e) => {
   }
 
   port.onclose = () => {
-    tabs.delete(port);
+    tabs.delete(uuid);
   };
 };
 
