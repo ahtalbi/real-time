@@ -75,8 +75,8 @@ func (u *UserWS) SendPingMessageEveryPeriodeOfTime(fn func(), ws *WS) {
 			er := u.Con.WriteMessage(websocket.PingMessage, nil)
 			u.Mu.Unlock()
 			if er != nil {
-				// u.RemoveUserWS(ws, u.UserInfo.ID)
-				// fn()
+				u.RemoveUserWS(ws, u.UserInfo.ID)
+				fn()
 				return
 			}
 		}

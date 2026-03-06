@@ -82,7 +82,7 @@ export function renderMessagesHistory(messages) {
 		stateMessages.io.observe(stateMessages.topObserver);
 	}
 	if (isFirstBatch) {
-		body.scrollTop = body.scrollHeight;
+		body.scrollTop += body.scrollHeight;
 	} else {
 		body.scrollTop = body.scrollTop + 10;
 	}

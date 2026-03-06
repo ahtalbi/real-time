@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -111,8 +112,9 @@ func (r *Repo) CheckSessionExistance(req *http.Request) (models.User, error) {
 
 	// check in the browser
 	cookie, err := req.Cookie("session_id")
-	if err != nil || cookie.Value == "" {
-		return user, err
+	if err != nil || cookie == nil || cookie.Value == "" {
+		fmt.Println("here")
+		return user, fmt.Errorf("Error-session")
 	}
 
 	// check in DB
