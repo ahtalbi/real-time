@@ -8,8 +8,6 @@ let socket = null;
 // borad cast to all tabs
 // =============================================
 function broadcastToTabs(msg, tab_uuid = null) {
-  console.log(msg , tab_uuid);
-  
   if (tabs.get(tab_uuid)) {
     tabs.get(tab_uuid).postMessage(msg);
     return;
@@ -38,10 +36,10 @@ function initWebSocket() {
       case "ws_users_info_for_user":
         broadcastToTabs({ type: "shw_users_info_for_user", message: data.data });
         break;
-      case "ws_logout":
-        socket.close();
-        broadcastToTabs({ type: "shw_logout", message: data.data });
-        break;
+      // case "ws_logout":
+      //   socket.close();
+      //   broadcastToTabs({ type: "shw_logout", message: data.data });
+      //   break;
       case "ws_messages_history":
         broadcastToTabs({ type: "shw_messages_history", message: data.data }, data.tab_uuid);
         break;
@@ -75,27 +73,16 @@ function flushPending() {
 onconnect = (e) => {
   const port = e.ports[0];
   port.start();
+
   let uuid = crypto.randomUUID();
   tabs.set(uuid, port);
-
   port.postMessage({type: "tab_uuid", uuid: uuid});
+  
   port.onmessage = async (payload) => {
     payload = payload.data;
     if (payload.type === "disconnect") {
       port.close();
       tabs.delete(uuid);
-      if (tabs.size === 0) {
-        try {
-          const res = await fetch("http://localhost:3000/logout", {
-            method: "POST",
-            credentials: "include",
-          });
-
-          if (!res.ok) throw new Error(`Logout failed: ${res.status}`);
-          localStorage.removeItem("rtf_user");
-          broadcastToTabs({ type: "shw_logout" });
-        } catch {}
-      }
       return;
     }
     if (!payload || typeof payload.type !== "string") return;

@@ -7,6 +7,7 @@ import (
 func Routes(mux *http.ServeMux, handler *Handler) {
 	//
 	routes := map[string]http.HandlerFunc{
+		"/logout":         handler.Cntrlrs.Logout,
 		"/createpost":     handler.Cntrlrs.CreatePost,
 		"/createreaction": handler.Cntrlrs.Reactions,
 		"/createcomment":  handler.Cntrlrs.CreateComment,

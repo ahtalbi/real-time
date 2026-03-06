@@ -39,7 +39,6 @@ function fetchMessages() {
 		stateMessages.io.unobserve(stateMessages.topObserver);
 	}
 	let tabUuid = sessionStorage.getItem("tab_uuid");
-	console.log(tabUuid);
 	
 	worker.port.postMessage({
 		type: "ws_messages_history",

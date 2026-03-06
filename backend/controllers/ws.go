@@ -180,7 +180,7 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 				if exist {
 					select {
 					case toUserWS.Chan <- map[string]interface{}{
-						"type":   "typing",
+						"type":   "ws_typing",
 						"from":   USER.ID,
 						"status": status, // status here is "start-typing" or "stop-typing"
 					}:

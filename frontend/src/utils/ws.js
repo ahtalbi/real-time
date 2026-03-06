@@ -36,8 +36,10 @@ worker.port.onmessage = function (e) {
             usersList.innerHTML = "";
             stateUsers.Users = {};
             for (let user of e.data.message) {
+                console.log("here", user.ID);
+                
                 stateUsers.Users[user.ID] = user;
-                if (user.ID === JSON.parse(localStorage.getItem("rtf_user")).ID) continue;
+                if (user?.ID === JSON.parse(localStorage.getItem("rtf_user"))?.ID) continue;
                 usersList.append(UserTemplate(user));
             }
             window.dispatchEvent(new CustomEvent("users:updated"));
@@ -57,7 +59,7 @@ worker.port.onmessage = function (e) {
                 worker.port.postMessage({
                     type: "ws_message_read_in_place",
                     senderID: userId,
-                    receiverID: currentUser.ID,
+                    receiverID: currentUser?.ID,
                 });
                 worker.port.postMessage({ type: "ws_users_info_for_user", for_all_users: true});
             }

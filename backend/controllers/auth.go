@@ -98,3 +98,26 @@ func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (c *Controller) Logout(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+	w.Header().Set("Content-Type", "application/json")
+
+	userID, ok := r.Context().Value("userID").(string)
+	if !ok {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(`{"error":"unauthorized"}`))
+		return
+	}
+
+	c.DB.DisconnectUser(userID)
+
+	c.Ws.Clients[userID].RemoveUserWS(c.Ws, userID)
+
+	http.SetCookie(w, &http.Cookie{
+		Name:    "session_id",
+		Value:   "",
+		Path:    "/",
+		Expires: time.Now(),
+		MaxAge:  -1,
+	})
+}
