@@ -40,6 +40,11 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 
 	annonceusers := func() {
 		c.Ws.Mu.Lock()
+		if len(ws.Clients) == 0 {
+			c.Ws.Mu.Unlock()
+			return
+		}
+
 		clients := make([]*UserWS, 0, len(ws.Clients))
 		for _, client := range ws.Clients {
 			clients = append(clients, client)
@@ -62,7 +67,7 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 				}
 			}
 
-			if client.Chan != nil {
+			if client != nil && client.Chan != nil {
 				select {
 				case client.Chan <- map[string]interface{}{
 					"type": "ws_users_info_for_user",
@@ -84,6 +89,7 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 
 	for {
 		_, data, er := conn.ReadMessage()
+
 		if er != nil {
 			user.RemoveUserWS(ws, USER.ID)
 			annonceusers()
@@ -94,7 +100,6 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 		if er := json.Unmarshal(data, &Data); er != nil {
 			continue
 		}
-
 		switch Data["type"] {
 		// case of new message received or sent
 		case "ws_message":
@@ -122,28 +127,24 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 			}
 
 			Data["message"] = m
-
 			ws.Mu.Lock()
 			toUserWS, exist := ws.Clients[m.ReceiverID]
 			s, isexist := ws.Clients[USER.ID]
 
-			if s.Chan != nil {
-				if isexist {
-					select {
-					case s.Chan <- Data:
-					default:
-					}
+			if isexist && s.Chan != nil {
+				select {
+				case s.Chan <- Data:
+				default:
 				}
 			}
 
-			if toUserWS.Chan != nil {
-				if exist {
-					select {
-					case toUserWS.Chan <- Data:
-					default:
-					}
+			if exist && toUserWS.Chan != nil {
+				select {
+				case toUserWS.Chan <- Data:
+				default:
 				}
 			}
+
 			ws.Mu.Unlock()
 			break
 
@@ -176,16 +177,14 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 
 			ws.Mu.Lock()
 			toUserWS, exist := ws.Clients[receiverID]
-			if toUserWS.Chan != nil {
-				if exist {
-					select {
-					case toUserWS.Chan <- map[string]interface{}{
-						"type":   "ws_typing",
-						"from":   USER.ID,
-						"status": status, // status here is "start-typing" or "stop-typing"
-					}:
-					default:
-					}
+			if exist && toUserWS.Chan != nil {
+				select {
+				case toUserWS.Chan <- map[string]interface{}{
+					"type":   "ws_typing",
+					"from":   USER.ID,
+					"status": status, // status here is "start-typing" or "stop-typing"
+				}:
+				default:
 				}
 			}
 			ws.Mu.Unlock()
@@ -216,7 +215,6 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 			// case of get users info for the user and for all users if "for_all_users" is true
 		case "ws_users_info_for_user":
 			_, ok := Data["for_all_users"].(bool)
-
 			if ok {
 				annonceusers()
 				break
@@ -234,7 +232,8 @@ func (ws *WS) Connection(conn *websocket.Conn, r *http.Request, c *Controller, U
 						usersinfo[i].IsOnline = false
 					}
 				}
-				if user.Chan != nil {
+
+				if user != nil && user.Chan != nil {
 					select {
 					case user.Chan <- map[string]interface{}{
 						"type": "ws_users_info_for_user",

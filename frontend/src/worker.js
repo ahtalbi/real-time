@@ -29,11 +29,14 @@ function initWebSocket() {
 
   socket.onmessage = (event) => {
     const data = JSON.parse(event.data);
+    
+    
     switch (data.type) {
       case "ws_message":
         broadcastToTabs({ type: "shw_message", message: data.message });
         break;
       case "ws_users_info_for_user":
+        
         broadcastToTabs({ type: "shw_users_info_for_user", message: data.data });
         break;
       // case "ws_logout":
@@ -52,7 +55,7 @@ function initWebSocket() {
     }
   };
 
-  
+
   socket.onopen = () => {
     flushPending();
   };
@@ -76,8 +79,8 @@ onconnect = (e) => {
 
   let uuid = crypto.randomUUID();
   tabs.set(uuid, port);
-  port.postMessage({type: "tab_uuid", uuid: uuid});
-  
+  port.postMessage({ type: "tab_uuid", uuid: uuid });
+
   port.onmessage = async (payload) => {
     payload = payload.data;
     if (payload.type === "disconnect") {
@@ -95,7 +98,9 @@ onconnect = (e) => {
         if (!socket) {
           initWebSocket();
         }
+
         if (socket.readyState === WebSocket.OPEN) {
+          
           socket.send(JSON.stringify(payload));
         } else {
           pending.push(payload);

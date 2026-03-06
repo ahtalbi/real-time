@@ -87,7 +87,9 @@ func (u *UserWS) SendPingMessageEveryPeriodeOfTime(fn func(), ws *WS) {
 func (u *UserWS) RemoveUserWS(ws *WS, userID string) {
 	u.CloseOnce.Do(func() {
 		ws.Mu.Lock()
-		delete(ws.Clients, userID)
+		if c, ok := ws.Clients[userID]; ok && c == u {
+			delete(ws.Clients, userID)
+		}
 		close(u.Chan)
 		_ = u.Con.Close()
 		ws.Mu.Unlock()

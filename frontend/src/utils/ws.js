@@ -31,13 +31,16 @@ worker.port.onmessage = function (e) {
             }
             break;
         case "shw_users_info_for_user":
+            
+            
             let usersList = document.getElementById("FreindsList");
+            
+            
             if (!usersList) return;
             usersList.innerHTML = "";
             stateUsers.Users = {};
+            
             for (let user of e.data.message) {
-                console.log("here", user.ID);
-                
                 stateUsers.Users[user.ID] = user;
                 if (user?.ID === JSON.parse(localStorage.getItem("rtf_user"))?.ID) continue;
                 usersList.append(UserTemplate(user));

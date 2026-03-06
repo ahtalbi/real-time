@@ -10,10 +10,8 @@ export async function initConversations() {
     let container = document.getElementById("card-messages");
     container.innerHTML = "";
     if (userId) {
-        console.log(userId);
         
         let user = stateUsers.Users[userId];
-        console.log(user);
         
         if (!user) {
             container.appendChild(NoConversationSelected());
