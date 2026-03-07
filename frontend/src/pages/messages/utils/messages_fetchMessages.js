@@ -18,7 +18,7 @@ export function initFetchMessages(receiverID) {
 	let topObserver = document.getElementById("messages-observer");
 	stateMessages.topObserver = topObserver;
 
-	let throttledFetchMessages = throttle(fetchMessages, 1000);
+	let throttledFetchMessages = throttle(fetchMessages, 500);
 
 	if (stateMessages.io) stateMessages.io.disconnect();
 	stateMessages.io = new IntersectionObserver(([entry]) => {
