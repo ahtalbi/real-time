@@ -16,7 +16,7 @@ import (
 	"rtf/config"
 	"rtf/models"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -170,7 +170,11 @@ func StatusError(w http.ResponseWriter, er error) {
 
 // this function save a file in the pics folder and return its new name that was generated randomly
 func SaveFile(r io.Reader, originalName string) string {
-	name := uuid.New().String() + filepath.Ext(originalName)
+	fileUUID, err := uuid.NewV4()
+	if err != nil {
+		return ""
+	}
+	name := fileUUID.String() + filepath.Ext(originalName)
 	fp := "db/pics/" + name
 
 	out, err := os.Create(fp)

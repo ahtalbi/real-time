@@ -1,3 +1,4 @@
+import { throttle } from "../../../utils/throttle.js";
 import { worker } from "../../../utils/ws.js";
 import { MessageTemplate } from "./messages_templates.js";
 
@@ -17,10 +18,12 @@ export function initFetchMessages(receiverID) {
 	let topObserver = document.getElementById("messages-observer");
 	stateMessages.topObserver = topObserver;
 
+	let throttledFetchMessages = throttle(fetchMessages, 1000);
+
 	if (stateMessages.io) stateMessages.io.disconnect();
 	stateMessages.io = new IntersectionObserver(([entry]) => {
 		if (entry.isIntersecting) {
-			fetchMessages();
+			throttledFetchMessages();
 		}
 	}, { root: body });
 	stateMessages.io.observe(topObserver);

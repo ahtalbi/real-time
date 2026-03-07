@@ -13,7 +13,7 @@ import (
 	"rtf/models"
 	"rtf/pkg"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -45,7 +45,11 @@ func (r *Repo) InsertUserDB(user models.User) error {
 		return err
 	}
 
-	user.ID = uuid.NewString()
+	userUUID, err := uuid.NewV4()
+	if err != nil {
+		return errors.New("SERVER ERROR")
+	}
+	user.ID = userUUID.String()
 
 	//
 	_, err = r.Db.Exec(
@@ -84,13 +88,17 @@ func (r *Repo) IsUserExist(user *models.User) (string, error) {
 
 // set new session in case of user login
 func (r *Repo) SetUserSession(w http.ResponseWriter, userID string) ([]interface{}, error) {
-	sessionId := uuid.NewString()
+	sessionUUID, err := uuid.NewV7()
+	if err != nil {
+		return nil, errors.New("SERVER ERROR")
+	}
+	sessionId := sessionUUID.String()
 	now := time.Now()
 	timeExpired := now.Add(24 * time.Hour).Format("2006-01-02 15:04:05")
 	timeNow := now.Format("2006-01-02 15:04:05")
 	e := now.Add(24 * time.Hour)
 
-	_, err := r.Db.Exec("UPDATE users SET session_id=?, session_created_at=?, session_expired_at=? WHERE id=?", sessionId, timeNow, timeExpired, userID)
+	_, err = r.Db.Exec("UPDATE users SET session_id=?, session_created_at=?, session_expired_at=? WHERE id=?", sessionId, timeNow, timeExpired, userID)
 	if err != nil {
 		return nil, errors.New("SERVER ERROR")
 	}
@@ -138,7 +146,11 @@ func (r *Repo) CheckSessionExistance(req *http.Request) (models.User, error) {
 }
 
 func (r *Repo) InsertPostDB(userID string, post models.Post, categoryIDs []int) (models.Post, error) {
-	id := uuid.NewString()
+	postUUID, err := uuid.NewV7()
+	if err != nil {
+		return post, errors.New("SERVER ERROR")
+	}
+	id := postUUID.String()
 	t := time.Now().Format("2006-01-02 15:04:05.000000")
 
 	IDS := ""
@@ -150,7 +162,7 @@ func (r *Repo) InsertPostDB(userID string, post models.Post, categoryIDs []int) 
 		IDS = IDS[:len(IDS)-1]
 	}
 
-	_, err := r.Db.Exec(
+	_, err = r.Db.Exec(
 		`INSERT INTO posts(id, user_id, category_ids, content, url_image, created_at) VALUES (?, ?, ?, ?, ?, ?)`,
 		id, userID, IDS, post.Content, post.ImageURL, t,
 	)
@@ -201,7 +213,11 @@ func (r *Repo) IsCategoryCorrect(category string) ([]int, error) {
 
 // insert comment into the DB
 func (r *Repo) InsertCommentDB(comment models.Comment) (models.Comment, error) {
-	id := uuid.NewString()
+	commentUUID, err := uuid.NewV7()
+	if err != nil {
+		return models.Comment{}, errors.New("SERVER ERROR")
+	}
+	id := commentUUID.String()
 	t := time.Now().Format("2006-01-02 15:04:05.000000")
 	_, er := r.Db.Exec(
 		"INSERT INTO comments (id, content, user_id, post_id, created_at) VALUES (?, ?, ?, ?, ?)", id, comment.Content, comment.UserID, comment.PostID, t,
