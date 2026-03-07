@@ -113,7 +113,6 @@ func (r *Repo) CheckSessionExistance(req *http.Request) (models.User, error) {
 	// check in the browser
 	cookie, err := req.Cookie("session_id")
 	if err != nil || cookie == nil || cookie.Value == "" {
-		fmt.Println("here")
 		return user, fmt.Errorf("Error-session")
 	}
 

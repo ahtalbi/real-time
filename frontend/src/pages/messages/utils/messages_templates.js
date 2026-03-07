@@ -69,17 +69,19 @@ export function ConversationTemplate(User) {
 `;
 
 	let el = tpl.content;
-	let throttleSendMessage = throttle(sendMessage, 100);
+	const throttledSendMessage = throttle((value) => { sendMessage(value); });
 
 	let input = el.querySelector("#messageInput");
+
 	input.addEventListener("keydown", (e) => {
 		if (e.key === "Enter" && !e.shiftKey) {
 			e.preventDefault();
+
 			let value = input.value.trim();
 			if (!value) return;
-			if (throttleSendMessage(value) === "functionne not executed") return;
+
+			if (throttledSendMessage(value) === "functionne not executed") return;
 			input.value = "";
-			return;
 		}
 		worker.port.postMessage({
 			type: "ws_typing",
@@ -115,7 +117,8 @@ export function ConversationTemplate(User) {
 
 	GlobalEventsManager.submit.RegisterEvent(`composerForm`, (e) => {
 		let value = e.messageInput.value.trim();
-		if (throttleSendMessage(value) === "functionne not executed") return;
+		if (!value) return;
+		if (throttledSendMessage(value) === "functionne not executed") return;
 		e.messageInput.value = "";
 	})
 

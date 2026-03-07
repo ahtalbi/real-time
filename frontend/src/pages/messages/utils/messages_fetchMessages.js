@@ -30,7 +30,6 @@ export function initFetchMessages(receiverID) {
 	});
 
 	toggleScrollBottomButton(!isNearBottom(body));
-	fetchMessages();
 }
 
 function fetchMessages() {

@@ -8,15 +8,19 @@ export async function initConversations() {
     let urlParams = new URLSearchParams(window.location.search);
     let userId = urlParams.get("userId");
     let container = document.getElementById("card-messages");
+    console.log(userId);
+    
     container.innerHTML = "";
     if (userId) {
-        
         let user = stateUsers.Users[userId];
-        
+        console.log("here user :", user);
         if (!user) {
+            console.log("here no user exists");
             container.appendChild(NoConversationSelected());
             return;
         }
+        console.log("here in the place where we should read the notifications");
+        
         let currentUser = JSON.parse(localStorage.getItem("rtf_user"));
         worker.port.postMessage({
             type: "ws_message_read_in_place",

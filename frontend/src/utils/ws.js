@@ -53,9 +53,9 @@ worker.port.onmessage = function (e) {
             let message = e.data.message;
             let urlParams = new URLSearchParams(window.location.search);
             let userId = urlParams.get("userId");
+            if (message.SenderID !== userId) return;
             conversation.append(MessageTemplate(message.SenderID, message.Content, new Date().toISOString(), message.SenderName, message.ReceiverName));
             conversation.scrollTop = conversation.scrollHeight;
-            if (message.SenderID !== userId) return;
             let currentUser = JSON.parse(localStorage.getItem("rtf_user"));
             let user = stateUsers.Users[userId];
             if (user) {
