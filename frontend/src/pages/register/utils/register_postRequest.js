@@ -2,6 +2,7 @@ import { ClientRouter } from "./../../../router.js";
 import { showAlert } from "./../../../utils/alert.js";
 import { validateUserInfos } from "./register_validateRegisterForm.js";
 
+// this function is to register the user by his informations
 export function registerSendPost(form) {
     let payload = {
         Nickname: form.nickname.value.trim(),

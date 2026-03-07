@@ -1,6 +1,7 @@
 import { GlobalEventsManager } from "../../../events/init.js";
 import { reactionEmojiByType } from "./home_templates.js";
 
+
 export function initReactions() {
 	GlobalEventsManager.click.RegisterEvent( "reaction-option", async (option) => {
 			let type = Number(option.dataset.reactionType);

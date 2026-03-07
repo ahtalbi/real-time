@@ -1,3 +1,4 @@
+// this functionn to see if the data of the user in register is valid
 export function validateUserInfos(user) {
   if (!user.Nickname?.length || !user.Birthday?.length || !user.Gender?.length || !user.Firstname?.length || !user.Lastname?.length || !user.Email?.length || !user.Password?.length || !user.VerifyPassword?.length) return "all feilds are required";
   if (user.Password !== user.VerifyPassword) return "Passwords unmached";
@@ -16,6 +17,5 @@ export function validateUserInfos(user) {
   if (!/^[a-zA-Z_]+$/.test(user.Lastname)) return "invalid lastname format";
   if (!/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(user.Email)) return "invalid email format";
   if (user.Nickname.length > 30 || user.Firstname.length > 30 || user.Lastname.length > 30 || user.Email.length > 60 || user.Password.length > 60) return "feild too large";
-
   return null;
 }

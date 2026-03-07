@@ -1,6 +1,7 @@
 import { GlobalEventsManager } from "../../../events/init.js";
 import { worker } from "../../../utils/ws.js";
 
+// this function to init the logout button 
 export function initLogoutMenu() {
 	GlobalEventsManager.click.RegisterEvent("profile", () => {
 		const menu = document.getElementById("profileDropdown");
@@ -19,6 +20,7 @@ export function initLogoutMenu() {
 	});
 }
 
+// this function to send the logout 
 export async function logout() {
 	try {
 		const res = await fetch("http://localhost:3000/logout", {

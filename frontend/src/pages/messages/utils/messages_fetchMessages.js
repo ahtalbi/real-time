@@ -6,14 +6,18 @@ export let stateMessages = {
 	receiverID: null,
 	StartID: 0,
 	finish: false,
-	io: null,
-	topObserver: null,
+	loading: false,
+	io: null, // this is the intercept observer
+	topObserver: null, // this is the element his self
 };
 
+// this function to initlize the procces of fetching the messages and to start the observer
 export function initFetchMessages(receiverID) {
 	stateMessages.receiverID = receiverID;
 	stateMessages.StartID = 0;
 	stateMessages.finish = false;
+	stateMessages.loading = false;
+
 	let body = document.getElementById("conversationBody");
 	let topObserver = document.getElementById("messages-observer");
 	stateMessages.topObserver = topObserver;
@@ -35,11 +39,10 @@ export function initFetchMessages(receiverID) {
 	toggleScrollBottomButton(!isNearBottom(body));
 }
 
+// this function to fetch the messages using the tab_uuid to just take the messages for this tab
 function fetchMessages() {
-	if (stateMessages.finish) return;
-	if (stateMessages.io && stateMessages.topObserver) {
-		stateMessages.io.unobserve(stateMessages.topObserver);
-	}
+	if (stateMessages.finish || stateMessages.loading) return;
+	stateMessages.loading = true;
 	let tabUuid = sessionStorage.getItem("tab_uuid");
 	
 	worker.port.postMessage({
@@ -50,12 +53,14 @@ function fetchMessages() {
 	});
 }
 
+// this function to render Messages History on the elements based on teh batch
 export function renderMessagesHistory(messages) {
 	let body = document.getElementById("conversationBody");
 	let isFirstBatch = stateMessages.StartID === 0;
 
 	if (!Array.isArray(messages) || messages.length === 0) {
 		stateMessages.finish = true;
+		stateMessages.loading = false;
 		return;
 	}
 
@@ -80,9 +85,6 @@ export function renderMessagesHistory(messages) {
 
 	stateMessages.StartID += messages.length;
 	stateMessages.loading = false;
-	if (!stateMessages.finish && stateMessages.io && stateMessages.topObserver) {
-		stateMessages.io.observe(stateMessages.topObserver);
-	}
 	if (isFirstBatch) {
 		body.scrollTop += body.scrollHeight;
 	} else {
@@ -91,11 +93,10 @@ export function renderMessagesHistory(messages) {
 	toggleScrollBottomButton(!isNearBottom(body));
 }
 
-function isNearBottom(body) {
-	let threshold = 8;
-	return body.scrollHeight - body.scrollTop - body.clientHeight <= threshold;
-}
+// this function to check if we are at the bottom of the conversation or no
+function isNearBottom(body) { return body.scrollHeight - body.scrollTop - body.clientHeight <= 8; }
 
+// this function is to toggle the button scroll to bottom
 function toggleScrollBottomButton(show) {
 	let btn = document.getElementById("scrollBottomBtn");
 	btn.style.display = show ? "flex" : "none";

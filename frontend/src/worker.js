@@ -1,23 +1,7 @@
-// =============================================
-// sates
-// =============================================
 let tabs = new Map();
 let socket = null;
 
-// =============================================
-// borad cast to all tabs
-// =============================================
-function broadcastToTabs(msg, tab_uuid = null) {
-  if (tabs.get(tab_uuid)) {
-    tabs.get(tab_uuid).postMessage(msg);
-    return;
-  }
-  tabs.forEach(tab => tab.postMessage(msg));
-}
-
-// =============================================
-// init web socket 
-// =============================================
+// this function to initlize the websocket
 function initWebSocket() {
   if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) return;
   let url = "ws://localhost:3000/ws";
@@ -30,19 +14,13 @@ function initWebSocket() {
   socket.onmessage = (event) => {
     const data = JSON.parse(event.data);
     
-    
     switch (data.type) {
       case "ws_message":
         broadcastToTabs({ type: "shw_message", message: data.message });
         break;
       case "ws_users_info_for_user":
-        
         broadcastToTabs({ type: "shw_users_info_for_user", message: data.data });
         break;
-      // case "ws_logout":
-      //   socket.close();
-      //   broadcastToTabs({ type: "shw_logout", message: data.data });
-      //   break;
       case "ws_messages_history":
         broadcastToTabs({ type: "shw_messages_history", message: data.data }, data.tab_uuid);
         break;
@@ -61,11 +39,9 @@ function initWebSocket() {
   };
 };
 
-// =============================================
-// on connect new tab opened
-// =============================================
 let pending = [];
 
+// this function to send the messages who are pending when the socket is still not open 
 function flushPending() {
   if (!socket || socket.readyState !== WebSocket.OPEN) return;
   while (pending.length) {
@@ -73,6 +49,16 @@ function flushPending() {
   }
 }
 
+// this function to broadcast to all the tabs from here the shared worker
+function broadcastToTabs(msg, tab_uuid = null) {
+  if (tabs.get(tab_uuid)) {
+    tabs.get(tab_uuid).postMessage(msg);
+    return;
+  }
+  tabs.forEach(tab => tab.postMessage(msg));
+}
+
+// this is the function that executes when some one enter the shared worker like new tab
 onconnect = (e) => {
   const port = e.ports[0];
   port.start();

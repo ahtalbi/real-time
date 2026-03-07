@@ -4,22 +4,18 @@ import { stateUsers, worker } from "../../../utils/ws.js";
 
 let typingIndicatorTimer = null;
 
+// this function to init the conversation to see if we are selected a conversation or no 
 export async function initConversations() {
-    let urlParams = new URLSearchParams(window.location.search);
-    let userId = urlParams.get("userId");
+    let userId = getActiveConversationUserId();
     let container = document.getElementById("card-messages");
-    console.log(userId);
     
     container.innerHTML = "";
     if (userId) {
         let user = stateUsers.Users[userId];
-        console.log("here user :", user);
         if (!user) {
-            console.log("here no user exists");
             container.appendChild(NoConversationSelected());
             return;
         }
-        console.log("here in the place where we should read the notifications");
         
         let currentUser = JSON.parse(localStorage.getItem("rtf_user"));
         worker.port.postMessage({
@@ -35,11 +31,13 @@ export async function initConversations() {
     }
 }
 
+// this function to get the user id on the url parametre
 export function getActiveConversationUserId() {
     let urlParams = new URLSearchParams(window.location.search);
     return urlParams.get("userId");
 }
 
+// this funciton is to show that the auther person is typing
 export function showTypingIndicator() {
     let body = document.getElementById("conversationBody");
     if (!body) return;
@@ -58,6 +56,8 @@ export function showTypingIndicator() {
     }, 1200);
 }
 
+
+// this funciton is to remove the typing after some time
 export function removeTypingIndicator() {
     if (typingIndicatorTimer) {
         clearTimeout(typingIndicatorTimer);

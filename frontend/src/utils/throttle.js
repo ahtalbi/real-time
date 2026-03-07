@@ -1,3 +1,4 @@
+// this is throttle function we make it to stop too much actions on some function
 export function throttle(fn, wait = 500) {
 	let isThrottled = false;
 

@@ -1,3 +1,4 @@
+
 export function initSetUserData() {
     let dataUser = localStorage.getItem("rtf_user");
     dataUser = JSON.parse(dataUser);

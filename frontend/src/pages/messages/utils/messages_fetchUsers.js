@@ -1,5 +1,6 @@
 import { worker } from "../../../utils/ws.js";
 
+// this function to fetch the users
 export async function initFetchUsers() {
 	return new Promise((resolve, reject) => {
 		let settled = false;

@@ -2,16 +2,11 @@ import { getActiveConversationUserId, showTypingIndicator } from "../pages/messa
 import { MessageTemplate, UserTemplate } from "../pages/messages/utils/messages_templates.js";
 import { renderMessagesHistory } from "../pages/messages/utils/messages_fetchMessages.js";
 import { ClientRouter } from "../router.js";
-
-// =================================================================
-// shared worker
-// =================================================================
+// here where we initlize our web worker
 export let worker = new SharedWorker("./src/worker.js");
-export let stateUsers = {
-    Users: {},
-};
+export let stateUsers = { Users: {} };
 worker.port.start();
-
+// here where we specify if the worker is gonna talk to us
 worker.port.onmessage = function (e) {
     switch (e.data.type) {
         case "tab_uuid":
@@ -31,40 +26,42 @@ worker.port.onmessage = function (e) {
             }
             break;
         case "shw_users_info_for_user":
-            
-            
             let usersList = document.getElementById("FreindsList");
-            
-            
             if (!usersList) return;
+
             usersList.innerHTML = "";
             stateUsers.Users = {};
-            
+
             for (let user of e.data.message) {
                 stateUsers.Users[user.ID] = user;
                 if (user?.ID === JSON.parse(localStorage.getItem("rtf_user"))?.ID) continue;
                 usersList.append(UserTemplate(user));
             }
+
             window.dispatchEvent(new CustomEvent("users:updated"));
             break;
         case "shw_message":
             let conversation = document.querySelector("#conversationBody");
             if (!conversation) return;
+
             let message = e.data.message;
-            let urlParams = new URLSearchParams(window.location.search);
-            let userId = urlParams.get("userId");
-            if (message.SenderID !== userId) return;
-            conversation.append(MessageTemplate(message.SenderID, message.Content, new Date().toISOString(), message.SenderName, message.ReceiverName));
-            conversation.scrollTop = conversation.scrollHeight;
+            let userId = getActiveConversationUserId();
             let currentUser = JSON.parse(localStorage.getItem("rtf_user"));
+
+            let isIncomingFromActiveUser = message.SenderID === userId && message.ReceiverID === currentUser?.ID;
+            let isOutgoingToActiveUser = message.SenderID === currentUser?.ID && message.ReceiverID === userId;
+            if (!isIncomingFromActiveUser && !isOutgoingToActiveUser) return;
+
+            conversation.append(MessageTemplate(message.SenderID, message.Content, message.CreatedAt, message.SenderName, message.ReceiverName));
+            conversation.scrollTop = conversation.scrollHeight;
             let user = stateUsers.Users[userId];
-            if (user) {
+            if (user && isIncomingFromActiveUser) {
                 worker.port.postMessage({
                     type: "ws_message_read_in_place",
                     senderID: userId,
                     receiverID: currentUser?.ID,
                 });
-                worker.port.postMessage({ type: "ws_users_info_for_user", for_all_users: true});
+                worker.port.postMessage({ type: "ws_users_info_for_user", for_all_users: true });
             }
             break;
         case "shw_messages_history":

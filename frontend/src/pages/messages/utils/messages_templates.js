@@ -7,6 +7,7 @@ import { stateMessages } from "./messages_fetchMessages.js";
 import { initFetchUsers } from "./messages_fetchUsers.js";
 import { worker } from "../../../utils/ws.js";
 
+// this funciton is for the freinds list
 export function UserTemplate(User) {
 	let tpl = document.createElement("template");
 	tpl.innerHTML = `<li class="row-between" data-user-id="${User.ID}" data-username="${User.Nickname}">
@@ -32,6 +33,7 @@ export function UserTemplate(User) {
 	return el;
 }
 
+// this funciton is to make the user tempelate based on his informations 
 export function ConversationTemplate(User) {
 	let tpl = document.createElement("template");
 	tpl.innerHTML = `
@@ -89,7 +91,8 @@ export function ConversationTemplate(User) {
 			Status: "typing",
 		});
 	});
-
+	
+	// this function to send message to the user
 	function sendMessage(message) {
 		if (!message) return;
 		if (message.length > 600) {
@@ -104,7 +107,7 @@ export function ConversationTemplate(User) {
 				ReceiverID: User.ID,
 			},
 		});
-		// worker.port.postMessage({type: "ws_users_info_for_user", for_all_users: true});
+		worker.port.postMessage({type: "ws_users_info_for_user", for_all_users: true});
 		stateMessages.StartID++;
 		conversation.scrollTop = conversation.scrollHeight;
 		initFetchUsers();
@@ -125,6 +128,7 @@ export function ConversationTemplate(User) {
 	return el;
 }
 
+// this function is to make this template when no user exists
 export function NoConversationSelected() {
 	let tpl = document.createElement("template");
 	tpl.innerHTML = `<div class="conversation-empty">
@@ -135,6 +139,7 @@ export function NoConversationSelected() {
 	return tpl.content.firstElementChild;
 }
 
+// this function to format the message before sending it
 export function MessageTemplate(senderID, content, createdAt, senderName = "", reciverName = "") {
 	let user = JSON.parse(localStorage.getItem("rtf_user"));
 

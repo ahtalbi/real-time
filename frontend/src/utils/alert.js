@@ -1,5 +1,6 @@
 let alertTimer = null;
 
+// this is function i use it to show alert to the user
 export function showAlert(message, duration = 10000, bg = "red") {
   let old = document.getElementById("alert");
   if (old) old.remove();

@@ -2,6 +2,7 @@ import { showAlert } from "../../../utils/alert.js";
 import { GlobalEventsManager } from "../../../events/init.js";
 import { postTemplate } from "./home_templates.js";
 
+// this function does create the form for the post
 export function initCreatePost() {
 	let posts = document.getElementById("posts");
 	let picture = document.getElementById("createpostImage");
@@ -13,6 +14,8 @@ export function initCreatePost() {
 			let file = this.files[0];
 			if (previewUrl) URL.revokeObjectURL(previewUrl);
 			previewUrl = URL.createObjectURL(file);
+			console.log(previewUrl);
+			
 			img.style.backgroundImage = `url("${previewUrl}")`;
 			img.textContent = "";
 			img.style.backgroundSize = "cover";
@@ -81,6 +84,7 @@ export function initCreatePost() {
 	});
 }
 
+// this function toggle the categories in the form of the post
 export function showcategoriesForCreatePost() {
 	const container = document.querySelector('.composer');
 	const textarea = document.querySelector('#postCreate textarea[name="content"]');

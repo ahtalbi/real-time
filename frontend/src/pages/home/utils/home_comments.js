@@ -2,6 +2,7 @@ import { showAlert } from "../../../utils/alert.js";
 import { GlobalEventsManager } from "../../../events/init.js";
 import { commentTemplate } from "./home_templates.js";
 
+// this function is to init the form of create comment
 export function initCreateComment() {
 	GlobalEventsManager.submit.RegisterEvent("comment-form", async (form) => {
 		let postId = form.elements.PostId.value;
@@ -34,6 +35,7 @@ export function initCreateComment() {
 	});
 }
 
+// this functione to close and open the comments container
 export function initToggleComments() {
 	GlobalEventsManager.click.RegisterEvent("toggle-comments-btn", (btn) => {
 		let post = btn.closest(".post");

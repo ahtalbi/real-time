@@ -7,6 +7,7 @@ let statePosts = {
 	io: null,
 };
 
+// this function is to fetch the posts by offset
 async function fetchPosts() {
 	if (!statePosts.finish) return;
 
@@ -50,6 +51,7 @@ async function fetchPosts() {
 	statePosts.StartID += 10;
 }
 
+// this function is to init the posts observer for listening
 export function initPostsFetchObserver() {
 	let footer = document.getElementById("footer-observer");
 
