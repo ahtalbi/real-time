@@ -1,57 +1,19 @@
-const STORAGE_KEY = "theme";
-const DEFAULT_THEME = "light";
-let toggleBtn = null;
-
-function setTheme(theme) {
-    document.documentElement.setAttribute("data-theme", theme);
-}
-
-function getInitialTheme() {
-    const savedTheme = localStorage.getItem(STORAGE_KEY);
-    if (savedTheme === "light" || savedTheme === "dark") return savedTheme;
-    return DEFAULT_THEME;
-}
-
-function buildThemeToggle(initialTheme) {
-    const btn = document.createElement("button");
-    btn.id = "theme-toggle";
-    btn.type = "button";
-    btn.className = "theme-toggle";
-    btn.setAttribute("aria-label", "Toggle dark mode");
-    btn.textContent = initialTheme === "dark" ? "Light mode" : "Dark mode";
-    return btn;
-}
-
-function ensureThemeToggle() {
-    const initialTheme = getInitialTheme();
-    if (toggleBtn) {
-        toggleBtn.textContent = initialTheme === "dark" ? "Light mode" : "Dark mode";
-        return toggleBtn;
-    }
-
-    toggleBtn = buildThemeToggle(initialTheme);
-    toggleBtn.addEventListener("click", () => {
-        const currentTheme = document.documentElement.getAttribute("data-theme");
-        const nextTheme = currentTheme === "dark" ? "light" : "dark";
-        setTheme(nextTheme);
-        localStorage.setItem(STORAGE_KEY, nextTheme);
-        toggleBtn.textContent = nextTheme === "dark" ? "Light mode" : "Dark mode";
-    });
-    return toggleBtn;
-}
-
-export function mountThemeToggle(container = document.getElementById("actions")) {
-    const btn = ensureThemeToggle();
-    if (container) {
-        btn.classList.remove("is-floating");
-        container.prepend(btn);
-        return;
-    }
-    btn.classList.add("is-floating");
-    document.body.appendChild(btn);
-}
-
+// this function is to change the theme like to initlize the default theme and change it after time 
 export function initTheme() {
-    setTheme(getInitialTheme());
-    mountThemeToggle();
+    let saved = localStorage.getItem("theme");
+    let theme = saved === "dark" ? "dark" : "light";
+
+    document.documentElement.dataset.theme = theme;
+
+    let btn = document.createElement("button");
+    btn.textContent = theme === "dark" ? "🌞" : "🌚";
+    btn.className = "theme-toggle";
+    btn.onclick = () => {
+        let next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+        document.documentElement.dataset.theme = next;
+        localStorage.setItem("theme", next);
+        btn.textContent = next === "dark" ? "🌞" : "🌚";
+    };
+
+    document.body.prepend(btn);
 }

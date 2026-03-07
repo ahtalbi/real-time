@@ -117,4 +117,4 @@ go run main.go
 
 - `backend/` : Go server, DB initialization, controllers, and WebSocket.
 - `db/` : SQL initialization (init.sql) and related files.
-- `frontend/` : Static UI (HTML/CSS/JS) for the client application.
+- `frontend/` : Static UI (HTML/CSS/JS) for the client application, architect of front end is (feature-based architecture).

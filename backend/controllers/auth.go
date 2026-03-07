@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"rtf/models"
+	"rtf/pkg"
 )
 
 // this handler handles the  user registration. it expects a POST request, and it returns a JSON response with (error or success)
@@ -40,6 +41,49 @@ func (c *Controller) Register(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(`{"success": "registered successfully"}`))
+	c.Anounce()
+}
+
+func (c *Controller) Anounce() {
+	c.Ws.Mu.Lock()
+	if len(c.Ws.Clients) == 0 {
+		c.Ws.Mu.Unlock()
+		return
+	}
+
+	clients := make([]*UserWS, 0, len(c.Ws.Clients))
+	for _, client := range c.Ws.Clients {
+		clients = append(clients, client)
+	}
+	c.Ws.Mu.Unlock()
+
+	for _, client := range clients {
+		usersinfo, er := c.DB.GetUsersInfoFor(client.UserInfo.ID, true)
+		if er != nil {
+			continue
+		}
+		usersinfo = pkg.SortUsers(usersinfo)
+
+		c.Ws.Mu.Lock()
+		for i, u := range usersinfo {
+			if _, ok := c.Ws.Clients[u.ID]; ok {
+				usersinfo[i].IsOnline = true
+			} else {
+				usersinfo[i].IsOnline = false
+			}
+		}
+
+		if client != nil && client.Chan != nil {
+			select {
+			case client.Chan <- map[string]interface{}{
+				"type": "ws_users_info_for_user",
+				"data": usersinfo,
+			}:
+			default:
+			}
+		}
+		c.Ws.Mu.Unlock()
+	}
 }
 
 // this handler is for login. it expects a POST request, and it returns a JSON response with (error or success)
@@ -98,3 +142,26 @@ func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (c *Controller) Logout(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+	w.Header().Set("Content-Type", "application/json")
+
+	userID, ok := r.Context().Value("userID").(string)
+	if !ok {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(`{"error":"unauthorized"}`))
+		return
+	}
+
+	c.DB.DisconnectUser(userID)
+
+	c.Ws.Clients[userID].RemoveUserWS(c.Ws, userID)
+
+	http.SetCookie(w, &http.Cookie{
+		Name:    "session_id",
+		Value:   "",
+		Path:    "/",
+		Expires: time.Now(),
+		MaxAge:  -1,
+	})
+}

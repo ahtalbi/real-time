@@ -16,9 +16,9 @@ func (c *Controller) HasSession(w http.ResponseWriter, r *http.Request) {
 
 	_, er := c.DB.CheckSessionExistance(r)
 	if er != nil {
-		w.WriteHeader(http.StatusUnauthorized)
+		// w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte(`{"error":"session not found"}`))
-		return   
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)

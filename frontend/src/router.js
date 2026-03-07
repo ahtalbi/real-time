@@ -2,8 +2,9 @@ import { PageLoader } from "../packages/loader.js";
 import { Router } from "../packages/router.js";
 import { mountThemeToggle } from "./utils/theme.js";
 
+// variable global to use the router package
 export let ClientRouter = new Router();
-
+// this funcitone where we initlize and handler the routing of the front end
 export async function HandleRoutes() {
     let app = document.getElementById("app");
     let loader = new PageLoader();
@@ -36,7 +37,7 @@ export async function HandleRoutes() {
 
             let route = routes[path];
             if (!route) { on404(); return };
-
+            
             if (res.success && !route.auth) ClientRouter.navigate("/");
             else if (res.error && route.auth) ClientRouter.navigate("/login");
             else route.handler();

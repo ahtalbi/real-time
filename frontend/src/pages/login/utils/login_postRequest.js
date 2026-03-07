@@ -1,6 +1,5 @@
-import { ClientRouter } from "../../../router.js";
 import { showAlert } from "../../../utils/alert.js";
-import { socket, worker } from "../../../utils/ws.js";
+import { worker } from "../../../utils/ws.js";
 import { validateLogin } from "./login_validateLoginForm.js";
 
 export async function loginSendPost(form) {
@@ -30,15 +29,15 @@ export async function loginSendPost(form) {
         .then(res => {
             if (res.success && res.user) {
                 try {
-                    localStorage.setItem("rtf_user", JSON.stringify(res.user));
-                } catch {
-                    showAlert("localStorage error");
-                    return;
-                }
-                showAlert("Welcome Back", 2000, "green");
-                socket.send(JSON.stringify({ type: "users_info_for_user" }));
-                worker.port.postMessage({ type: "loggedIn" });
-            } else if (res.error) {
+                localStorage.setItem("rtf_user", JSON.stringify(res.user));
+            } catch {
+                showAlert("localStorage error");
+                return;
+            }
+            showAlert("Welcome Back", 2000, "green");
+            worker.port.postMessage({ type: "shw_loggedIn" });
+            worker.port.postMessage({ type: "ws_users_info_for_user", for_all_users: true });
+        } else if (res.error) {
                 showAlert(res.error);
             }
         })

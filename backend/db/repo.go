@@ -13,7 +13,7 @@ import (
 	"rtf/models"
 	"rtf/pkg"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -45,7 +45,11 @@ func (r *Repo) InsertUserDB(user models.User) error {
 		return err
 	}
 
-	user.ID = uuid.NewString()
+	userUUID, err := uuid.NewV4()
+	if err != nil {
+		return errors.New("SERVER ERROR")
+	}
+	user.ID = userUUID.String()
 
 	//
 	_, err = r.Db.Exec(
@@ -84,13 +88,17 @@ func (r *Repo) IsUserExist(user *models.User) (string, error) {
 
 // set new session in case of user login
 func (r *Repo) SetUserSession(w http.ResponseWriter, userID string) ([]interface{}, error) {
-	sessionId := uuid.NewString()
+	sessionUUID, err := uuid.NewV7()
+	if err != nil {
+		return nil, errors.New("SERVER ERROR")
+	}
+	sessionId := sessionUUID.String()
 	now := time.Now()
 	timeExpired := now.Add(24 * time.Hour).Format("2006-01-02 15:04:05")
 	timeNow := now.Format("2006-01-02 15:04:05")
 	e := now.Add(24 * time.Hour)
 
-	_, err := r.Db.Exec("UPDATE users SET session_id=?, session_created_at=?, session_expired_at=? WHERE id=?", sessionId, timeNow, timeExpired, userID)
+	_, err = r.Db.Exec("UPDATE users SET session_id=?, session_created_at=?, session_expired_at=? WHERE id=?", sessionId, timeNow, timeExpired, userID)
 	if err != nil {
 		return nil, errors.New("SERVER ERROR")
 	}
@@ -112,8 +120,8 @@ func (r *Repo) CheckSessionExistance(req *http.Request) (models.User, error) {
 
 	// check in the browser
 	cookie, err := req.Cookie("session_id")
-	if err != nil || cookie.Value == "" {
-		return user, err
+	if err != nil || cookie == nil || cookie.Value == "" {
+		return user, fmt.Errorf("Error-session")
 	}
 
 	// check in DB
@@ -138,7 +146,11 @@ func (r *Repo) CheckSessionExistance(req *http.Request) (models.User, error) {
 }
 
 func (r *Repo) InsertPostDB(userID string, post models.Post, categoryIDs []int) (models.Post, error) {
-	id := uuid.NewString()
+	postUUID, err := uuid.NewV7()
+	if err != nil {
+		return post, errors.New("SERVER ERROR")
+	}
+	id := postUUID.String()
 	t := time.Now().Format("2006-01-02 15:04:05.000000")
 
 	IDS := ""
@@ -150,12 +162,11 @@ func (r *Repo) InsertPostDB(userID string, post models.Post, categoryIDs []int) 
 		IDS = IDS[:len(IDS)-1]
 	}
 
-	_, err := r.Db.Exec(
+	_, err = r.Db.Exec(
 		`INSERT INTO posts(id, user_id, category_ids, content, url_image, created_at) VALUES (?, ?, ?, ?, ?, ?)`,
 		id, userID, IDS, post.Content, post.ImageURL, t,
 	)
 	if err != nil {
-		fmt.Println("here", err)
 		return post, errors.New("SERVER ERROR")
 	}
 
@@ -202,8 +213,12 @@ func (r *Repo) IsCategoryCorrect(category string) ([]int, error) {
 
 // insert comment into the DB
 func (r *Repo) InsertCommentDB(comment models.Comment) (models.Comment, error) {
-	id := uuid.NewString()
-	t := time.Now().Format("2006-01-02 15:04:05")
+	commentUUID, err := uuid.NewV7()
+	if err != nil {
+		return models.Comment{}, errors.New("SERVER ERROR")
+	}
+	id := commentUUID.String()
+	t := time.Now().Format("2006-01-02 15:04:05.000000")
 	_, er := r.Db.Exec(
 		"INSERT INTO comments (id, content, user_id, post_id, created_at) VALUES (?, ?, ?, ?, ?)", id, comment.Content, comment.UserID, comment.PostID, t,
 	)
@@ -387,7 +402,6 @@ func (r *Repo) Get10PostComments(postid string, offset int) ([]models.Comment, i
 	if er != nil {
 		return nil, 0, er
 	}
-	// fmt.Println(t, postid)
 
 	rows, er := r.Db.Query(` SELECT id, user_id, content, created_at FROM comments WHERE post_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`, postid, config.COMMENTS_FETCH_LIMIT, offset)
 	if er != nil {
@@ -538,27 +552,27 @@ func (r *Repo) Get100UsersFor(userID string, startID int) ([]models.User, error)
 
 // get the users info with the last message for the message list
 func (r *Repo) GetUsersInfoFor(userID string, forAll bool) ([]models.UserInfo, error) {
-    usersInfo := []models.UserInfo{}
+	usersInfo := []models.UserInfo{}
 
-    rows, err := r.Db.Query(`SELECT id, nickname, firstname, lastname FROM users`)
-    if err != nil {
-        return nil, errors.New("SERVER ERROR")
-    }
-    defer rows.Close()
+	rows, err := r.Db.Query(`SELECT id, nickname, firstname, lastname FROM users`)
+	if err != nil {
+		return nil, errors.New("SERVER ERROR")
+	}
+	defer rows.Close()
 
-    for rows.Next() {
-        var u models.UserInfo
-        err := rows.Scan(&u.ID, &u.Nickname, &u.Firstname, &u.Lastname)
-        if err != nil {
-            return nil, errors.New("SERVER ERROR")
-        }
+	for rows.Next() {
+		var u models.UserInfo
+		err := rows.Scan(&u.ID, &u.Nickname, &u.Firstname, &u.Lastname)
+		if err != nil {
+			return nil, errors.New("SERVER ERROR")
+		}
 
-        if  u.ID == userID && !forAll {
-            continue
-        }
-            // get the last message between them
-            var msg models.Message
-            err = r.Db.QueryRow(`
+		if u.ID == userID && !forAll {
+			continue
+		}
+		// get the last message between them
+		var msg models.Message
+		err = r.Db.QueryRow(`
             SELECT id, sender_id, receiver_id, content, is_NOT_read, created_at 
             FROM messages 
             WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)
@@ -566,28 +580,28 @@ func (r *Repo) GetUsersInfoFor(userID string, forAll bool) ([]models.UserInfo, e
             LIMIT 1
         `, userID, u.ID, u.ID, userID).Scan(&msg.ID, &msg.SenderID, &msg.ReceiverID, &msg.Content, &msg.IsNotRead, &msg.CreatedAt)
 
-            if err != nil && err != sql.ErrNoRows {
-                return nil, errors.New("SERVER ERROR")
-            }
-            u.LastMessage = msg
+		if err != nil && err != sql.ErrNoRows {
+			return nil, errors.New("SERVER ERROR")
+		}
+		u.LastMessage = msg
 
-            // calcul the number of messages not read from the other user
-            var count int
-            err = r.Db.QueryRow(` SELECT COUNT(*) FROM messages WHERE sender_id = ? AND receiver_id = ? AND is_NOT_read = 1`, u.ID, userID).Scan(&count)
-            if err != nil {
-                return nil, errors.New("SERVER ERROR")
-            }
-            u.NumberOfUnreadMessages = count
+		// calcul the number of messages not read from the other user
+		var count int
+		err = r.Db.QueryRow(` SELECT COUNT(*) FROM messages WHERE sender_id = ? AND receiver_id = ? AND is_NOT_read = 1`, u.ID, userID).Scan(&count)
+		if err != nil {
+			return nil, errors.New("SERVER ERROR")
+		}
+		u.NumberOfUnreadMessages = count
 
-            usersInfo = append(usersInfo, u)
-        
-    }
+		usersInfo = append(usersInfo, u)
 
-    if len(usersInfo) == 0 {
-        return nil, errors.New("no user exists")
-    }
+	}
 
-    return usersInfo, nil
+	if len(usersInfo) == 0 {
+		return nil, errors.New("no user exists")
+	}
+
+	return usersInfo, nil
 }
 
 // get the user id based on the front id from DB
@@ -621,6 +635,15 @@ func (r *Repo) InsertMessage(msg map[string]interface{}) (models.Message, error)
 	id, _ := res.LastInsertId()
 	m.ID = int(id)
 	m.IsNotRead = 1
+
+	m.SenderName, er = r.GetUserAuthernameByID(senderID)
+	if er != nil {
+		return models.Message{}, er
+	}
+	m.ReceiverName, er = r.GetUserAuthernameByID(receiverID)
+	if er != nil {
+		return models.Message{}, er
+	}
 
 	return m, nil
 }
@@ -732,6 +755,14 @@ func (r *Repo) GetMessagesHistoryBetweenTwoUsers(senderID, receiverID string, of
 	for rows.Next() {
 		m := models.Message{}
 		er := rows.Scan(&m.SenderID, &m.ReceiverID, &m.Content, &m.CreatedAt)
+		if er != nil {
+			continue
+		}
+		m.ReceiverName, er = r.GetUserAuthernameByID(m.ReceiverID)
+		if er != nil {
+			continue
+		}
+		m.SenderName, er = r.GetUserAuthernameByID(m.SenderID)
 		if er != nil {
 			continue
 		}

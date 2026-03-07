@@ -114,6 +114,10 @@ body {
 }
 
 .theme-toggle {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 9998;
   border: 1px solid var(--border-subtle);
   background: var(--toggle-bg);
   color: var(--text-primary);

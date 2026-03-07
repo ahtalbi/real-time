@@ -1,43 +1,52 @@
-import { stateUsers } from "./messages_fetchUsers.js";
 import { ConversationTemplate, NoConversationSelected } from "./messages_templates.js";
 import { initFetchMessages } from "./messages_fetchMessages.js";
-import { socket } from "../../../utils/ws.js";
+import { stateUsers, worker } from "../../../utils/ws.js";
 
 let typingIndicatorTimer = null;
 
 export async function initConversations() {
-    const urlParams = new URLSearchParams(window.location.search);
+    let urlParams = new URLSearchParams(window.location.search);
     let userId = urlParams.get("userId");
     let container = document.getElementById("card-messages");
-    socket.send(JSON.stringify({ type: "online_users" }));
+    console.log(userId);
+    
+    container.innerHTML = "";
     if (userId) {
         let user = stateUsers.Users[userId];
+        console.log("here user :", user);
         if (!user) {
+            console.log("here no user exists");
             container.appendChild(NoConversationSelected());
             return;
         }
+        console.log("here in the place where we should read the notifications");
+        
         let currentUser = JSON.parse(localStorage.getItem("rtf_user"));
-        socket.send(JSON.stringify({ type: "message_read_in_place", senderID: userId, receiverID: currentUser.ID }));
-        socket.send(JSON.stringify({ type: "users_info_for_user" }));
+        worker.port.postMessage({
+            type: "ws_message_read_in_place",
+            senderID: userId,
+            receiverID: currentUser.ID,
+        });
+        worker.port.postMessage({ type: "ws_users_info_for_user", for_all_users: true });
         container.appendChild(ConversationTemplate(user));
-        initFetchMessages(userId, socket);
+        initFetchMessages(userId);
     } else {
         container.appendChild(NoConversationSelected());
     }
 }
 
 export function getActiveConversationUserId() {
-    const urlParams = new URLSearchParams(window.location.search);
+    let urlParams = new URLSearchParams(window.location.search);
     return urlParams.get("userId");
 }
 
 export function showTypingIndicator() {
-    const body = document.getElementById("conversationBody");
+    let body = document.getElementById("conversationBody");
     if (!body) return;
 
     removeTypingIndicator();
 
-    const indicator = document.createElement("div");
+    let indicator = document.createElement("div");
     indicator.id = "typingIndicator";
     indicator.className = "bubble incoming typing-indicator";
     indicator.textContent = "Typing...";
@@ -55,6 +64,6 @@ export function removeTypingIndicator() {
         typingIndicatorTimer = null;
     }
 
-    const indicator = document.getElementById("typingIndicator");
+    let indicator = document.getElementById("typingIndicator");
     if (indicator) indicator.remove();
 }

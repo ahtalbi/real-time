@@ -3,7 +3,28 @@ import { GlobalEventsManager } from "../../../events/init.js";
 import { postTemplate } from "./home_templates.js";
 
 export function initCreatePost() {
-	const posts = document.getElementById("posts");
+	let posts = document.getElementById("posts");
+	let picture = document.getElementById("createpostImage");
+	let img = document.getElementById('pic');
+	let previewUrl = "";
+
+	picture.addEventListener("change", function () {
+		if (picture.files.length > 0) {
+			let file = this.files[0];
+			if (previewUrl) URL.revokeObjectURL(previewUrl);
+			previewUrl = URL.createObjectURL(file);
+			img.style.backgroundImage = `url("${previewUrl}")`;
+			img.textContent = "";
+			img.style.backgroundSize = "cover";
+			img.style.backgroundPosition = "center";
+			img.style.backgroundRepeat = "no-repeat";
+		} else {
+			if (previewUrl) URL.revokeObjectURL(previewUrl);
+			previewUrl = "";
+			img.textContent = "📎";
+			img.style.backgroundImage = "";
+		}
+	});
 
 	GlobalEventsManager.submit.RegisterEvent("postCreate", async (form) => {
 		const content = form.elements.content.value.trim();
@@ -15,7 +36,6 @@ export function initCreatePost() {
 		const catsCheched = form.querySelectorAll('input[name="categories"]:checked');
 		const categoryType = Array.from(catsCheched).map(cb => cb.value).join(",");
 
-		let picture = document.getElementById("createpostImage");
 		const file = picture.files[0];
 
 		const formData = new FormData();
@@ -39,8 +59,15 @@ export function initCreatePost() {
 			}
 			
 			data = await res.json();
+
+			if (previewUrl) URL.revokeObjectURL(previewUrl);
+			previewUrl = "";
+			img.textContent = "📎";
+			img.style.backgroundImage = "";
+			
 		} catch (e) {
 			showAlert(`Error: ${e.message}`);
+			return
 		}
 		
 		const post = data?.post;

@@ -6,7 +6,7 @@ import { throttle } from "../../../utils/throttle.js";
 export function initCreateComment() {
 	GlobalEventsManager.submit.RegisterEvent("comment-form", throttle(async (form) => {
 		let postId = form.elements.PostId.value;
-		let content = form.elements.comment.value;
+		let content = form.elements.comment.value.trim();
 		if (content.length < 1 || content.length > 60) {
 			showAlert("the length of the comment should be between 1 and 60");
 			return;
@@ -25,7 +25,7 @@ export function initCreateComment() {
 			let list = document.getElementById(`comments-list-${postId}`);
 			let count = document.getElementById(`comments-count-${postId}`);
 			list.insertAdjacentHTML("afterbegin", commentTemplate(data.comment));
-			count.textContent = String(Number(count.textContent || 0) + 1);
+			count.textContent = String(Number(count.textContent) + 1);
 
 			showAlert("Comment added successfully", 3000, "green");
 			form.reset();

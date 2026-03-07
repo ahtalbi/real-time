@@ -1,10 +1,11 @@
 import { GlobalEventsManager } from "../../../events/init.js";
 import { ClientRouter } from "../../../router.js";
 import { showAlert } from "../../../utils/alert.js";
-import { socket, worker } from "../../../utils/ws.js";
 import { throttle } from "../../../utils/throttle.js";
-import { escapeHTML, timeAgo } from "../../home/utils/home_templates.js";
+import { formatTime } from "../../home/utils/home_templates.js";
+import { stateMessages } from "./messages_fetchMessages.js";
 import { initFetchUsers } from "./messages_fetchUsers.js";
+import { worker } from "../../../utils/ws.js";
 
 export function UserTemplate(User) {
 	let tpl = document.createElement("template");
@@ -68,45 +69,58 @@ export function ConversationTemplate(User) {
 `;
 
 	let el = tpl.content;
+	const throttledSendMessage = throttle((value) => { sendMessage(value); });
 
 	let input = el.querySelector("#messageInput");
-	input.addEventListener("input", (e) => {
-		let value = String(e.target.value || "");
-		if (!value.trim()) return;
-		socket.send(JSON.stringify({
-			type: "typing",
+
+	input.addEventListener("keydown", (e) => {
+		if (e.key === "Enter" && !e.shiftKey) {
+			e.preventDefault();
+
+			let value = input.value.trim();
+			if (!value) return;
+
+			if (throttledSendMessage(value) === "functionne not executed") return;
+			input.value = "";
+		}
+		worker.port.postMessage({
+			type: "ws_typing",
 			receiverID: User.ID,
 			Status: "typing",
-		}));
+		});
 	});
+
+	function sendMessage(message) {
+		if (!message) return;
+		if (message.length > 600) {
+			showAlert("the length of the message is more than 600");
+			return
+		}
+
+		worker.port.postMessage({
+			type: "ws_message",
+			message: {
+				Content: message,
+				ReceiverID: User.ID,
+			},
+		});
+		// worker.port.postMessage({type: "ws_users_info_for_user", for_all_users: true});
+		stateMessages.StartID++;
+		conversation.scrollTop = conversation.scrollHeight;
+		initFetchUsers();
+	}
 
 	let conversation = el.querySelector("#conversationBody");
 	GlobalEventsManager.click.RegisterEvent("scrollBottomBtn", () => {
 		conversation.scrollTop = conversation.scrollHeight;
 	});
 
-	GlobalEventsManager.submit.RegisterEvent(`composerForm`, throttle((e) => {
-		let message = e.messageInput.value;
-		message = message.trim();
-		if (!message) return;
-
-		if (message.length < 1 && message.length > 600) {
-			showAlert("the length of the message need to be between 1 and 600");
-			return
-		}
-
-		worker.port.postMessage({ type: "message", message });
-		socket.send(JSON.stringify({
-			"type": "message",
-			"message": {
-				"Content": message,
-				"ReceiverID": User.ID,
-			}
-		}))
+	GlobalEventsManager.submit.RegisterEvent(`composerForm`, (e) => {
+		let value = e.messageInput.value.trim();
+		if (!value) return;
+		if (throttledSendMessage(value) === "functionne not executed") return;
 		e.messageInput.value = "";
-		initFetchUsers()
-
-	}, 1000))
+	})
 
 	return el;
 }
@@ -121,25 +135,24 @@ export function NoConversationSelected() {
 	return tpl.content.firstElementChild;
 }
 
-export function MessageTemplate(ReciverOrSender, content, createdAt) {
-	let side = String(ReciverOrSender || "").toLowerCase();
-	let outgoing = side === "sender" || side === "outgoing" || side === "me" || side === "self";
+export function MessageTemplate(senderID, content, createdAt, senderName = "", reciverName = "") {
+	let user = JSON.parse(localStorage.getItem("rtf_user"));
 
-
-	let time = timeAgo(createdAt);
+	let side = user.ID === senderID ? "outgoing" : "incoming";
+	let time = formatTime(createdAt);
 
 	let tpl = document.createElement("template");
 	tpl.innerHTML = `
-		<div class="bubble ${outgoing ? "outgoing" : "incoming"}">
+		<div class="bubble ${side}">
+			<p class="UserName">${senderName}</p>
 			<p class="bubble-content"></p>
 			<time class="bubble-date"></time>
 		</div>`;
 
 	let el = tpl.content.firstElementChild;
 
-	console.log(escapeHTML(content))
+	el.querySelector(".bubble-content").textContent = content.trim();
 
-	el.querySelector(".bubble-content").textContent = escapeHTML(content);
 	let dateEl = el.querySelector(".bubble-date");
 	dateEl.textContent = time;
 	return el;
