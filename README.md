@@ -1,120 +1,69 @@
-# real-time-forum
-simple social platform with Go backend and static frontend.
+<img src="./frontend/assets/images/banner.png" alt="Valtonom Banner" width="100%" />
 
-## team
-- iaboudou
-- ahtalbi
+# Valtonom — Built for Autonomous Learners
 
-## Start the server
-Open a terminal in the backend/ folder and run the server.
-```
+During my journey at **Zone01 Oujda**, I completed a project called **Valtonom** — a community-driven platform designed for autonomous learners across all domains.
+
+As a self-taught learner myself, I know how challenging it can be to learn independently. When you study on your own, it's not always easy to find people who share the same curiosity, interests, and motivation. Many of us are learning, experimenting, and growing — alone.
+
+**That's the story behind Valtonom.**
+
+Valtonom is a platform where self-taught learners can connect, share knowledge, exchange experiences, and grow together. The goal is to create a space where independent learners can find others like them — people who are learning by themselves but still want a community to progress with.
+
+> *Valtonom is not just a project — it reflects the experience of many autonomous learners who want to learn independently, but not alone.*
+
+---
+
+## The Team
+
+- **iaboudou**
+- **ahtalbi**
+
+---
+
+## Getting Started
+
+Open a terminal in the `backend/` folder and run the server:
+
+```bash
 cd backend
 go run main.go
 ```
 
-## Repository 
+---
+
+## Project Structure
+
 ```
 .
 ├── backend
 │   ├── config
-│   │   └── init.go
 │   ├── controllers
-│   │   ├── auth.go
-│   │   ├── checksession.go
-│   │   ├── createcomment.go
-│   │   ├── createposts.go
-│   │   ├── getcomments.go
-│   │   ├── getposts.go
-│   │   ├── getusers.go
-│   │   ├── help.go
-│   │   ├── home.go
-│   │   ├── reactions.go
-│   │   ├── static.go
-│   │   ├── structs.go
-│   │   └── ws.go
 │   ├── db
-│   │   ├── init.go
-│   │   ├── init.sql
-│   │   ├── pics
-│   │   ├── repo.go
-│   │   └── rtf.db
-│   ├── go.mod
-│   ├── go.sum
-│   ├── main.go
 │   ├── models
-│   │   └── models.go
 │   ├── pkg
-│   │   └── utils.go
 │   └── routes
-│       ├── middleware.go
-│       ├── ratelimit.go
-│       ├── router.go
-│       └── struct.go
 ├── frontend
 │   ├── assets
 │   │   └── images
-│   ├── backup.html
-│   ├── confing_theme.css
-│   ├── index.html
 │   ├── packages
-│   │   ├── eventsManager.js
-│   │   ├── loader.js
-│   │   ├── router.js
-│   │   └── websocket.js
 │   └── src
 │       ├── events
-│       │   └── init.js
-│       ├── index.js
 │       ├── pages
 │       │   ├── error
-│       │   │   ├── error.css
-│       │   │   ├── error.html
-│       │   │   └── error.js
 │       │   ├── home
-│       │   │   ├── home.css
-│       │   │   ├── home.html
-│       │   │   ├── home.js
-│       │   │   └── utils
-│       │   │       ├── home_comments.js
-│       │   │       ├── home_createPost.js
-│       │   │       ├── home_fetchPosts.js
-│       │   │       ├── home_fetchUsers.js
-│       │   │       ├── home_initLogout.js
-│       │   │       ├── home_reactions.js
-│       │   │       ├── home_setUserData.js
-│       │   │       └── home_templates.js
 │       │   ├── login
-│       │   │   ├── login.css
-│       │   │   ├── login.html
-│       │   │   ├── login.js
-│       │   │   └── utils
-│       │   │       ├── login_imageAnimation.js
-│       │   │       ├── login_postRequest.js
-│       │   │       └── login_validateLoginForm.js
 │       │   ├── messages
-│       │   │   ├── messages.css
-│       │   │   ├── messages.html
-│       │   │   ├── messages.js
-│       │   │   └── utils
-│       │   │       ├── messages_conversation.js
-│       │   │       ├── messages_fetchMessages.js
-│       │   │       ├── messages_fetchUsers.js
-│       │   │       └── messages_templates.js
 │       │   └── register
-│       │       ├── register.css
-│       │       ├── register.html
-│       │       ├── register.js
-│       │       └── utils
-│       │           ├── register_postRequest.js
-│       │           └── register_validateRegisterForm.js
-│       ├── router.js
 │       └── utils
-│           ├── alert.js
-│           └── sortUsers.js
 └── README.md
-
 ```
 
-- `backend/` : Go server, DB initialization, controllers, and WebSocket.
-- `db/` : SQL initialization (init.sql) and related files.
-- `frontend/` : Static UI (HTML/CSS/JS) for the client application, architect of front end is (feature-based architecture).
+- **`backend/`** — Go server, database initialization, controllers, and WebSocket logic.
+- **`frontend/`** — Client-side UI built with a feature-based architecture (HTML/CSS/JS).
+
+---
+
+## About
+
+Valtonom is a community-driven platform for autonomous learners across all domains. It brings together self-taught students who learn independently and grow by sharing knowledge, experiences, and resources.
